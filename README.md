@@ -1,4 +1,8 @@
-p6-PDF-API6
-===========
+p6-PDF-API-Lite
+===============
 
-PDF::API2 redux
+Experimental basic reading/creation + manipulation + writing of PDF files.
+
+- only allow test output using core fonts for now
+- limited, if any, compression support
+
