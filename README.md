@@ -1,5 +1,5 @@
-p6-PDF-Render
-=============
+p6-PDF-Compose
+==============
 
 Experimental CSS driven PDF rendering backend.
 
