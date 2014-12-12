@@ -51,3 +51,8 @@ CSS Property Shortlist
 - table-layout
 - visibility
 - white-spacing
+
+Nice to have (easy to implement in PDF):
+CSS Transforms http://dev.w3.org/csswg/css-transforms/#transform
+- transform
+- transform-origin
