@@ -1,8 +1,10 @@
-p6-PDF-API-Lite
-===============
+p6-PDF-Render
+=============
 
-Experimental basic reading/creation + manipulation + writing of PDF files.
+Experimental CSS driven PDF rendering backend.
 
-- only allow test output using core fonts for now
-- limited, if any, compression support
-
+Initial version likely to have:
+- support for core fonts only
+- basic image rendering, hopefully
+- support for a small subset of available css 2.1 properties
+- some ability to import base template pdf pages
