@@ -1,7 +1,7 @@
-p6-PDF-Compose
-==============
+p6-CSS-Paint
+============
 
-Experimental CSS driven PDF rendering backend.
+Experimental CSS rendering of basic text and images.
 
 Initial version likely to have:
 - support for core fonts only
