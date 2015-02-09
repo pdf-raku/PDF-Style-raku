@@ -1,4 +1,4 @@
-p6-CSS-Paint
+p6-CSS-Style
 ============
 
 Experimental CSS rendering of basic text and images.
