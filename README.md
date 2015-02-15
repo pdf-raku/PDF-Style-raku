@@ -1,7 +1,7 @@
-p6-CSS-Style
+p6-PDF-Style
 ============
 
-Experimental CSS rendering of basic text and images.
+Experimental PDF rendering of basic text and images from CSS styling rules.
 
 Initial version likely to have:
 - support for core fonts only
