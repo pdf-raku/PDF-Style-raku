@@ -1,0 +1,14 @@
+{
+    "name"        : "PDF::Compose",
+    "version"     : "*",
+    "description" : "PDF creation, .... with style!",
+    "depends"     : [ PDF::Tools, Font::AFM ],
+    "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Compose.git",
+    "provides"    : {
+        "PDF::Compose" : "lib/PDF/Compose.pm",
+        "PDF::Compose::Page" : "lib/PDF/Compose/Page.pm",
+        "PDF::Compose::Pages" : "lib/PDF/Compose/Pages.pm"
+     }
+}
+
+ 
