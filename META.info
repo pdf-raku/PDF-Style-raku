@@ -7,7 +7,10 @@
     "provides"    : {
         "PDF::Compose" : "lib/PDF/Compose.pm",
         "PDF::Compose::Page" : "lib/PDF/Compose/Page.pm",
-        "PDF::Compose::Pages" : "lib/PDF/Compose/Pages.pm"
+        "PDF::Compose::Pages" : "lib/PDF/Compose/Pages.pm",
+        "PDF::Compose::Rendering::Text::Atom" : "lib/PDF/Compose/Rendering/Text/Atom.pm",
+        "PDF::Compose::Rendering::Text::Block" : "lib/PDF/Compose/Rendering/Text/Block.pm",
+        "PDF::Compose::Rendering::Text::Line" : "lib/PDF/Compose/Rendering/Text/Line.pm",
      }
 }
 
