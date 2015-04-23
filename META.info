@@ -1,8 +1,8 @@
 {
     "name"        : "PDF::Compose",
     "version"     : "*",
-    "description" : "PDF creation, .... with style!",
-    "depends"     : [ PDF::Tools, Font::AFM ],
+    "description" : "PDF creation, ... with style!",
+    "depends"     : [ PDF::Tools, Font::AFM, HTML::Parser::XML, CSS::Grammar ],
     "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Compose.git",
     "provides"    : {
         "PDF::Compose" : "lib/PDF/Compose.pm",
