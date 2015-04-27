@@ -8,6 +8,7 @@ Initial version likely to have:
 - basic image rendering, hopefully
 - support for a small subset of available css 2.1 properties
 - some ability to import base template pdf pages
+- very nasic HTML support, e.g. `<p>, <div> & <span>` elements
 
 CSS Property todo list:
 - background-attachment: does the brackground scroll?
@@ -52,7 +53,14 @@ CSS Property Shortlist
 - visibility
 - white-spacing
 
-Nice to have (easy to implement in PDF):
+### Nice to have:
+Fonts:
+- font-synthesis
+- font-kerning
 CSS Transforms http://dev.w3.org/csswg/css-transforms/#transform
 - transform
 - transform-origin
+
+
+### General
+- synthetic font/glyphs for NFG generated graphemes?
