@@ -1,10 +1,12 @@
 use v6;
 use Test;
 use PDF::Compose;
-use CSS::Module::CSS3;
+# css 2.1 compat - for now
+use CSS::Module::CSS21;
+use CSS::Module::CSS21::Actions;
 use HTML::Parser::XML;
 
-plan 10;
+plan 14;
 
 diag "loading html";
 my $html = 't/html/basic-p-tag.html'.IO.slurp;
@@ -19,6 +21,7 @@ warn "progressing...";
 
 my $root = $xmldoc.root;
 my $body;
+my $actions = CSS::Module::CSS21::Actions.new;
 
 if $root.name eq 'html' {
     my @bodies = $root.nodes.grep({.can('name') && .name eq 'body' });
@@ -42,6 +45,9 @@ for $body.nodes.list {
     when XML::Element {
         if my $style = .<style> {
             diag "style: $style";
+            ok CSS::Module::CSS21.parse($style,:$actions), "style parse";
+            my $style-ast = $/.ast;
+            ok $style-ast, 'got style ast';
             todo "style attribute processing";
             flunk "style tests";
         }
