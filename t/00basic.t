@@ -14,7 +14,7 @@ is $helvetica.FontName, 'Helvetica', 'font name';
 is $helvetica.Weight, 'Medium', 'font weight';
 
 my $tr-bold-italic;
-lives_ok { $tr-bold-italic = $page.core-font('Times-Roman', :bold, :italic); }, 'core font load - lives';
+lives_ok { $tr-bold-italic = $page.core-font('Times-Roman', :font-weight<bold>, :font-style<italic>); }, 'core font load - lives';
 isa_ok $tr-bold-italic, ::('Font::Metrics::TimesBoldItalic'), 'core font';
 is $tr-bold-italic.FontName, 'Times-BoldItalic', 'font name';
 is $tr-bold-italic.Weight, 'Bold', 'font weight';
