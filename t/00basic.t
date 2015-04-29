@@ -1,6 +1,7 @@
 use v6;
 use Test;
 use PDF::Compose;
+use PDF::Compose::Units :ALL;
 my $pdf = PDF::Compose.new;
 
 isa_ok $pdf, PDF::Compose, 'PDF::Compose.new';
@@ -22,7 +23,16 @@ isnt $tr-bold-italic.ItalicAngle, '0', 'italic angle';
 
 my $font-family = 'Helvetica';
 my $font-weight = 'bold';
+my $width = 200px;
 
-my $css-box = $page.text( 'Hello World', :style{ :$font-family, :$font-weight }, :dry );
+my $text-block = $page.text( q:to"--ENOUGH!!--", :style{ :$font-family, :$font-weight, :$width }, :dry );
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+--ENOUGH!!--
+
+note :$text-block.perl;
 
 done;

@@ -4,7 +4,12 @@ class PDF::Compose::Page {
 
     use Font::AFM;
     use PDF::Compose::Units :ALL;
+    use PDF::Compose::Rendering::Text::Atom;
+    use PDF::Compose::Rendering::Text::Block;
     our %fonts;
+
+    has $.width = 595px;
+    has $.height = 842px;
 
     method core-font($font-name is copy, Str :$font-weight?, Str :$font-style?) {
 
@@ -85,7 +90,7 @@ class PDF::Compose::Page {
             ?? 'italic' !! '';
 
         $font-name = $font-name.subst(/['-'.*]? $/, '-' ~ $bold ~ $italic)
-            if $font-weight || $font-style;
+            if $bold || $italic;
 
         $font-name = stdFontMap{$font-name}
             if stdFontMap{$font-name}:exists;
@@ -100,18 +105,40 @@ class PDF::Compose::Page {
 
     method text( $text, Hash :$style = {}, Bool :$dry = False) {
 
-        # default HTML font should be Arial
-        my $font-family = $style<font-family> // 'helvetica';
+        my $position = $style<position> // 'absolute';
+        die "sorry can only handle aboslute positioning at the moment"
+            unless $position eq 'absolute';
+        die "sorry cannot handle bottom positioning yet" if $style<bottom>;
+        die "sorry cannot handle right positioning yet" if $style<right>;
+        my $left = $style<left> // 0px;
+        my $top = $style<top> // 0px;
+        my $font-family = $style<font-family> // 'arial';
         my $font-weight = $style<font-weight> // 'normal';
         my $font-style = $style<font-style> // 'normal';
         my $font-size = $style<font-size> // 16px;
+        my $width = $style<width> // self.width - $left;
+        my $height = $style<height> // self.height - $top;
+        my $line-height = $style<line-height> // $font-size * 1.2;
+
+        # todo - see how others handle auto widths & page boundarys
+        warn "pushing the boundaries: {:$width} {:$height} {:$top} {:$left}"
+            unless $width > 0 && $height > 0 && $left >= 0 && $left < self.width && $top >= 0 && $top < self.height;
 
         my $font = self.core-font( $font-family, :$font-weight, :$font-style );
 
-        my $text-width = $font.stringwidth( $text );
+        # take word spacing as one space character, for now
+        my $word-spacing = $font.stringwidth( ' ', $font-size );
 
-        die "can only handle :dry = True"
-            unless $dry;
+        # assume uniform simple text, for now
+        my @words = $text.split(/\s+/).grep({ $_ ne ''});
+        my @atoms = @words.map( -> $content {
+            my $width = $font.stringwidth( $content, $font-size );
+            my $height = $font-size;
+            PDF::Compose::Rendering::Text::Atom.new( :$content, :$width, :$height );
+        });
 
+        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height );
+
+        $text-block;
     }
 }
