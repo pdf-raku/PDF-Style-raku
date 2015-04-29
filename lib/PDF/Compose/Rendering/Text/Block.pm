@@ -28,13 +28,17 @@ class PDF::Compose::Rendering::Text::Block {
             my $line-width = 0.0;
 
             while @atoms {
+                my $kern = @atoms[0].kern;
                 my $word-width = @atoms[0].width;
-                if $line.atoms {
-                    $word-width += $word-spacing;
-                    last if $!width && $line-width + $word-width > $!width;
+                if $line.atoms && ! $kern {
+                    # assume this is a word
+                    $kern = $word-spacing;
+                    last if $!width && $line-width + $word-width + $kern > $!width;
                 }
-                $line.atoms.push( @atoms.shift );
-                $line-width += $word-width;
+                my $atom = @atoms.shift;
+                $atom.kern = $kern;
+                $line.atoms.push( $atom );
+                $line-width += $word-width + $kern;
             }
 
             @!lines.push( $line )
@@ -42,8 +46,6 @@ class PDF::Compose::Rendering::Text::Block {
 
             last if $!height && @!lines * $!line-height > $!height;
         }
-
-        warn :@!lines.perl;
 
         @!overflow = @atoms;
     }
