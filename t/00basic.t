@@ -9,13 +9,13 @@ isa_ok $page, ::('PDF::Compose::Page'), 'got first page';
 
 my $helvetica;
 lives_ok { $helvetica = $page.core-font('Helvetica'); }, 'core font load - lives';
-isa_ok $helvetica, ::('Font::Metrics::Helvetica'), 'core font';
+isa_ok $helvetica, ::('Font::Metrics::helvetica'), 'core font';
 is $helvetica.FontName, 'Helvetica', 'font name';
 is $helvetica.Weight, 'Medium', 'font weight';
 
 my $tr-bold-italic;
 lives_ok { $tr-bold-italic = $page.core-font('Times-Roman', :font-weight<bold>, :font-style<italic>); }, 'core font load - lives';
-isa_ok $tr-bold-italic, ::('Font::Metrics::TimesBoldItalic'), 'core font';
+isa_ok $tr-bold-italic, ::('Font::Metrics::times-bolditalic'), 'core font';
 is $tr-bold-italic.FontName, 'Times-BoldItalic', 'font name';
 is $tr-bold-italic.Weight, 'Bold', 'font weight';
 isnt $tr-bold-italic.ItalicAngle, '0', 'italic angle';

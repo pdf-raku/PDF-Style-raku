@@ -11,78 +11,80 @@ class PDF::Compose::Page {
     # font aliases adapted from pdf.js/src/fonts.js
         BEGIN constant stdFontMap = {
 
-          :ArialNarrow<Helvetica>,
-          :ArialNarrow-Bold<Helvetica-Bold>,
-          :ArialNarrow-BoldItalic<Helvetica-BoldOblique>,
-          :ArialNarrow-Italic<Helvetica-Oblique>,
+          :arialnarrow<helvetica>,
+          :arialnarrow-bold<helvetica-bold>,
+          :arialnarrow-bolditalic<helvetica-boldoblique>,
+          :arialnarrow-italic<helvetica-oblique>,
 
-          :ArialBlack<Helvetica>,
-          :ArialBlack-Bold<Helvetica-Bold>,
-          :ArialBlack-BoldItalic<Helvetica-BoldOblique>,
-          :ArialBlack-Italic<Helvetica-Oblique>,
+          :arialblack<helvetica>,
+          :arialblack-bold<helvetica-bold>,
+          :arialblack-bolditalic<helvetica-boldoblique>,
+          :arialblack-italic<helvetica-oblique>,
 
-          :Arial<Helvetica>,
-          :Arial-Bold<Helvetica-Bold>,
-          :Arial-BoldItalic<Helvetica-BoldOblique>,
-          :Arial-Italic<Helvetica-Oblique>,
+          :arial<helvetica>,
+          :arial-bold<helvetica-bold>,
+          :arial-bolditalic<helvetica-boldoblique>,
+          :arial-italic<helvetica-oblique>,
 
-          :ArialMT<Helvetica>,
-          :Arial-BoldItalicMT<Helvetica-BoldOblique>,
-          :Arial-BoldMT<Helvetica-Bold>,
-          :Arial-ItalicMT<Helvetica-Oblique>,
+          :arialmt<helvetica>,
+          :arial-bolditalicmt<helvetica-boldoblique>,
+          :arial-boldmt<helvetica-bold>,
+          :arial-italicmt<helvetica-oblique>,
 
-          :Courier-Bold<Courier-Bold>,
-          :Courier-BoldItalic<Courier-BoldOblique>,
-          :Courier-Italic<Courier-Oblique>,
+          :courier-bold<courier-bold>,
+          :courier-bolditalic<courier-boldoblique>,
+          :courier-italic<courier-oblique>,
 
-          :CourierNew<Courier>,
-          :CourierNew-Bold<Courier-Bold>,
-          :CourierNew-BoldItalic<Courier-BoldOblique>,
-          :CourierNew-Italic<Courier-Oblique>,
+          :couriernew<courier>,
+          :couriernew-bold<courier-bold>,
+          :couriernew-bolditalic<courier-boldoblique>,
+          :couriernew-italic<courier-oblique>,
 
-          :CourierNewPS-BoldItalicMT<Courier-BoldOblique>,
-          :CourierNewPS-BoldMT<Courier-Bold>,
-          :CourierNewPS-ItalicMT<Courier-Oblique>,
-          :CourierNewPSMT<Courier>,
+          :couriernewps-bolditalicmt<courier-boldoblique>,
+          :couriernewps-boldmt<courier-bold>,
+          :couriernewps-italicmt<courier-oblique>,
+          :couriernewpsmt<courier>,
 
-          :Helvetica<Helvetica>,
-          :Helvetica-Bold<Helvetica-Bold>,
-          :Helvetica-BoldItalic<Helvetica-BoldOblique>,
-          :Helvetica-BoldOblique<Helvetica-BoldOblique>,
-          :Helvetica-Italic<Helvetica-Oblique>,
-          :Helvetica-Oblique<Helvetica-Oblique>,
+          :helvetica<helvetica>,
+          :helvetica-bold<helvetica-bold>,
+          :helvetica-bolditalic<helvetica-boldoblique>,
+          :helvetica-boldoblique<helvetica-boldoblique>,
+          :helvetica-italic<helvetica-oblique>,
+          :helvetica-oblique<helvetica-oblique>,
 
-          :Symbol-Bold<Symbol>,
-          :Symbol-BoldItalic<Symbol>,
-          :Symbol-Italic<Symbol>,
+          :symbol-bold<symbol>,
+          :symbol-bolditalic<symbol>,
+          :symbol-italic<symbol>,
 
-          :TimesNewRoman<Times-Roman>,
-          :TimesNewRoman-Bold<Times-Bold>,
-          :TimesNewRoman-BoldItalic<Times-BoldItalic>,
-          :TimesNewRoman-Italic<Times-Italic>,
+          :timesnewroman<times-roman>,
+          :timesnewroman-bold<times-bold>,
+          :timesnewroman-bolditalic<times-bolditalic>,
+          :timesnewroman-italic<times-italic>,
 
-          :TimesNewRomanPS<Times-Roman>,
-          :TimesNewRomanPS-Bold<Times-Bold>,
-          :TimesNewRomanPS-BoldItalic<Times-BoldItalic>,
+          :timesnewromanps<times-roman>,
+          :timesnewromanps-bold<times-bold>,
+          :timesnewromanps-bolditalic<times-bolditalic>,
 
-          :TimesNewRomanPS-BoldItalicMT<Times-BoldItalic>,
-          :TimesNewRomanPS-BoldMT<Times-Bold>,
-          :TimesNewRomanPS-Italic<Times-Italic>,
-          :TimesNewRomanPS-ItalicMT<Times-Italic>,
+          :timesnewromanps-bolditalicmt<times-bolditalic>,
+          :timesnewromanps-boldmt<times-bold>,
+          :timesnewromanps-italic<times-italic>,
+          :timesnewromanps-italicmt<times-italic>,
 
-          :TimesNewRomanPSMT<Times-Roman>,
-          :TimesNewRomanPSMT-Bold<Times-Bold>,
-          :TimesNewRomanPSMT-BoldItalic<Times-BoldItalic>,
-          :TimesNewRomanPSMT-Italic<Times-Italic>,
+          :timesnewromanpsmt<times-roman>,
+          :timesnewromanpsmt-bold<times-bold>,
+          :timesnewromanpsmt-bolditalic<times-bolditalic>,
+          :timesnewromanpsmt-italic<times-italic>,
         };
 
+        $font-name = $font-name.lc;
+
         my $bold = $font-weight && $font-weight ~~ m:i/bold|[6..9]00/
-            ?? 'Bold' !! '';
+            ?? 'bold' !! '';
 
         my $italic = $font-style && $font-style ~~ m:i/italic|oblique/
-            ?? 'Italic' !! '';
+            ?? 'italic' !! '';
 
-        $font-name = $font-name.subst(/['-'.*]? $/, $bold ~ $italic)
+        $font-name = $font-name.subst(/['-'.*]? $/, '-' ~ $bold ~ $italic)
             if $font-weight || $font-style;
 
         $font-name = stdFontMap{$font-name}
