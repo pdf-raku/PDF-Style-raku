@@ -129,13 +129,21 @@ class PDF::Compose::Page {
         # take word spacing as one space character, for now
         my $word-spacing = $font.stringwidth( ' ', $font-size );
 
+        my $do-kerning = $style<font-kerning>
+            && ( $style<font-kerning> eq 'normal'
+                 || ($style<font-kerning> eq 'auto' && $font-size <= 32));
+
         # assume uniform simple text, for now
+
         my @words = $text.split(/\s+/).grep({ $_ ne ''});
-        my @atoms = @words.map( -> $content {
-            my $width = $font.stringwidth( $content, $font-size );
-            my $height = $font-size;
-            PDF::Compose::Rendering::Text::Atom.new( :$content, :$width, :$height );
+
+        my @chunks = @words.map( -> $word {
+            $do-kerning
+                ?? $font.kern($word, $font-size).map( { { :content(.[0]), :width(.[1]), :kern(.[2]) } } )
+                !! { :content($word), :width( $font.stringwidth( $word, $font-size ) ) }
         });
+
+        my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :height($font-size) ) });
 
         my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height );
 

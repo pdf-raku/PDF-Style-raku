@@ -8,7 +8,7 @@ class PDF::Compose::Rendering::Text::Atom {
     has Numeric $.kern is rw = 0;       #| kerning, or word spacing adjustment from previous character
     has $.content;
 
-    submethod BUILD( :$!width!, :$!height!, :$!content! ) {
+    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!kern ) {
     }
 
     method split {
