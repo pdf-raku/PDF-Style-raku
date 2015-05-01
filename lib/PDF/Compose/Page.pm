@@ -139,8 +139,8 @@ class PDF::Compose::Page {
 
         my @chunks = @words.map( -> $word {
             $do-kerning
-                ?? $font.kern($word, $font-size).map( { { :content(.[0]), :width(.[1]), :kern(.[2]) } } )
-                !! { :content($word), :width( $font.stringwidth( $word, $font-size ) ) }
+                ?? $font.kern($word, $font-size).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
+                !! { :content($word), :width( $font.stringwidth( $word, $font-size ) ), :space(0) }
         });
 
         my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :height($font-size) ) });

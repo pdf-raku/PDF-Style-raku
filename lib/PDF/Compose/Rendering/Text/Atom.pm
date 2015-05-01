@@ -5,10 +5,10 @@ use v6;
 class PDF::Compose::Rendering::Text::Atom {
     has Numeric $.width;
     has Numeric $.height;
-    has Numeric $.kern is rw = 0;       #| kerning, or word spacing adjustment from previous character
+    has Numeric $.space is rw = 0;       #| kerning (-), or word spacing (+) adjustment before next atom
     has $.content;
 
-    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!kern ) {
+    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!space ) {
     }
 
     method split {

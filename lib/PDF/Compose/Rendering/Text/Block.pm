@@ -20,31 +20,37 @@ class PDF::Compose::Rendering::Text::Block {
                      Numeric :$!height?,     #| optional constraint
         ) {
 
-        @!lines;
+        my $line;
+        my $line-width = 0.0;
 
         while @atoms {
 
-            my $line = PDF::Compose::Rendering::Text::Line.new( :$word-spacing );
-            my $line-width = 0.0;
+            my @word;
+            my $word-width = 0.0;
+            my $kerning;
 
-            while @atoms {
-                my $kern = @atoms[0].kern;
-                my $word-width = @atoms[0].width;
-                if $line.atoms && ! $kern {
-                    # assume this is a word
-                    $kern = $word-spacing;
-                    last if $!width && $line-width + $word-width + $kern > $!width;
-                }
+            repeat {
                 my $atom = @atoms.shift;
-                $atom.kern = $kern;
-                $line.atoms.push( $atom );
-                $line-width += $word-width + $kern;
+                @word.push: $atom;
+                $word-width += $atom.width + $atom.space;
+                $kerning = $atom.space < 0;
+            } while @atoms && $kerning;
+
+            if !$line || ($!width && $line.atoms && $line-width + $word-spacing + $word-width > $!width) {
+                last if $!height && (@!lines + 1)  *  $!line-height > $!height;
+                $line = PDF::Compose::Rendering::Text::Line.new();
+                $line-width = 0.0;
+                @!lines.push: $line;
             }
 
-            @!lines.push( $line )
-                if +$line.atoms;
+            if $line.atoms {
+                $line.atoms[*-1].space += $word-spacing;
+                $line-width += $word-spacing
+            }
 
-            last if $!height && @!lines * $!line-height > $!height;
+            $line.atoms.push: @word;
+            $line-width += $word-width;
+
         }
 
         @!overflow = @atoms;
