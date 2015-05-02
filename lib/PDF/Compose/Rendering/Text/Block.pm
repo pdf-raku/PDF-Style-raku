@@ -44,6 +44,7 @@ class PDF::Compose::Rendering::Text::Block {
             }
 
             if $line.atoms {
+                $line.atoms[*-1].word-boundary = True;
                 $line.atoms[*-1].space += $word-spacing;
                 $line-width += $word-spacing
             }
@@ -54,5 +55,10 @@ class PDF::Compose::Rendering::Text::Block {
         }
 
         @!overflow = @atoms;
+    }
+
+    method align($mode) {
+        .align($mode, :$!width )
+            for self.lines;
     }
 }

@@ -147,6 +147,11 @@ class PDF::Compose::Page {
 
         my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height );
 
+        if my $text-align = $style<text-align> {
+            $text-block.align( $text-align )
+                if $text-align eq 'left' | 'right' | 'center' | 'justify';
+        }
+
         $text-block;
     }
 }

@@ -28,11 +28,12 @@ my $width = 200px;
 my $text-block = $page.text( q:to"--ENOUGH!!--", :style{ :$font-family, :$font-weight, :$width }, :dry );
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
 ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+laboris nisi ut aliquip ex ea commodo consequat.
 --ENOUGH!!--
 
-note :$text-block.perl;
+for <left center right justify> -> $alignment {
+    $text-block.align( $alignment );
+    note { :$alignment, :$text-block }.perl;
+}
 
 done;
