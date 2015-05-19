@@ -4,11 +4,11 @@ p6-PDF-Compose
 Experimental PDF rendering of basic text. CSS like styling rules and box model.
 
 Initial version likely to have:
-- support for core fonts only
+- support for core fonts only, latin-1 encoding
 - basic image rendering, hopefully
 - support for a small subset of available css 2.1 properties
 - some ability to import base template pdf pages
-- very nasic HTML support, e.g. `<p>, <div> & <span>` elements
+- very basic HTML support, e.g. `<p>, <div> & <span>` elements
 
 CSS Property todo list:
 - background-attachment: does the brackground scroll?
