@@ -13,4 +13,6 @@ my $page = $pdf.page(1);
 my $pos = $page.text('Hello World !', :style{ :$font-family, :top(10), :left(25), :width(20), :border(2), :align<center>, :font-kerning<normal> } );
 warn :$pos.perl;
 
+pass;
+
 ##$pdf.save-as('examples/helloworld.pdf');

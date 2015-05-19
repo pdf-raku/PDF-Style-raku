@@ -9,6 +9,7 @@ class PDF::Compose::Rendering::Text::Block {
     has $.height;
     has @.lines;
     has @.overflow is rw;
+    has $.font;
 
     method actual-width  { @!lines.max({ .actual-width }); }
     method actual-height { @!lines.sum({ .actual-height * ($.line-height || 1) }); }
@@ -18,6 +19,7 @@ class PDF::Compose::Rendering::Text::Block {
                      Numeric :$!line-height!,
                      Numeric :$!width?,      #| optional constraint
                      Numeric :$!height?,     #| optional constraint
+                             :$!font = Font::AFM.new('times-roman'),
         ) {
 
         my $line;
@@ -61,4 +63,5 @@ class PDF::Compose::Rendering::Text::Block {
         .align($mode, :$!width )
             for self.lines;
     }
+
 }

@@ -1,6 +1,7 @@
 use v6;
 use Test;
 use PDF::Compose;
+use PDF::Compose::Font;
 use PDF::Compose::Units :ALL;
 my $pdf = PDF::Compose.new;
 
@@ -9,13 +10,14 @@ my $page = $pdf.page(1);
 isa_ok $page, ::('PDF::Compose::Page'), 'got first page';
 
 my $helvetica;
-lives_ok { $helvetica = $page.core-font('Helvetica'); }, 'core font load - lives';
+#lives_ok { 
+$helvetica = PDF::Compose::Font.core-font('Helvetica'); #}, 'core font load - lives';
 isa_ok $helvetica, ::('Font::Metrics::helvetica'), 'core font';
 is $helvetica.FontName, 'Helvetica', 'font name';
 is $helvetica.Weight, 'Medium', 'font weight';
 
 my $tr-bold-italic;
-lives_ok { $tr-bold-italic = $page.core-font('Times-Roman', :font-weight<bold>, :font-style<italic>); }, 'core font load - lives';
+lives_ok { $tr-bold-italic = PDF::Compose::Font.core-font('Times-Roman', :font-weight<bold>, :font-style<italic>); }, 'core font load - lives';
 isa_ok $tr-bold-italic, ::('Font::Metrics::times-bolditalic'), 'core font';
 is $tr-bold-italic.FontName, 'Times-BoldItalic', 'font name';
 is $tr-bold-italic.Weight, 'Bold', 'font weight';
