@@ -61,7 +61,3 @@ Fonts:
 CSS Transforms http://dev.w3.org/csswg/css-transforms/#transform
 - transform
 - transform-origin
-
-
-### General
-- synthetic font/glyphs for NFG generated graphemes?
