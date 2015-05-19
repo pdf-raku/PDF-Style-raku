@@ -26,15 +26,20 @@ class PDF::Compose::Rendering::Text::Block {
         while @atoms {
 
             my @word;
-            my $word-width = 0.0;
-            my $kerning;
 
             repeat {
                 my $atom = @atoms.shift;
                 @word.push: $atom;
-                $word-width += $atom.width + $atom.space;
-                $kerning = $atom.space < 0;
-            } while @atoms && $kerning;
+
+                # consume a run of breaking spaces. replace with a single word boundary
+                while @atoms && @atoms[0].content ~~ /<![\xa0]>\s/ {
+                    @atoms.shift;
+                    $atom.word-boundary = True;
+                    $atom.space += $word-spacing;
+                }
+            } while @atoms && !@word[*-1].word-boundary;
+
+            my $word-width = [+] @word.map({ .width + .space });
 
             if !$line || ($!width && $line.atoms && $line-width + $word-spacing + $word-width > $!width) {
                 last if $!height && (@!lines + 1)  *  $!line-height > $!height;
@@ -43,15 +48,8 @@ class PDF::Compose::Rendering::Text::Block {
                 @!lines.push: $line;
             }
 
-            if $line.atoms {
-                $line.atoms[*-1].word-boundary = True;
-                $line.atoms[*-1].space += $word-spacing;
-                $line-width += $word-spacing
-            }
-
             $line.atoms.push: @word;
             $line-width += $word-width;
-
         }
 
         @!overflow = @atoms;

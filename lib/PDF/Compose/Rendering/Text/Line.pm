@@ -14,11 +14,12 @@ class PDF::Compose::Rendering::Text::Line {
         my $actual-width = $.actual-width;
 
         if $width > $actual-width {
-            my @word-boundarys = @!atoms.grep({.word-boundary});
+            # stretch both word boundaries and non-breaking spaces
+            my @word-boundarys = @!atoms.grep({ .word-boundary || .content eq "\c[NO-BREAK SPACE]" });
 
             if +@word-boundarys {
-                my $adjustment = ($width - $actual-width) / +@word-boundarys;
-                .space += $adjustment
+                my $stretch = ($width - $actual-width) / +@word-boundarys;
+                .space += $stretch
                     for @word-boundarys;
             }
         }
