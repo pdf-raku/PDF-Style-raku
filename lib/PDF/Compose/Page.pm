@@ -53,7 +53,7 @@ class PDF::Compose::Page {
 
         my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :height($font-size) ) });
 
-        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font );
+        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )
