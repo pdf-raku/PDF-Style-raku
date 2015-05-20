@@ -43,9 +43,6 @@ class PDF::Compose::Rendering::Text::Block {
                 $atom.word-boundary = True;
             }
 
-            $atom.space += $word-spacing
-                if $atom.word-boundary;
-
             my $word-width = [+] @word.map({ .width + .space });
 
             if !$line || ($!width && $line.atoms && $line-width + $word-width > $!width) {
@@ -53,6 +50,11 @@ class PDF::Compose::Rendering::Text::Block {
                 $line = PDF::Compose::Rendering::Text::Line.new();
                 $line-width = 0.0;
                 @!lines.push: $line;
+            }
+
+            if $atom.word-boundary {
+                $atom.space += $word-spacing;
+                $word-width += $word-spacing;
             }
 
             $line.atoms.push: @word;
