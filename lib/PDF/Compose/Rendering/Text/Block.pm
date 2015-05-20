@@ -52,18 +52,14 @@ class PDF::Compose::Rendering::Text::Block {
                 @!lines.push: $line;
             }
 
-            if $atom.word-boundary {
-                $atom.space += $word-spacing;
-                $word-width += $word-spacing;
+            if $line.atoms && $line.atoms[*-1].word-boundary {
+                $line.atoms[*-1].space += $word-spacing;
+                $line-width += $word-spacing;
             }
 
             $line.atoms.push: @word;
             $line-width += $word-width;
         }
-
-        # trim trailing line-space
-        .atoms[*-1].space = 0
-            for @!lines;
 
         @!overflow = @atoms;
     }
