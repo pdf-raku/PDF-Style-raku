@@ -69,4 +69,15 @@ class PDF::Compose::Rendering::Text::Block {
             for self.lines;
     }
 
+    method content {
+
+        my @content = $.lines.map({
+            (.content, 'T*' => [])
+        });
+
+        @content.pop;
+
+        :@content;
+    }
+
 }

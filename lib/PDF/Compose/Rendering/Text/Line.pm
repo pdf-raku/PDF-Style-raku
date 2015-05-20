@@ -7,7 +7,7 @@ class PDF::Compose::Rendering::Text::Line {
     has @.atoms;
     has Numeric $.indent is rw = 0;
 
-    method actual-height { @!atoms.max({ .height }) };
+    method actual-height { @!atoms.map({ .height }).max };
     method actual-width  { [+] @!atoms.map({ .width + .space }) };
 
     multi method align('justify', Numeric :$width! ) {
@@ -35,6 +35,16 @@ class PDF::Compose::Rendering::Text::Line {
 
     multi method align('center', Numeric :$width! ) {
         $.indent = ( $width - $.actual-width )  /  2;
+    }
+
+    method content {
+
+        my @array = $.atoms.map({ ( :literal(.content), :real(.space) ) });
+
+        @array.pop;
+
+        :TJ(:@array);
+
     }
 
 }

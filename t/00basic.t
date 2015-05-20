@@ -3,6 +3,8 @@ use Test;
 use PDF::Compose;
 use PDF::Compose::Font;
 use PDF::Compose::Units :ALL;
+use PDF::Writer;
+
 my $pdf = PDF::Compose.new;
 
 isa_ok $pdf, PDF::Compose, 'PDF::Compose.new';
@@ -35,7 +37,11 @@ laboris nisi ut aliquip ex ea commodo consequat.
 
 for <left center right justify> -> $alignment {
     $text-block.align( $alignment );
-    note { :$alignment, :$text-block }.perl;
+
+    my $content = $text-block.content;
+
+    note "*** $alignment ***";
+    note PDF::Writer.write( $content );
 }
 
 done;
