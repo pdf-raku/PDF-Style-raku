@@ -26,22 +26,29 @@ class PDF::Compose::Rendering::Text::Block {
         while @atoms {
 
             my @word;
+            my $atom;
+            my $kerning;
 
             repeat {
-                my $atom = @atoms.shift;
+                $atom = @atoms.shift;
                 @word.push: $atom;
+                $kerning = $atom.space < 0;
+            } while @atoms && ($kerning
+                               || $atom.content eq "\c[NO-BREAK SPACE]"
+                               || @atoms[0].content eq "\c[NO-BREAK SPACE]");
 
-                # consume a run of breaking spaces. replace with a single word boundary
-                while @atoms && @atoms[0].content ~~ /<![\xa0]>\s/ {
-                    @atoms.shift;
-                    $atom.word-boundary = True;
-                    $atom.space += $word-spacing;
-                }
-            } while @atoms && !@word[*-1].word-boundary;
+            # consume a run of breaking spaces.
+            while @atoms && @atoms[0].content ~~ /<![ \c[NO-BREAK SPACE] ]>\s/ {
+                @atoms.shift;
+                $atom.word-boundary = True;
+            }
+
+            $atom.space += $word-spacing
+                if $atom.word-boundary;
 
             my $word-width = [+] @word.map({ .width + .space });
 
-            if !$line || ($!width && $line.atoms && $line-width + $word-spacing + $word-width > $!width) {
+            if !$line || ($!width && $line.atoms && $line-width + $word-width > $!width) {
                 last if $!height && (@!lines + 1)  *  $!line-height > $!height;
                 $line = PDF::Compose::Rendering::Text::Line.new();
                 $line-width = 0.0;
@@ -51,6 +58,10 @@ class PDF::Compose::Rendering::Text::Block {
             $line.atoms.push: @word;
             $line-width += $word-width;
         }
+
+        # trim trailing line-space
+        .atoms[*-1].space = 0
+            for @!lines;
 
         @!overflow = @atoms;
     }
