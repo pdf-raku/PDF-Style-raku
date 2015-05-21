@@ -83,7 +83,7 @@ class PDF::Compose::Rendering::Text::Block {
             (.content(:$.font-size), 'T*' => [])
         });
 
-        :@content;
+        @content;
     }
 
 }

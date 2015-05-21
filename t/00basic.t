@@ -44,7 +44,7 @@ for <left center right justify> -> $alignment {
         $text-block.align( $alignment );
 
         my $content = $text-block.content;
-        note PDF::Writer.write( $content );
+        note PDF::Writer.write( :$content );
     }
 }
 
