@@ -22,6 +22,8 @@ class PDF::Compose::Rendering::Text::Line {
                 .space += $stretch
                     for @word-boundarys;
             }
+
+            $.indent = 0;
         }
     }
 
@@ -40,8 +42,10 @@ class PDF::Compose::Rendering::Text::Line {
     method content {
 
         my @array = $.atoms.map({ ( :literal(.content), :real(.space) ) });
-
         @array.pop;
+
+        @array.unshift: (:literal('')), (:real($.indent))
+            if $.indent;
 
         :TJ(:@array);
 

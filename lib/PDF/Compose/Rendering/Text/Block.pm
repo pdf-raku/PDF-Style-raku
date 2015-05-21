@@ -61,6 +61,9 @@ class PDF::Compose::Rendering::Text::Block {
             $line-width += $word-width;
         }
 
+        $!width //= self.actual-width;
+        $!height //= self.actual-height;
+
         @!overflow = @atoms;
     }
 
