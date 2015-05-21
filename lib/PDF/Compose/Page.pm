@@ -49,7 +49,31 @@ class PDF::Compose::Page {
                 $font.encode($word, $font-size, :$kern).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
             });
 
-        my @atoms = @chunks.map({  PDF::Content::Text::Atom.new( |%$_, :$height ) });
+        my @atoms;
+        while @chunks {
+            my $chunk = @chunks.shift;
+            # discard regular breaking white-space
+            next if $chunk<content> ~~ /<![ \c[NO-BREAK SPACE] ]>\s/;
+            my $followed-by-ws = @chunks && @chunks[0]<content> ~~ /<![ \c[NO-BREAK SPACE] ]>\s/;
+            my $kerning = $chunk<space> < 0;
+
+            my $atom = PDF::Content::Text::Atom.new( |%$chunk, :$height );
+            if $kerning {
+                $atom.sticky = True;
+            }
+            elsif $chunk<content> eq "\c[NO-BREAK SPACE]" {
+                $atom.elastic = True;
+                $atom.sticky = True;
+                @atoms[*-1].sticky = True
+                    if @atoms;
+            }
+            elsif $followed-by-ws {
+                $atom.elastic = True;
+                $atom.space += $word-spacing;
+            }
+
+            @atoms.push: $atom;
+        }
 
         my $text-block = PDF::Content::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font-size );
 

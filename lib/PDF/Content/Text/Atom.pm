@@ -6,10 +6,11 @@ class PDF::Content::Text::Atom {
     has Numeric $.width;
     has Numeric $.height;
     has Numeric $.space is rw = 0;       #| kerning (-), or word spacing (+) adjustment before next atom
-    has Bool $.word-boundary is rw = False;
+    has Bool $.sticky is rw = False;     #| don't allow preceeding line breaks
+    has Bool $.elastic is rw = False;    #| stretchable, e.g. when justifying text
     has $.content;
 
-    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!space ) {
+    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!space = 0, :$!sticky = False, :$!elastic = False ) {
     }
 
     method split {

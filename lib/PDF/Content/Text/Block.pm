@@ -29,42 +29,30 @@ class PDF::Content::Text::Block {
 
             my @word;
             my $atom;
-            my $kerning;
 
             repeat {
                 $atom = @atoms.shift;
                 @word.push: $atom;
-                $kerning = $atom.space < 0;
-            } while @atoms && ($kerning
-                               || $atom.content eq "\c[NO-BREAK SPACE]"
-                               || @atoms[0].content eq "\c[NO-BREAK SPACE]");
-
-            # consume a run of breaking spaces.
-            while @atoms && @atoms[0].content ~~ /<![ \c[NO-BREAK SPACE] ]>\s/ {
-                @atoms.shift;
-                $atom.word-boundary = True;
-            }
+            } while $atom.sticky && @atoms;
 
             my $word-width = [+] @word.map({ .width + .space });
+            my $trailing-space = @word[*-1].space;
 
-            if !$line || ($!width && $line.atoms && $line-width + $word-width > $!width) {
+            if !$line || ($!width && $line.atoms && $line-width + $word-width - $trailing-space > $!width) {
                 last if $!height && (@!lines + 1)  *  $!line-height > $!height;
                 $line = PDF::Content::Text::Line.new();
                 $line-width = 0.0;
                 @!lines.push: $line;
             }
 
-            if $line.atoms && $line.atoms[*-1].word-boundary {
-                $line.atoms[*-1].space += $word-spacing;
-                $line-width += $word-spacing;
-            }
-
             $line.atoms.push: @word;
             $line-width += $word-width;
         }
 
-        .atoms[*-1].word-boundary = False
-            for @!lines;
+        for @!lines {
+            .atoms[*-1].elastic = False;
+            .atoms[*-1].space = 0;
+        }
 
         $!width //= self.actual-width;
         $!height //= self.actual-height;

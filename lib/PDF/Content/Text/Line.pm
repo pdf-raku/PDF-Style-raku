@@ -15,12 +15,12 @@ class PDF::Content::Text::Line {
 
         if $width > $actual-width {
             # stretch both word boundaries and non-breaking spaces
-            my @word-boundarys = @!atoms.grep({ .word-boundary || .content eq "\c[NO-BREAK SPACE]" });
+            my @elastics = @!atoms.grep({ .elastic });
 
-            if +@word-boundarys {
-                my $stretch = ($width - $actual-width) / +@word-boundarys;
+            if +@elastics {
+                my $stretch = ($width - $actual-width) / +@elastics;
                 .space += $stretch
-                    for @word-boundarys;
+                    for @elastics;
             }
 
             $.indent = 0;
