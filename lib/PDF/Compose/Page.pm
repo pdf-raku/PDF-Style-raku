@@ -37,7 +37,7 @@ class PDF::Compose::Page {
         # take word spacing as one space character, for now
         my $word-spacing = $font.stringwidth( ' ', $font-size );
 
-        my $do-kerning = $style<font-kerning>
+        my $kern = $style<font-kerning>
             && ( $style<font-kerning> eq 'normal'
                  || ($style<font-kerning> eq 'auto' && $font-size <= 32));
 
@@ -46,9 +46,7 @@ class PDF::Compose::Page {
         my @chunks = $text.split(/<!ww>/)\
             .grep({ $_ ne ''})\
             .map( -> $word {
-                $do-kerning
-                    ?? $font.kern($word, $font-size).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
-                    !! { :content($word), :width( $font.stringwidth( $word, $font-size ) ), :space(0) }
+                $font.encode($word, $font-size, :$kern).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
             });
 
         my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :$height ) });
