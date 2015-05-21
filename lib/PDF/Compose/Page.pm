@@ -51,9 +51,9 @@ class PDF::Compose::Page {
                     !! { :content($word), :width( $font.stringwidth( $word, $font-size ) ), :space(0) }
             });
 
-        my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :height($font-size) ) });
+        my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :$height ) });
 
-        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height );
+        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font-size );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )

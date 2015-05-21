@@ -39,12 +39,16 @@ class PDF::Compose::Rendering::Text::Line {
         $.indent = ( $width - $.actual-width )  /  2;
     }
 
-    method content {
+    method content(:$font-size) {
 
-        my @array = $.atoms.map({ ( :literal(.content), :real(.space) ) });
+        my $scale = -1000 / $font-size;
+
+        my @array = $.atoms.map({
+            ( :literal(.content), :int( (.space * $scale).Int ) )
+        });
         @array.pop;
 
-        @array.unshift: (:literal('')), (:real($.indent))
+        @array.unshift: (:int( ( $.indent * $scale ).Int ) )
             if $.indent;
 
         :TJ(:@array);

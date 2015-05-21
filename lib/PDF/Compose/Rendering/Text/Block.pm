@@ -9,6 +9,7 @@ class PDF::Compose::Rendering::Text::Block {
     has $.height;
     has @.lines;
     has @.overflow is rw;
+    has $.font-size;
 
     method actual-width  { @!lines.max({ .actual-width }); }
     method actual-height { @!lines.sum({ .actual-height * ($.line-height || 1) }); }
@@ -16,6 +17,7 @@ class PDF::Compose::Rendering::Text::Block {
     submethod BUILD(         :@atoms is copy,
                      Numeric :$word-spacing!,
                      Numeric :$!line-height!,
+                     Numeric :$!font-size!,
                      Numeric :$!width?,      #| optional constraint
                      Numeric :$!height?,     #| optional constraint
         ) {
@@ -75,7 +77,7 @@ class PDF::Compose::Rendering::Text::Block {
     method content {
 
         my @content = $.lines.map({
-            (.content, 'T*' => [])
+            (.content(:$.font-size), 'T*' => [])
         });
 
         @content.pop;
