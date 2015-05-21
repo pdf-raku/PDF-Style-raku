@@ -4,8 +4,8 @@ class PDF::Compose::Page {
 
     use Font::AFM;
     use PDF::Compose::Units :ALL;
-    use PDF::Compose::Rendering::Text::Atom;
-    use PDF::Compose::Rendering::Text::Block;
+    use PDF::Content::Text::Atom;
+    use PDF::Content::Text::Block;
     use PDF::Compose::Font;
 
     has $.width = 595px;
@@ -49,9 +49,9 @@ class PDF::Compose::Page {
                 $font.encode($word, $font-size, :$kern).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
             });
 
-        my @atoms = @chunks.map({  PDF::Compose::Rendering::Text::Atom.new( |%$_, :$height ) });
+        my @atoms = @chunks.map({  PDF::Content::Text::Atom.new( |%$_, :$height ) });
 
-        my $text-block = PDF::Compose::Rendering::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font-size );
+        my $text-block = PDF::Content::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font-size );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )

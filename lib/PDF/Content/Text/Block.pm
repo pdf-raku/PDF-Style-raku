@@ -1,9 +1,9 @@
 use v6;
 
-use PDF::Compose::Rendering::Text::Line;
-use PDF::Compose::Rendering::Text::Atom;
+use PDF::Content::Text::Line;
+use PDF::Content::Text::Atom;
 
-class PDF::Compose::Rendering::Text::Block {
+class PDF::Content::Text::Block {
     has Numeric $.line-height;       #| e.g. line-height: 110%  ==>  1.1
     has $.width;
     has $.height;
@@ -17,7 +17,7 @@ class PDF::Compose::Rendering::Text::Block {
     submethod BUILD(         :@atoms is copy,
                      Numeric :$word-spacing!,
                      Numeric :$!line-height!,
-                     Numeric :$!font-size!,
+                     Numeric :$!font-size,
                      Numeric :$!width?,      #| optional constraint
                      Numeric :$!height?,     #| optional constraint
         ) {
@@ -49,7 +49,7 @@ class PDF::Compose::Rendering::Text::Block {
 
             if !$line || ($!width && $line.atoms && $line-width + $word-width > $!width) {
                 last if $!height && (@!lines + 1)  *  $!line-height > $!height;
-                $line = PDF::Compose::Rendering::Text::Line.new();
+                $line = PDF::Content::Text::Line.new();
                 $line-width = 0.0;
                 @!lines.push: $line;
             }
