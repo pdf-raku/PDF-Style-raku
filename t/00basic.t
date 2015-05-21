@@ -27,21 +27,25 @@ isnt $tr-bold-italic.ItalicAngle, '0', 'italic angle';
 
 my $font-family = 'Helvetica';
 my $font-weight = 'bold';
-my $width = 200px;
-
-my $text-block = $page.text( q:to"--ENOUGH!!--", :style{ :$font-family, :$font-weight, :$width }, :dry );
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-laboris nisi ut aliquip ex ea commodo consequat.
---ENOUGH!!--
+my $width = 300px;
+my $font-kerning = 'normal';
 
 for <left center right justify> -> $alignment {
-    $text-block.align( $alignment );
+    my $header = [~] '*** ALIGN:', $alignment, ' ***', "\n";
+    my $body = q:to"--ENOUGH!!--".subst(/\n/, ' ', :g);
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
+        --ENOUGH!!--
 
-    my $content = $text-block.content;
+    note "% **** $alignment *** ";
+    for $header, $body -> $text {
+        my $text-block = $page.text( $text , :style{ :$font-family, :$font-weight, :$width, :$font-kerning });
+        $text-block.align( $alignment );
 
-    note "*** $alignment ***";
-    note PDF::Writer.write( $content );
+        my $content = $text-block.content;
+        note PDF::Writer.write( $content );
+    }
 }
 
 done;
