@@ -63,6 +63,9 @@ class PDF::Compose::Rendering::Text::Block {
             $line-width += $word-width;
         }
 
+        .atoms[*-1].word-boundary = False
+            for @!lines;
+
         $!width //= self.actual-width;
         $!height //= self.actual-height;
 
