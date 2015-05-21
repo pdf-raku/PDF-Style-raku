@@ -43,7 +43,7 @@ class PDF::Compose::Page {
 
         # assume uniform simple text, for now
 
-        my @chunks = $text.split(/<!ww>/)\
+        my @chunks = $text.split(/<!ww><!before <:Punctuation>>|<after \s>/)\
             .grep({ $_ ne ''})\
             .map( -> $word {
                 $font.encode($word, $font-size, :$kern).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
