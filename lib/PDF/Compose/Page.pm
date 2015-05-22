@@ -75,7 +75,7 @@ class PDF::Compose::Page {
             @atoms.push: $atom;
         }
 
-        my $text-block = PDF::Content::Text::Block.new( :@atoms, :$word-spacing, :$line-height, :$width, :$height, :$font-size );
+        my $text-block = PDF::Content::Text::Block.new( :@atoms, :$line-height, :$width, :$height, :$font-size );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )

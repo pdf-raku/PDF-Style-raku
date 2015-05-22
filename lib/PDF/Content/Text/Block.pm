@@ -15,7 +15,6 @@ class PDF::Content::Text::Block {
     method actual-height { @!lines.sum({ .actual-height * ($.line-height || 1) }); }
 
     submethod BUILD(         :@atoms is copy,
-                     Numeric :$word-spacing!,
                      Numeric :$!line-height!,
                      Numeric :$!font-size,
                      Numeric :$!width?,      #| optional constraint
@@ -68,7 +67,7 @@ class PDF::Content::Text::Block {
     method content {
 
         my @content = $.lines.map({
-            (.content(:$.font-size), 'T*' => [])
+            ( .content(:$.font-size), 'T*' => [])
         });
 
         @content;
