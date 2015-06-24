@@ -14,12 +14,62 @@ class PDF::Content::Text::Block {
     method actual-width  { @!lines.max({ .actual-width }); }
     method actual-height { @!lines.sum({ .actual-height * ($.line-height || 1) }); }
 
-    submethod BUILD(         :@atoms is copy,
+    multi submethod BUILD(Str :$text!,
+                          :$font!, :$font-size=16,
+                          :$word-spacing = $font.stringwidth( ' ', $font-size ),
+                          :$kern = False,
+                          *%etc) {
+        # assume uniform simple text, for now
+        my @chunks = $text.comb(/ \w [ [ \w | <:Punctuation > ] <![ \- ]> ]* '-'?
+                                || .
+                                /).map( -> $word {
+                                    $kern
+                                        ?? $font.kern($word, $font-size, :$kern).list
+                                        !! $font.encode($word)
+                                 });
+
+        constant NO-BREAK-WS = rx/ <![ \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[WORD JOINER] ]> \s /;
+
+        my @atoms;
+        while @chunks {
+            my $content = @chunks.shift;
+            my %atom = :$content;
+            %atom<space> = @chunks && @chunks[0] ~~ Numeric
+                ?? @chunks.shift
+                !! 0;
+            %atom<width> = $font.stringwidth($content, $font-size);
+            # don't atomize regular white-space
+            next if $content ~~ NO-BREAK-WS;
+            my $followed-by-ws = @chunks && @chunks[0] ~~ NO-BREAK-WS;
+            my $kerning = %atom<space> < 0;
+
+            my $atom = PDF::Content::Text::Atom.new( |%atom );
+            if $kerning {
+                $atom.sticky = True;
+            }
+            elsif $atom.content eq "\c[NO-BREAK SPACE]" {
+                $atom.elastic = True;
+                $atom.sticky = True;
+                @atoms[*-1].sticky = True
+                    if @atoms;
+            }
+            elsif $followed-by-ws {
+                $atom.elastic = True;
+                $atom.space += $word-spacing;
+            }
+
+            @atoms.push: $atom;
+        }
+
+        self.BUILD( :@atoms, :$font-size, |%etc );
+    }
+
+    multi submethod BUILD(:@atoms! is copy,
                      Numeric :$!line-height!,
                      Numeric :$!font-size,
                      Numeric :$!width?,      #| optional constraint
                      Numeric :$!height?,     #| optional constraint
-        ) {
+        ) is default {
 
         my $line;
         my $line-width = 0.0;

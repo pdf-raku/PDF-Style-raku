@@ -10,7 +10,7 @@ class PDF::Content::Text::Atom {
     has Bool $.elastic is rw = False;    #| stretchable, e.g. when justifying text
     has $.content;
 
-    submethod BUILD( :$!width!, :$!height!, :$!content!, :$!space = 0, :$!sticky = False, :$!elastic = False ) {
+    submethod BUILD( :$!width!, :$!content!, :$!space = 0, :$!sticky = False, :$!elastic = False ) {
     }
 
     method split {

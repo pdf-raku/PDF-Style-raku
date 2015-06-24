@@ -34,56 +34,11 @@ class PDF::Compose::Page {
 
         my $font = PDF::Compose::Font.core-font( $font-family, :$font-weight, :$font-style );
 
-        # take word spacing as one space character, for now
-        my $word-spacing = $font.stringwidth( ' ', $font-size );
-
         my $kern = $style<font-kerning>
             && ( $style<font-kerning> eq 'normal'
                  || ($style<font-kerning> eq 'auto' && $font-size <= 32));
 
-        # assume uniform simple text, for now
-        my @chunks = $text.comb(/ \w [ [ \w | <:Punctuation > ] <![ \- ]> ]* '-'?
-                                || .
-                                /).map( -> $word {
-                                    $kern
-                                        ?? $font.kern($word, $font-size, :$kern).list
-                                        !! $font.encode($word)
-                                 });
-
-        constant NO-BREAK-WS = rx/ <![ \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[WORD JOINER] ]> \s /;
-
-        my @atoms;
-        while @chunks {
-            my $content = @chunks.shift;
-            my %atom = :$content;
-            %atom<space> = @chunks && @chunks[0] ~~ Numeric
-                ?? @chunks.shift
-                !! 0;
-            %atom<width> = $font.stringwidth($content, $font-size);
-            # don't atomize regular white-space
-            next if $content ~~ NO-BREAK-WS;
-            my $followed-by-ws = @chunks && @chunks[0] ~~ NO-BREAK-WS;
-            my $kerning = %atom<space> < 0;
-
-            my $atom = PDF::Content::Text::Atom.new( |%atom, :$height );
-            if $kerning {
-                $atom.sticky = True;
-            }
-            elsif $atom.content eq "\c[NO-BREAK SPACE]" {
-                $atom.elastic = True;
-                $atom.sticky = True;
-                @atoms[*-1].sticky = True
-                    if @atoms;
-            }
-            elsif $followed-by-ws {
-                $atom.elastic = True;
-                $atom.space += $word-spacing;
-            }
-
-            @atoms.push: $atom;
-        }
-
-        my $text-block = PDF::Content::Text::Block.new( :@atoms, :$line-height, :$width, :$height, :$font-size );
+        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )
