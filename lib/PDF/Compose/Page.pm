@@ -14,7 +14,7 @@ class PDF::Compose::Page {
     method text( $text, Hash :$style = {}, Bool :$dry = False) {
 
         my $position = $style<position> // 'absolute';
-        die "sorry can only handle aboslute positioning at the moment"
+        die "sorry can only handle absolute positioning at the moment"
             unless $position eq 'absolute';
         die "sorry cannot handle bottom positioning yet" if $style<bottom>;
         die "sorry cannot handle right positioning yet" if $style<right>;
@@ -42,26 +42,34 @@ class PDF::Compose::Page {
                  || ($style<font-kerning> eq 'auto' && $font-size <= 32));
 
         # assume uniform simple text, for now
-
-        my @chunks = $text.split(/<!ww><!before <:Punctuation>>|<after \s>/)\
-            .grep({ $_ ne ''})\
-            .map( -> $word {
-                $font.encode($word, $font-size, :$kern).map( { { :content(.[0]), :width(.[1]), :space(.[2]) } } )
-            });
+        my @chunks = $text.comb(/ \w [ [ \w | <:Punctuation > ] <![ \- ]> ]* '-'?
+                                | <[ \c[NO-BREAK SPACE] ]>
+                                | [ <![ \c[NO-BREAK SPACE] ]> \s ]+
+                                | .
+                                /).map( -> $word {
+                                    $kern
+                                        ?? $font.kern($word, $font-size, :$kern).list
+                                        !! $font.encode($word)
+                                 });
 
         my @atoms;
         while @chunks {
-            my $chunk = @chunks.shift;
-            # discard regular breaking white-space
-            next if $chunk<content> ~~ /<![ \c[NO-BREAK SPACE] ]>\s/;
-            my $followed-by-ws = @chunks && @chunks[0]<content> ~~ /<![ \c[NO-BREAK SPACE] ]>\s/;
-            my $kerning = $chunk<space> < 0;
+            my $content = @chunks.shift;
+            my %atom = :$content;
+            %atom<space> = @chunks && @chunks[0] ~~ Numeric
+                ?? @chunks.shift
+                !! 0;
+            %atom<width> = $font.stringwidth($content, $font-size);
+            # discard non-breaking white-space
+            next if $content ~~ / <![ \c[NO-BREAK SPACE] ]> \s /;
+            my $followed-by-ws = @chunks && @chunks[0] ~~ / <![ \c[NO-BREAK SPACE] ]> \s /;
+            my $kerning = %atom<space> < 0;
 
-            my $atom = PDF::Content::Text::Atom.new( |%$chunk, :$height );
+            my $atom = PDF::Content::Text::Atom.new( |%atom, :$height );
             if $kerning {
                 $atom.sticky = True;
             }
-            elsif $chunk<content> eq "\c[NO-BREAK SPACE]" {
+            elsif $atom.content eq "\c[NO-BREAK SPACE]" {
                 $atom.elastic = True;
                 $atom.sticky = True;
                 @atoms[*-1].sticky = True

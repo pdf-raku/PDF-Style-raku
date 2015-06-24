@@ -79,7 +79,7 @@ role PDF::Compose::Font {
         my $bold = $font-weight && $font-weight ~~ m:i/bold|[6..9]00/
             ?? 'bold' !! '';
 
-        # italic & oblique canbe treated as synonyms for core fonts
+        # italic & oblique can be treated as synonyms for core fonts
         my $italic = $font-style && $font-style ~~ m:i/italic|oblique/
             ?? 'italic' !! '';
 
