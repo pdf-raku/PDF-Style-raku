@@ -43,14 +43,14 @@ class PDF::Compose::Page {
 
         # assume uniform simple text, for now
         my @chunks = $text.comb(/ \w [ [ \w | <:Punctuation > ] <![ \- ]> ]* '-'?
-                                | <[ \c[NO-BREAK SPACE] ]>
-                                | [ <![ \c[NO-BREAK SPACE] ]> \s ]+
-                                | .
+                                || .
                                 /).map( -> $word {
                                     $kern
                                         ?? $font.kern($word, $font-size, :$kern).list
                                         !! $font.encode($word)
                                  });
+
+        constant NO-BREAK-WS = rx/ <![ \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[WORD JOINER] ]> \s /;
 
         my @atoms;
         while @chunks {
@@ -60,9 +60,9 @@ class PDF::Compose::Page {
                 ?? @chunks.shift
                 !! 0;
             %atom<width> = $font.stringwidth($content, $font-size);
-            # discard non-breaking white-space
-            next if $content ~~ / <![ \c[NO-BREAK SPACE] ]> \s /;
-            my $followed-by-ws = @chunks && @chunks[0] ~~ / <![ \c[NO-BREAK SPACE] ]> \s /;
+            # don't atomize regular white-space
+            next if $content ~~ NO-BREAK-WS;
+            my $followed-by-ws = @chunks && @chunks[0] ~~ NO-BREAK-WS;
             my $kerning = %atom<space> < 0;
 
             my $atom = PDF::Content::Text::Atom.new( |%atom, :$height );
