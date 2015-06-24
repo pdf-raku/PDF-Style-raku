@@ -4,7 +4,6 @@ use v6;
 #| likely to be a word. Could be smaller when kerning.
 class PDF::Content::Text::Atom {
     has Numeric $.width;
-    has Numeric $.height;
     has Numeric $.space is rw = 0;       #| kerning (-), or word spacing (+) adjustment before next atom
     has Bool $.sticky is rw = False;     #| don't allow preceeding line breaks
     has Bool $.elastic is rw = False;    #| stretchable, e.g. when justifying text
@@ -14,6 +13,6 @@ class PDF::Content::Text::Atom {
     }
 
     method split {
-        die "can't yet split atoms";
+        die "can't split atoms";
     }
 }

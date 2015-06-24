@@ -97,6 +97,12 @@ role PDF::Compose::Font {
         };
     }
 
+    method height($pointsize) {
+        my $bbox = $.FontBBox;
+        my $height = $bbox[3] - $bbox[1];
+        $pointsize ?? $height * $pointsize / 1000 !! $height;
+    }
+
     #| css  font-weight classification: 
     method font-weight {
         given self.Weight {

@@ -4,7 +4,8 @@ use PDF::Content::Text::Line;
 use PDF::Content::Text::Atom;
 
 class PDF::Content::Text::Block {
-    has Numeric $.line-height;       #| e.g. line-height: 110%  ==>  1.1
+    has Numeric $.line-height;
+    has Numeric $.font-height;
     has $.width;
     has $.height;
     has @.lines;
@@ -12,10 +13,10 @@ class PDF::Content::Text::Block {
     has $.font-size;
 
     method actual-width  { @!lines.max({ .actual-width }); }
-    method actual-height { @!lines.sum({ .actual-height * ($.line-height || 1) }); }
+    method actual-height { (+@!lines - 1) * $!line-height  +  $!font-height }
 
     multi submethod BUILD(Str :$text!,
-                          :$font!, :$font-size=16,
+                          :$font!, :$font-size=16, :$!font-height = $font.height( $font-size ),
                           :$word-spacing = $font.stringwidth( ' ', $font-size ),
                           :$kern = False,
                           *%etc) {
@@ -28,6 +29,7 @@ class PDF::Content::Text::Block {
                                         !! $font.encode($word)
                                  });
 
+        constant BREAK-WS = rx/ <[ \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[WORD JOINER] ]> /;
         constant NO-BREAK-WS = rx/ <![ \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[WORD JOINER] ]> \s /;
 
         my @atoms;
@@ -47,7 +49,7 @@ class PDF::Content::Text::Block {
             if $kerning {
                 $atom.sticky = True;
             }
-            elsif $atom.content eq "\c[NO-BREAK SPACE]" {
+            elsif $atom.content ~~ BREAK-WS {
                 $atom.elastic = True;
                 $atom.sticky = True;
                 @atoms[*-1].sticky = True
@@ -116,9 +118,11 @@ class PDF::Content::Text::Block {
 
     method content {
 
-        my @content = $.lines.map({
-            ( .content(:$.font-size), 'T*' => [])
-        });
+        my @content =
+            :TL[ :real($!line-height) ],
+            $.lines.map({
+                ( .content(:$.font-size), 'T*')
+            });
 
         @content;
     }
