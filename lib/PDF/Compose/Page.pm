@@ -4,9 +4,9 @@ class PDF::Compose::Page {
 
     use Font::AFM;
     use PDF::Compose::Units :ALL;
-    use PDF::Content::Text::Atom;
-    use PDF::Content::Text::Block;
-    use PDF::Compose::Font;
+    use PDF::DOM::Composition::Text::Atom;
+    use PDF::DOM::Composition::Text::Block;
+    use PDF::DOM::Util::Font;
 
     has $.width = 595px;
     has $.height = 842px;
@@ -20,8 +20,8 @@ class PDF::Compose::Page {
         die "sorry cannot handle right positioning yet" if $style<right>;
         my $left = $style<left> // 0px;
         my $top = $style<top> // 0px;
-        my $font-family = $style<font-family> // 'arial';
-        my $font-weight = $style<font-weight> // 'normal';
+        my $family = $style<font-family> // 'arial';
+        my $weight = $style<font-weight> // 'normal';
         my $font-style = $style<font-style> // 'normal';
         my $font-size = $style<font-size> // 16px;
         my $width = $style<width> // self.width - $left;
@@ -32,13 +32,13 @@ class PDF::Compose::Page {
         warn "pushing the boundaries: {:$width} {:$height} {:$top} {:$left}"
             unless $width > 0 && $height > 0 && $left >= 0 && $left < self.width && $top >= 0 && $top < self.height;
 
-        my $font = PDF::Compose::Font.core-font( $font-family, :$font-weight, :$font-style );
+        my $font = PDF::DOM::Util::Font::core-font( :$family, :$weight, :style($font-style) );
 
         my $kern = $style<font-kerning>
             && ( $style<font-kerning> eq 'normal'
                  || ($style<font-kerning> eq 'auto' && $font-size <= 32));
 
-        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height );
+        my $text-block = PDF::DOM::Composition::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )

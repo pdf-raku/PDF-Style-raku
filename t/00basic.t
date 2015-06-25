@@ -43,8 +43,8 @@ for <left center right justify> -> $alignment {
         my $text-block = $page.text( $text , :style{ :$font-family, :$font-weight, :$width, :$font-kerning });
         $text-block.align( $alignment );
 
-        my $content = $text-block.content;
-        note PDF::Writer.write( :$content );
+        my @content = $text-block.content;
+        note PDF::Writer.write( :@content );
     }
 }
 
