@@ -1,7 +1,9 @@
 p6-PDF-Compose
 ==============
 
-Experimental PDF rendering of basic text. CSS like styling rules and box model.
+Experimental PDF composition with HTML like cordinate systems and text/image markup; CSS like styling rules and box model.
+
+This will be more familar to those from an HTML background and may form a useful basis for HTML rendering.
 
 Initial version likely to have:
 - support for core fonts only, latin-1 encoding
