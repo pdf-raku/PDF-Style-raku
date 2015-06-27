@@ -4,8 +4,8 @@ class PDF::Compose::Page {
 
     use Font::AFM;
     use PDF::Compose::Units :ALL;
-    use PDF::DOM::Composition::Text::Atom;
-    use PDF::DOM::Composition::Text::Block;
+    use PDF::DOM::Contents::Text::Atom;
+    use PDF::DOM::Contents::Text::Block;
     use PDF::DOM::Util::Font;
 
     has $.width = 595px;
@@ -38,7 +38,7 @@ class PDF::Compose::Page {
             && ( $style<font-kerning> eq 'normal'
                  || ($style<font-kerning> eq 'auto' && $font-size <= 32));
 
-        my $text-block = PDF::DOM::Composition::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height );
+        my $text-block = PDF::DOM::Contents::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height );
 
         if my $text-align = $style<text-align> {
             $text-block.align( $text-align )
