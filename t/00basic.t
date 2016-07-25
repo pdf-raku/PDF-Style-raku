@@ -3,13 +3,17 @@ use Test;
 use PDF::Style::Viewport;
 use CSS::Declarations;
 use CSS::Declarations::Units;
-use PDF::Content::Doc;
+use PDF::Content::PDF;
 
-my $style = "font-family: Helvetica; font-weight: bold; width: 300px; font-kerning: normal; position:absolute; left: 20px; top: 30px;";
+# also dump to HTML, for comparision
+
+my @html = '<html>', '<body style="position:relative">';
+
+my $style = "font-family: Helvetica; font-weight: bold; width: 300pt; font-kerning: normal; position:absolute; left: 20px; top: 30px; border: 1px solid red";
 my $css = CSS::Declarations.new( :$style );
 my $vp = PDF::Style::Viewport.new;
 
-my $pdf = PDF::Content::Doc.new;
+my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
 my $gfx = $page.gfx;
 
@@ -22,12 +26,21 @@ for <left center right justify> -> $alignment {
         --ENOUGH!!--
 
     note "% **** $alignment *** ";
-    $css.text-align = $alignment;    
+    $css.text-align = :keyw($alignment);    
     for $header, $body -> $text {
         my $text-block = $vp.text( $text, :$css );
+        @html.push: sprintf '<div style="%s">%s</div>', $css.write, $text;
         $gfx.print($text-block);
+        $css.top += 20px;
     }
+    $css.top += 100px;
+
 }
+
+lives-ok {$pdf.save-as: "t/00basic.pdf"};
+
+@html.append: '</body>', '</html>', '';
+"t/00basic.html".IO.spurt: @html.join: "\n";
 
 note $gfx.content;
 

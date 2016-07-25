@@ -7,12 +7,12 @@ class PDF::Style::Viewport {
     use CSS::Declarations;
     use CSS::Declarations::Units;
 
-    has $.width = 595px;
-    has $.height = 842px;
+    has $.width = 595pt;
+    has $.height = 842pt;
 
     sub pt($v) {
         if $v ~~ Numeric {
-            my $units = $v.key;
+            my $units = $v.?key // 'pt';
             my $scale = Units.enums{$units}
                 or die "unknown units: $units";
             $v / $scale
