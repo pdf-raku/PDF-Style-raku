@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Viewport :pt;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Content::PDF;
@@ -15,6 +15,7 @@ my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
+$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ]; 
 my $gfx = $page.gfx;
 
 for <left center right justify> -> $alignment {
@@ -28,9 +29,12 @@ for <left center right justify> -> $alignment {
     note "% **** $alignment *** ";
     $css.text-align = :keyw($alignment);    
     for $header, $body -> $text {
-        my $text-block = $vp.text( $text, :$css );
+        my ($text-block, $x, $y) = $vp.text( $text, :$css );
         @html.push: sprintf '<div style="%s">%s</div>', $css.write, $text;
-        $gfx.print($text-block);
+        $gfx.text: {
+            .text-position = [$x, $y];
+            .print($text-block);
+        }
         $css.top += 20px;
     }
     $css.top += 100px;

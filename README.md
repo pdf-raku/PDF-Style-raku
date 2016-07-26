@@ -1,7 +1,6 @@
-p6-PDF-Compose
-==============
-
-Experimental PDF composition with HTML like cordinate systems and text/image markup; CSS like styling rules and box model.
+p6-PDF-Style
+============
+Experimental PDF composition with HTML like coordinate systems and text/image markup; CSS like styling rules and box model.
 
 This will be more familar to those from an HTML background and may form a useful basis for HTML rendering.
 
@@ -9,7 +8,7 @@ Initial version likely to have:
 - support for core fonts only, latin-1 encoding
 - basic image rendering, hopefully
 - support for a small subset of available css 2.1 properties
-- some ability to import base template pdf pages
+- some ability to import base template pdf pages (viewport background-image)
 - very basic HTML support, e.g. `<p>, <div> & <span>` elements
 
 CSS Property todo list:
@@ -63,3 +62,5 @@ Fonts:
 CSS Transforms http://dev.w3.org/csswg/css-transforms/#transform
 - transform
 - transform-origin
+
+Tagged PDF!

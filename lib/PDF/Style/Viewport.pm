@@ -10,7 +10,7 @@ class PDF::Style::Viewport {
     has $.width = 595pt;
     has $.height = 842pt;
 
-    sub pt($v) {
+    sub pt($v) is export(:pt) {
         if $v ~~ Numeric {
             my $units = $v.?key // 'pt';
             my $scale = Units.enums{$units}
@@ -37,13 +37,13 @@ class PDF::Style::Viewport {
         my $weight = $css.font-weight // 'normal';
         my $font-style = $css.font-style // 'normal';
         # todo: derive default from the canvas
-        my $font-size = pt($css.font-size) // 16pt;
+        my $font-size = pt($css.font-size) // 12pt;
         my Numeric $width = pt($css.width) // self.width;
 
         my $height = pt($css.height) // self.height - $top;
         my $line-height = pt($css.line-height) // $font-size * 1.2;
 
-        # todo - more investigation into auto widths & page boundarys
+        # todo - rtfm on auto widths & page boundarys
         warn "can't cope yet: {:$width} {:$height} {:$top} {:$left}"
             unless $width > 0 && $height > 0 && $left >= 0 && $left < self.width && $top >= 0 && $top < self.height;
 
@@ -56,8 +56,12 @@ class PDF::Style::Viewport {
         my $align = $css.text-align eq 'left' | 'right' | 'center' | 'justify'
             ?? $css.text-align
             !! 'left';
-        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height, :$align );
+        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height, :$align, :valign<text> );
 
-        $text-block;
+        my $x = $left;
+        $x += $text-block.width * ($align eq 'right' ?? 1 !! $align eq 'center' ?? 0.5 !! 0);
+        my $y = pt($.height) - $top;
+
+        $text-block, $x, $y;
     }
 }
