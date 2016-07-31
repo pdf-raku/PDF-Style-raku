@@ -6,21 +6,11 @@ class PDF::Style::Viewport {
     use PDF::Content::Util::Font;
     use CSS::Declarations;
     use CSS::Declarations::Units;
+    use PDF::Style :pt;
+    use PDF::Style::Box;
 
     has $.width = 595pt;
     has $.height = 842pt;
-
-    sub pt($v) is export(:pt) {
-        if $v ~~ Numeric {
-            my $units = $v.?key // 'pt';
-            my $scale = Units.enums{$units}
-                or die "unknown units: $units";
-            $v / $scale
-        }
-        else {
-            Nil
-        }
-    }
 
     method text( Str $text, CSS::Declarations :$css!) {
         my $position = $css.position;
@@ -62,6 +52,10 @@ class PDF::Style::Viewport {
         $x += $text-block.width * ($align eq 'right' ?? 1 !! $align eq 'center' ?? 0.5 !! 0);
         my $y = pt($.height) - $top;
 
-        $text-block, $x, $y;
+        $width //= $text-block.width;
+        $height //= $text-block.height;
+        my $box = PDF::Style::Box.new: :$css, :$left, :top($y), :$width, :$height;
+
+        $text-block, $box, $x, $y;
     }
 }
