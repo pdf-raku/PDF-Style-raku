@@ -17,10 +17,10 @@ class PDF::Style::Box {
  
     has CSS::Declarations $.css;
 
-    submethod BUILD(:$!top!, :$!left!, :$!css!,
-                    :$width, :$height,
-                    :$!bottom = $!top - $width,
-                    :$!right = $!left + $width) {
+    submethod BUILD(Numeric :$!top!, Numeric :$!left!, CSS::Declarations:$!css!,
+                    Numeric :$width, Numeric :$height,
+                    Numeric :$!bottom = $!top - $height,
+                    Numeric :$!right = $!left + $width) {
         
     }
 
@@ -72,16 +72,29 @@ class PDF::Style::Box {
             });
     }
 
-    method style($gfx) {
-        with $!css.border-top-width {
-            $gfx.SetLineWidth( $_ );
-            $gfx.SetStrokeRGB(|.map: ( */255 ))
-                with $!css.border-top-color;
-            $gfx.MoveTo( $.border-left, $.border-top);
-            $gfx.LineTo( $.border-right, $.border-top);
-            $gfx.ClosePath;
-            $gfx.Stroke;
+    method !border($gfx) {
+        for <top right bottom left> -> $edge {
+            with $!css."border-{$edge}-width"() {
+                $gfx.SetLineWidth( $_ );
+                my $color = $!css."border-{$edge}-color"() // 255 xx 3;
+                $gfx.SetStrokeRGB(|$color.map: ( */255 ));
+                my $pos = self."border-{$edge}"();
+                if $edge eq 'top'|'bottom' {
+                    $gfx.MoveTo( self.border-left, $pos);
+                    $gfx.LineTo( self.border-right, $pos);
+                }
+                else {
+                    $gfx.MoveTo( $pos, self.border-top );
+                    $gfx.LineTo( $pos, self.border-bottom );
+                }
+                $gfx.ClosePath;
+                $gfx.Stroke;
+            }
         }
+    }
+
+    method style($gfx) {
+        self!border($gfx)
     }
 
     multi method FALLBACK($meth where /^ (padding|border|margin)'-'(top|right|bottom|left) $/) {
@@ -96,8 +109,8 @@ class PDF::Style::Box {
     multi method FALLBACK($meth where /^ (padding|border|margin)'-'(width|height) $/) {
         my Str $box = ~$0;
         my &meth = do given ~$1 {
-            when 'width'  { method { .[Right] - .[Left] with self."box"() } }
-            when 'height' { method { .[Bottom] - .[Top] with self."box"() } }
+            when 'width'  { method { .[Right] - .[Left] with self."$box"() } }
+            when 'height' { method { .[Top] - .[Bottom] with self."$box"() } }
         };
         self.^add_method($meth, &meth);
         self."$meth"();

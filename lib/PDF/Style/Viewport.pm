@@ -46,14 +46,14 @@ class PDF::Style::Viewport {
         my $align = $css.text-align eq 'left' | 'right' | 'center' | 'justify'
             ?? $css.text-align
             !! 'left';
-        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height, :$align, :valign<text> );
+        my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height, :$align, :valign<top> );
 
         my $x = $left;
         $x += $text-block.width * ($align eq 'right' ?? 1 !! $align eq 'center' ?? 0.5 !! 0);
         my $y = pt($.height) - $top;
 
-        $width //= $text-block.width;
-        $height //= $text-block.height;
+        $width  = pt($css.width)  // $text-block.actual-width;
+        $height = pt($css.height) // $text-block.actual-height;
         my $box = PDF::Style::Box.new: :$css, :$left, :top($y), :$width, :$height;
 
         $text-block, $box, $x, $y;
