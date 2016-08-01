@@ -7,8 +7,8 @@ class PDF::Style::Box {
 
     my Int enum Sides <Top Right Bottom Left>;
     
-    has Length $.em = 16px;
-    has Length $.ex = 10px;
+    has Numeric $.em;
+    has Numeric $.ex;
 
     has Numeric $.top;
     has Numeric $.right;
@@ -20,19 +20,13 @@ class PDF::Style::Box {
     submethod BUILD(Numeric :$!top!, Numeric :$!left!, CSS::Declarations:$!css!,
                     Numeric :$width, Numeric :$height,
                     Numeric :$!bottom = $!top - $height,
-                    Numeric :$!right = $!left + $width) {
-        
-    }
-
-    method !dim($_ --> Numeric) {
-        when 'em' { $!em }
-        when 'ex' { $!ex }
-        default   { Units.enums{$_}
-                    or die "unknown length unit: $_" }
+                    Numeric :$!right = $!left + $width,
+                    Numeric :$!em = 12pt, Numeric :$!ex = 3/4 * $!em,
+                   ) {
     }
 
     method !length(Numeric $qty) {
-        pt($qty)
+        pt($qty, :$!em, :$!ex)
     }
 
     method !lengths(List $qtys) {
@@ -97,6 +91,7 @@ class PDF::Style::Box {
         self!border($gfx)
     }
 
+    #| absolute positions
     multi method FALLBACK($meth where /^ (padding|border|margin)'-'(top|right|bottom|left) $/) {
         my Str $box = ~$0;
         my UInt $edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){ $1 };
@@ -106,6 +101,7 @@ class PDF::Style::Box {
         self."$meth"();
     }
 
+    #| cumulative widths and heights
     multi method FALLBACK($meth where /^ (padding|border|margin)'-'(width|height) $/) {
         my Str $box = ~$0;
         my &meth = do given ~$1 {

@@ -43,7 +43,7 @@ class PDF::Style::Viewport {
             && ( $css.font-kerning eq 'normal'
                  || ($css.font-kerning eq 'auto' && $font-size <= 32));
 
-        my $align = $css.text-align eq 'left' | 'right' | 'center' | 'justify'
+        my $align = $css.text-align eq 'left'|'right'|'center'|'justify'
             ?? $css.text-align
             !! 'left';
         my $text-block = PDF::Content::Text::Block.new( :$text, :$font, :$kern, :$font-size, :$line-height, :$width, :$height, :$align, :valign<top> );
@@ -52,9 +52,13 @@ class PDF::Style::Viewport {
         $x += $text-block.width * ($align eq 'right' ?? 1 !! $align eq 'center' ?? 0.5 !! 0);
         my $y = pt($.height) - $top;
 
-        $width  = pt($css.width)  // $text-block.actual-width;
-        $height = pt($css.height) // $text-block.actual-height;
-        my $box = PDF::Style::Box.new: :$css, :$left, :top($y), :$width, :$height;
+        my $em = $font-size;
+        my $ex = $font-size * $_ / 1000
+            with $font.XHeight;
+
+        $width  = pt($css.width,  :$em, :$ex) // $text-block.actual-width;
+        $height = pt($css.height, :$em, :$ex) // $text-block.actual-height;
+        my $box = PDF::Style::Box.new: :$css, :$left, :top($y), :$width, :$height, :$em, :$ex;
 
         $text-block, $box, $x, $y;
     }
