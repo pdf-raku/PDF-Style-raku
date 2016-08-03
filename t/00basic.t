@@ -39,7 +39,9 @@ for <left center right justify> -> $alignment {
         $page.graphics: {
             $box.style($_);
             $page.text: {
-                .paragraph($text-block, :position[$box.left, $box.top]);
+                my $left = $box.left;
+                my $top = $box.top;
+                .print($text-block, :position[:$left, :$top]);
             }
         }
         $css.top += 15pt;
@@ -84,7 +86,9 @@ for <top center bottom> -> $valign {
     $page.graphics: {
         $box.style($_);
         $page.text: {
-            .paragraph($text-block, :position[$box.left, $box.top]);
+            my $left = $box.left;
+            my $top = $box.top;
+            .print($text-block, :position[:$left, :$top]);
         }
     }
 

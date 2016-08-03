@@ -13,9 +13,7 @@ class PDF::Style::Viewport {
     has $.height = 842pt;
 
     method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
-        my $position = $css.position;
-        die "sorry can only handle 'position: absolute' at the moment"
-            unless $position ~~ 'absolute';
+
         die "sorry cannot handle bottom positioning yet"
             unless $css.bottom eq 'auto';
         die "sorry cannot handle right positioning yet"
