@@ -2,7 +2,7 @@ use v6;
 
 module PDF::Style {
     use CSS::Declarations::Units;
-    sub pt($v, Numeric :$em, Numeric :$ex) is export(:pt) {
+    sub pt($v, Numeric :$em = 12, Numeric :$ex = 9) is export(:pt) {
         if $v ~~ Numeric {
             (if $v {
                 my $units = $v.?key // 'pt';

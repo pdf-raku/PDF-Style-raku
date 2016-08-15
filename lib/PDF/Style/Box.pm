@@ -4,6 +4,7 @@ class PDF::Style::Box {
     use PDF::Style :pt;
     use CSS::Declarations;
     use CSS::Declarations::Units;
+    use HTML::Entity;
 
     my Int enum Sides <Top Right Bottom Left>;
     
@@ -14,14 +15,20 @@ class PDF::Style::Box {
     has Numeric $.right;
     has Numeric $.bottom;
     has Numeric $.left;
- 
+
+    has Array $!padding;
+    has Array $!border;
+    has Array $!margin;
+
     has CSS::Declarations $.css;
+    has $.content;
 
     submethod BUILD(Numeric :$!top!, Numeric :$!left!, CSS::Declarations:$!css!,
                     Numeric :$width, Numeric :$height,
                     Numeric :$!bottom = $!top - $height,
                     Numeric :$!right = $!left + $width,
                     Numeric :$!em = 12pt, Numeric :$!ex = 3/4 * $!em,
+                            :$!content,
                    ) {
     }
 
@@ -34,13 +41,13 @@ class PDF::Style::Box {
     }
 
     method padding returns Array {
-        $.enclose(self!lengths($.Array), self!lengths($!css.padding));
+        $!padding //= $.enclose(self!lengths($.Array), self!lengths($!css.padding));
     }
     method border returns Array {
-        $.enclose($.padding, self!lengths($!css.border-width));
+        $!border //= $.enclose($.padding, self!lengths($!css.border-width));
     }
     method margin returns Array {
-        $.enclose($.border, self!lengths($!css.margin));
+        $!margin //= $.enclose($.border, self!lengths($!css.margin));
     }
 
     method enclose(List $inner, List $outer) {
@@ -91,13 +98,20 @@ class PDF::Style::Box {
         self!border($gfx)
     }
 
+    method html {
+        my $style = encode-entities($!css.write);
+        my $text = encode-entities($!content.text);
+        $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!content.top-offset, $text
+            if $!content.top-offset;
+
+        sprintf '<div style="%s">%s</div>', $style, $text;
+    }
+
     #| absolute positions
     multi method FALLBACK($meth where /^ (padding|border|margin)'-'(top|right|bottom|left) $/) {
         my Str $box = ~$0;
         my UInt $edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){ $1 };
-        self.^add_method($meth, method {
-                                self."$box"()[$edge]
-                                });
+        self.^add_method($meth, method { self."$box"()[$edge] });
         self."$meth"();
     }
 

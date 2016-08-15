@@ -12,7 +12,7 @@ class PDF::Style::Viewport {
     has $.width = 595pt;
     has $.height = 842pt;
 
-    method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
+    method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy, Bool :$html) {
 
         die "sorry cannot handle bottom positioning yet"
             unless $css.bottom eq 'auto';
@@ -55,8 +55,7 @@ class PDF::Style::Viewport {
         my $top = pt($.height) - $css-top;
         $width  = pt($css.width,  :$em, :$ex) // $text-block.actual-width;
         $height = pt($css.height, :$em, :$ex) // $text-block.actual-height;
-        my $box = PDF::Style::Box.new: :$css, :$left, :$top, :$width, :$height, :$em, :$ex;
-
-        $text-block, $box;
+        PDF::Style::Box.new: :$css, :$left, :$top, :$width, :$height, :$em, :$ex, :content($text-block);
     }
+
 }

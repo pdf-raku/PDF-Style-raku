@@ -34,14 +34,14 @@ for <left center right justify> -> $alignment {
         my Str $style = $css.write;
         my Str $text = $_;
         $text ~= ' ' ~ $style if $css.font-weight eq 'normal';
-        my ($text-block, $box) = $vp.text( $text, :$css );
-        @html.push: sprintf '<div style="%s">%s</div>', $style, $text;
+        my $box = $vp.text( $text, :$css );
+        @html.push: $box.html;
         $page.graphics: {
             $box.style($_);
             $page.text: {
                 my $left = $box.left;
                 my $top = $box.top;
-                .print($text-block, :position[:$left, :$top]);
+                .print($box.content, :position[:$left, :$top]);
             }
         }
         $css.top += 15pt;
@@ -67,12 +67,12 @@ for <top center bottom> -> $valign {
     $css.font-weight = :keyw<bold>;
     my Str $style = $css.write;
         
-    my ($text-block, $box) = $vp.text( $header, :$css );
-    @html.push: sprintf '<div style="%s">%s</div>', $style, $header;
+    my $box = $vp.text( $header, :$css, :html );
+    @html.push: $box.html;
     $page.graphics: {
         $box.style($_);
         $page.text: {
-            .print($text-block, :position[$box.left, $box.top]);
+            .print($box.content, :position[$box.left, $box.top]);
         }
     }
 
@@ -81,14 +81,14 @@ for <top center bottom> -> $valign {
     $css.height = 130pt;
     $style = $css.write;
     my $text = $body ~ $style;
-    ($text-block, $box) = $vp.text( $text, :$css, :$valign );
-    @html.push: sprintf '<div style="%s"><div style="position:relative; top:%dpt">%s</div></div>', $style, $text-block.top-offset, $text;
+    $box = $vp.text( $text, :$css, :$valign, :html );
+    @html.push: $box.html;
     $page.graphics: {
         $box.style($_);
         $page.text: {
             my $left = $box.left;
             my $top = $box.top;
-            .print($text-block, :position[:$left, :$top]);
+            .print($box.content, :position[:$left, :$top]);
         }
     }
 
