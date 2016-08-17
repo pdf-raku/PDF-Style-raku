@@ -32,8 +32,10 @@ class PDF::Style::Box {
                    ) {
     }
 
-    method !length(Numeric $qty) {
-        pt($qty, :$!em, :$!ex)
+    method !length($qty) {
+        $qty ~~ Numeric
+            ?? pt($qty, :$!em, :$!ex)
+            !! pt($qty)
     }
 
     method !lengths(List $qtys) {
@@ -65,7 +67,7 @@ class PDF::Style::Box {
                 [$!top, $!right, $!bottom, $!left]
             },
             STORE => sub ($,$v is copy) {
-                $v = [$v] unless $v.isa(List);
+                $v = [$v,] unless $v.isa(List);
                 $!top    = $v[Top] // 0;
                 $!right  = $v[Right] // self.top;
                 $!bottom = $v[Bottom] // self.top;
@@ -73,12 +75,22 @@ class PDF::Style::Box {
             });
     }
 
+    method !dash-pattern(Str $line-style) {
+        my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
+        given $line-style {
+            when 'dashed' { [[8, 8], 0] }
+            when 'dotted' { [[2, 2], 0] }
+            default       { [[], 0] }
+        }
+    }
+
     method !border($gfx) {
         for <top right bottom left> -> $edge {
             with $!css."border-{$edge}-width"() {
-                $gfx.SetLineWidth( $_ );
+                $gfx.SetLineWidth( pt($_) );
                 my $color = $!css."border-{$edge}-color"() // 255 xx 3;
-                $gfx.SetStrokeRGB(|$color.map: ( */255 ));
+                $gfx.SetStrokeRGB( |$color.map: ( */255 ) );
+                $gfx.SetDash( |self!dash-pattern($!css."border-{$edge}-style"()) );
                 my $pos = self."border-{$edge}"();
                 if $edge eq 'top'|'bottom' {
                     $gfx.MoveTo( self.border-left, $pos);
