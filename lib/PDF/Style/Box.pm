@@ -78,8 +78,8 @@ class PDF::Style::Box {
     method !dash-pattern(Str $line-style) {
         my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
         given $line-style {
-            when 'dashed' { [[8, 8], 0] }
-            when 'dotted' { [[2, 2], 0] }
+            when 'dashed' { [[8,], 0] }
+            when 'dotted' { [[2,], 0] }
             default       { [[], 0] }
         }
     }
@@ -100,8 +100,7 @@ class PDF::Style::Box {
                     $gfx.MoveTo( $pos, self.border-top );
                     $gfx.LineTo( $pos, self.border-bottom );
                 }
-                $gfx.ClosePath;
-                $gfx.Stroke;
+                $gfx.CloseStroke;
             }
         }
     }

@@ -12,7 +12,7 @@ class PDF::Style::Viewport {
     has $.width = 595pt;
     has $.height = 842pt;
 
-    method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy, Bool :$html) {
+    method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
 
         die "sorry cannot handle bottom positioning yet"
             unless $css.bottom eq 'auto';
@@ -23,7 +23,7 @@ class PDF::Style::Viewport {
         my $weight = $css.font-weight // 'normal';
         my $font-style = $css.font-style // 'normal';
         # todo: derive default from the canvas
-        my $font-size = pt($css.font-size) // 12pt;
+        my Numeric $font-size = { :medium(12pt), :large(16pt), :small(9pt) }{$css.font-size} // pt($css.font-size) // 12pt;
         my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
         my $em = $font-size;
         my $ex = $font-size * $_ / 1000
