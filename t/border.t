@@ -11,23 +11,26 @@ use PDF::Content::PDF;
 
 my @html = '<html>', '<body style="position:relative">';
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:50pt; position:absolute; top:20pt; left:20pt");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt");
 my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ]; 
+$page.gfx.comment-ops = True;
+$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
+my $n;
 
 for [ { :width(:px(2)), :style( :keyw<solid> ), :color<red> },
       { :width(:keyw<thick>), :style( :keyw<solid>), :color<green> },
       { :width(:keyw<thin>) , :style( :keyw<dashed> ), :color<purple> },
       { :width(:keyw<thin>) , :style( :keyw<dotted> ), :color<blue> },
+      { :width(:keyw<medium>) , :style( :keyw<dotted> ), :top-color<blue>, :left-color<green>, :bottom-color<yellow>, :right-color<red> },
       ] -> $border {
 
     for $border.pairs {
         my $v = .value;
         $v := 'color' => $v
-            if .key eq 'color' && .value.isa(Str);
+            if .key ~~ /'color'/ && .value.isa(Str);
         $css."border-{.key}"() = $v;
     }
 
@@ -43,7 +46,13 @@ for [ { :width(:px(2)), :style( :keyw<solid> ), :color<red> },
             .print($box.content, :position[:$left, :$top]);
         }
     }
-    $css.top += 70pt;
+    if ++$n %% 2 {
+        $css.top += 100pt;
+        $css.left = 20pt;
+    }
+    else {
+        $css.left += 270pt;
+    }
 }
 
 lives-ok {$pdf.save-as: "t/border.pdf"};

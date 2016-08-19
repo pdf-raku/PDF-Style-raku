@@ -17,6 +17,7 @@ my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
+$page.gfx.comment.ops = True;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ]; 
 
 for <left center right justify> -> $alignment {

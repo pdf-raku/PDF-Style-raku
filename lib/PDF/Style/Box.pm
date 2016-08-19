@@ -78,8 +78,8 @@ class PDF::Style::Box {
     method !dash-pattern(Str $line-style) {
         my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
         given $line-style {
-            when 'dashed' { [[8,], 0] }
-            when 'dotted' { [[2,], 0] }
+            when 'dashed' { [[3.2,], 0] }
+            when 'dotted' { [[1.6,], 0] }
             default       { [[], 0] }
         }
     }
