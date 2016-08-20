@@ -30,7 +30,7 @@ class PDF::Style::Viewport {
             with $font.XHeight;
 
         my $left = pt($css.left, :$em, :$ex) // 0pt;
-        my $css-top =pt($css.top, :$em, :$ex) // 0pt;
+        my $css-top = pt($css.top, :$em, :$ex) // 0pt;
         my Numeric $width = pt($css.width) // self.width;
 
         my $height = pt($css.height) // self.height - $css-top;

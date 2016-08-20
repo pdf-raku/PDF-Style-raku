@@ -27,15 +27,13 @@ class PDF::Style::Box {
                     Numeric :$width, Numeric :$height,
                     Numeric :$!bottom = $!top - $height,
                     Numeric :$!right = $!left + $width,
-                    Numeric :$!em = 12pt, Numeric :$!ex = 3/4 * $!em,
+                    Numeric :$!em = 12pt, Numeric :$!ex = 9pt,
                             :$!content,
                    ) {
     }
 
     method !length($qty) {
-        $qty ~~ Numeric
-            ?? pt($qty, :$!em, :$!ex)
-            !! pt($qty)
+        { :thin(1pt), :medium(3pt), :thick(5pt) }{$qty} // pt($qty, :$!em, :$!ex)
     }
 
     method !lengths(List $qtys) {
@@ -87,7 +85,7 @@ class PDF::Style::Box {
     method !border($gfx) {
         for <top right bottom left> -> $edge {
             with $!css."border-{$edge}-width"() {
-                $gfx.SetLineWidth( pt($_) );
+                $gfx.SetLineWidth: self!length($_);
                 my $color = $!css."border-{$edge}-color"() // 255 xx 3;
                 $gfx.SetStrokeRGB( |$color.map: ( */255 ) );
                 $gfx.SetDash( |self!dash-pattern($!css."border-{$edge}-style"()) );
