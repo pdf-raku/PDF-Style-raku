@@ -66,6 +66,7 @@ class PDF::Style::Box {
             },
             STORE => sub ($,$v is copy) {
                 $v = [$v,] unless $v.isa(List);
+                $!padding = $!border = $!margin = Nil;
                 $!top    = $v[Top] // 0;
                 $!right  = $v[Right] // self.top;
                 $!bottom = $v[Bottom] // self.top;
