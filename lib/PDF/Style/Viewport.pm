@@ -22,8 +22,6 @@ class PDF::Style::Viewport {
 
         die "sorry cannot handle bottom positioning yet"
             unless $css.bottom eq 'auto';
-        die "sorry cannot handle right positioning yet"
-            unless $css.right eq 'auto';
 
         my $family = $css.font-family // 'arial';
         my $weight = $css.font-weight // 'normal';
@@ -35,27 +33,25 @@ class PDF::Style::Viewport {
         $!ex = $font-size * $_ / 1000
             with $font.XHeight;
 
-        my $left = self!length($css.left) // 0pt;
         my $css-top = self!length($css.top) // 0pt;
+
+        my $left = self!length($css.left);
+        my $right = self!length($css.right);
         my Numeric $width = $_ with self!length($css.width);
         with self!length($css.max-width) {
-            
             $width = $_
                 if !$width.defined || $width > $_;
-
         }
         with self!length($css.min-width) {
             $width = $_
                 if $width.defined && $width < $_;
         }
-        my $max-width = $width // self.width - $left;
+
+        my $max-width = $width // self.width - ($left//0) - ($right//0);
+        $width //= $max-width if $left.defined && $right.defined;
 
         my Numeric $height = self!length($css.height) // self.height - $css-top;
         my $line-height = self!length($css.line-height) // $font-size * 1.2;
-
-        # todo - rtfm on auto widths & page boundarys
-        warn "can't cope yet: {:$width} {:$height} {:$css-top} {:$left}"
-            unless ($width//1) > 0 && $height > 0 && $left >= 0 && $left < self.width && $css-top >= 0 && $css-top < self.height;
 
         my $kern = $css.font-kerning
             && ( $css.font-kerning eq 'normal'
@@ -70,9 +66,12 @@ class PDF::Style::Viewport {
         my $text-block = PDF::Content::Text::Block.new: |%opt;
 
         $width //= $text-block.actual-width;
-        with self!length($css.min-width) {
-            $width = $_ if $_ > $width
+        with self!length($css.min-width) -> $min {
+            $width = $min if $min > $width
         }
+        $left //= $right.defined
+            ?? self.width - $right - $width
+            !! 0;
 
         my $top = self!length($.height) - $css-top;
         $height = self!length($css.height) // $text-block.actual-height;

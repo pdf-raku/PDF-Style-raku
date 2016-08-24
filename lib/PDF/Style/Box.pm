@@ -108,6 +108,17 @@ class PDF::Style::Box {
         self!border($gfx)
     }
 
+    method pdf($page) {
+        $page.graphics: {
+            self.style($_);
+            $page.text: {
+                my $left = self.left;
+                my $top = self.top;
+                .print(self.content, :position[ :$left, :$top]);
+            }
+        }
+    }
+
     method html {
         my $style = encode-entities($!css.write);
         my $text = encode-entities($!content.text);

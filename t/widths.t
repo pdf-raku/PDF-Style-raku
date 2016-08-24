@@ -11,7 +11,7 @@ use PDF::Content::PDF;
 
 my @html = '<html>', '<body style="position:relative">';
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; border: 1pt solid red");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
 my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
@@ -37,7 +37,7 @@ for [ '_=_' => '=',
     ] {
     warn "duplicate test: {.key}" if %seen{.key}++;
     my ($min-width, $width, $max-width) = .key.comb.map: { %Width{$_} };
-    my $expected-width = .value;
+    my $test-width = .value;
 
     $css.delete($_) for <width min-width max-width>;
     $css.min-width = $_ with $min-width;
@@ -47,21 +47,15 @@ for [ '_=_' => '=',
     my $style = $css.write;
     my $box = $vp.text( (++$n,.value, ':', .key, $style).join(' '), :$css );
     @html.push: $box.html;
-    $page.graphics: {
-        $box.style($_);
-        $page.text: {
-            my $left = $box.left;
-            my $top = $box.top;
-            .print($box.content, :position[:$left, :$top]);
-        }
-    }
+    $box.pdf($page);
+
     my $box-width = $box.right - $box.left;
-    if $expected-width eq 'long' {
-        ok $box-width > 400pt, 'box width';
-    }
-    else {
-        is-approx $box-width, %Width{$expected-width}, 'box width';
-    }
+    my $expected-width = $test-width eq 'long'
+        ?? $vp.width - $css.left - $css.right
+        !! %Width{$test-width};
+
+    is-approx $box-width, $expected-width, 'box width';
+
 ##    if ++$n %% 2 {
         $css.top += 75pt;
 ##        $css.left = 20pt;

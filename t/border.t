@@ -38,14 +38,8 @@ for [ { :width(:px(2)), :style( :keyw<solid> ), :color<red> },
     my $width = $css.width; warn {:$width, :$style}.perl;
     my $box = $vp.text( $style, :$css );
     @html.push: $box.html;
-    $page.graphics: {
-        $box.style($_);
-        $page.text: {
-            my $left = $box.left;
-            my $top = $box.top;
-            .print($box.content, :position[:$left, :$top]);
-        }
-    }
+    $box.pdf($page);
+
     if ++$n %% 2 {
         $css.top += 100pt;
         $css.left = 20pt;

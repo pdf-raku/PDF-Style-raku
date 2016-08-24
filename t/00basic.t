@@ -37,14 +37,7 @@ for <left center right justify> -> $alignment {
         $text ~= ' ' ~ $style if $css.font-weight eq 'normal';
         my $box = $vp.text( $text, :$css );
         @html.push: $box.html;
-        $page.graphics: {
-            $box.style($_);
-            $page.text: {
-                my $left = $box.left;
-                my $top = $box.top;
-                .print($box.content, :position[:$left, :$top]);
-            }
-        }
+        $box.pdf($page);
         $css.top += 15pt;
         $css.font-weight = :keyw<normal>;
     }
@@ -68,34 +61,31 @@ for <top center bottom> -> $valign {
     $css.font-weight = :keyw<bold>;
     my Str $style = $css.write;
         
-    my $box = $vp.text( $header, :$css, :html );
+    my $box = $vp.text( $header, :$css);
     @html.push: $box.html;
-    $page.graphics: {
-        $box.style($_);
-        $page.text: {
-            .print($box.content, :position[$box.left, $box.top]);
-        }
-    }
+    $box.pdf($page);
 
     $css.top += 15pt;
     $css.font-weight = :keyw<normal>;
     $css.height = 130pt;
     $style = $css.write;
     my $text = $body ~ $style;
-    $box = $vp.text( $text, :$css, :$valign, :html );
+    $box = $vp.text( $text, :$css, :$valign);
     @html.push: $box.html;
-    $page.graphics: {
-        $box.style($_);
-        $page.text: {
-            my $left = $box.left;
-            my $top = $box.top;
-            .print($box.content, :position[:$left, :$top]);
-        }
-    }
+    $box.pdf($page);
 
     $css.top += 165pt;
-
 }
+
+note "% **** position right *** ";
+
+$css.delete('left');
+$css.right = 25pt;
+$css.height = 100pt;
+
+my $box = $vp.text( $css.write, :$css );
+@html.push: $box.html;
+$box.pdf($page);
 
 lives-ok {$pdf.save-as: "t/00basic.pdf"};
 
