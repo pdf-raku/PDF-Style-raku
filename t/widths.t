@@ -9,8 +9,6 @@ use PDF::Content::PDF;
 
 # also dump to HTML, for comparision
 
-my @html = '<html>', '<body style="position:relative">';
-
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
 my $vp = PDF::Style::Viewport.new;
 
@@ -18,6 +16,7 @@ my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
 $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
+my @html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
 my $n;
 
 constant %Width = %('_' => Mu, '-' => 200pt, '=' => 250pt, '+' => 300pt);

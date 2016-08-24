@@ -20,9 +20,6 @@ class PDF::Style::Viewport {
 
     method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
 
-        die "sorry cannot handle bottom positioning yet"
-            unless $css.bottom eq 'auto';
-
         my $family = $css.font-family // 'arial';
         my $weight = $css.font-weight // 'normal';
         my $font-style = $css.font-style // 'normal';
@@ -33,7 +30,20 @@ class PDF::Style::Viewport {
         $!ex = $font-size * $_ / 1000
             with $font.XHeight;
 
-        my $css-top = self!length($css.top) // 0pt;
+        my $css-top = self!length($css.top);
+        my $bottom = self!length($css.bottom);
+
+        my Numeric $height = $_ with self!length($css.height);
+        with self!length($css.max-height) {
+            $height = $_
+                if !$height.defined || $height > $_;
+        }
+        with self!length($css.min-height) {
+            $height = $_
+                if $height.defined && $height < $_;
+        }
+
+        my $max-height = $height // self.height - ($css-top//0) - ($bottom//0);
 
         my $left = self!length($css.left);
         my $right = self!length($css.right);
@@ -50,7 +60,6 @@ class PDF::Style::Viewport {
         my $max-width = $width // self.width - ($left//0) - ($right//0);
         $width //= $max-width if $left.defined && $right.defined;
 
-        my Numeric $height = self!length($css.height) // self.height - $css-top;
         my $line-height = self!length($css.line-height) // $font-size * 1.2;
 
         my $kern = $css.font-kerning
@@ -62,7 +71,7 @@ class PDF::Style::Viewport {
             !! 'left';
 
         $valign //= 'top';
-        my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$height, :$align, :$valign, :width($max-width);
+        my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$align, :$valign, :width($max-width), :height($max-height);
         my $text-block = PDF::Content::Text::Block.new: |%opt;
 
         $width //= $text-block.actual-width;
@@ -73,8 +82,17 @@ class PDF::Style::Viewport {
             ?? self.width - $right - $width
             !! 0;
 
+        $height //= $text-block.actual-height;
+        with self!length($css.min-height) -> $min {
+            $height = $min if $min > $height
+        }
+        $css-top //= $bottom.defined
+            ?? self.height - $bottom - $height
+            !! 0;
+
+        #| adjust from PDF cordinates. Shift origin from top-left to bottom-left;
         my $top = self!length($.height) - $css-top;
-        $height = self!length($css.height) // $text-block.actual-height;
+
         PDF::Style::Box.new: :$css, :$left, :$top, :$width, :$height, :$!em, :$!ex, :content($text-block);
     }
 

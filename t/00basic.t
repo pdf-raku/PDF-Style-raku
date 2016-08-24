@@ -9,8 +9,6 @@ use PDF::Content::PDF;
 
 # also dump to HTML, for comparision
 
-my @html = '<html>', '<body style="position:relative">';
-
 my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt; top: 30pt; border: 1pt solid red";
 my $css = CSS::Declarations.new( :$style );
 my $vp = PDF::Style::Viewport.new;
@@ -19,6 +17,7 @@ my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
 $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ]; 
+my @html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
 
 for <left center right justify> -> $alignment {
     my $header = [~] '*** ALIGN:', $alignment, ' ***', "\n";
@@ -45,7 +44,6 @@ for <left center right justify> -> $alignment {
 }
 
 $css.delete("text-align");
-$css.vertical-align = :keyw<left>;
 $css.top = 30pt;
 $css.left = 350pt;
 $css.width = 220pt;
@@ -84,6 +82,17 @@ $css.right = 25pt;
 $css.height = 100pt;
 
 my $box = $vp.text( $css.write, :$css );
+@html.push: $box.html;
+$box.pdf($page);
+
+note "% **** position bottom *** ";
+
+$css.left = 20pt;
+$css.height = 100pt;
+$css.bottom = 172pt;
+$css.delete('top');
+
+$box = $vp.text( $css.write, :$css );
 @html.push: $box.html;
 $box.pdf($page);
 
