@@ -38,6 +38,7 @@ This will be more familiar to those from an HTML background and may form a usefu
 
 ## CSS Property todo list:
 Group|Property|Notes|To-do
+---|---|---|---
 background||NYI
   |background-color||NYI
   |background-position||NYI
@@ -68,8 +69,11 @@ Position|
   |text-indent||NYI
   |text-transform||NYI
   |word-spacing||NYI
+  
+### General
+- percentage values are NYI, e.g. on borders
 
-CSS Property Shortlist
+### CSS Property Shortlist
 - content
 - direction
 - display
