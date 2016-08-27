@@ -13,6 +13,22 @@ class PDF::Style::Viewport {
     has Numeric $.height = 842pt;
     has Numeric $.em = 12pt;
     has Numeric $.ex = 9pt;
+    my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
+    has FontWeight $!font-weight = 400;
+
+    #| converts a weight name to a three digit number:
+    #| 100 lightest ... 900 heaviest
+    method !weight($_) returns FontWeight {
+        given .lc {
+            when FontWeight       { $_ }
+            when /^ <[1..9]>00 $/ { .Int }
+            when 'normal'         { 400 }
+            when 'bold'           { 700 }
+            when 'lighter'        { max($!font-weight - 100, 100) }
+            when 'bolder'         { min($!font-weight + 100, 900) }
+            default { die "unknown font weight: $_"; }
+        }
+    }
 
     method !length($v) {
         pt($v, :$!em, :$!ex);
@@ -21,8 +37,9 @@ class PDF::Style::Viewport {
     method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
 
         my $family = $css.font-family // 'arial';
-        my $weight = $css.font-weight // 'normal';
         my $font-style = $css.font-style // 'normal';
+        $!font-weight = self!weight($css.font-weight // 'normal');
+        my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
 
         my Numeric $font-size = { :medium(12pt), :large(16pt), :small(9pt) }{$css.font-size} // self!length($css.font-size) // 12pt;
         my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
@@ -72,6 +89,7 @@ class PDF::Style::Viewport {
 
         $valign //= 'top';
         my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$align, :$valign, :width($max-width), :height($max-height);
+
         my $text-block = PDF::Content::Text::Block.new: |%opt;
 
         $width //= $text-block.actual-width;

@@ -59,9 +59,9 @@ Position|
   |clip||NYI
   |font-family
   |font-style
-  |font-size||Handle 100, 200, 300, etc.
+  |font-size
   |font-kerning
-  |font-weight
+  |font-weight||
   |letter-spacing||NYI
   |line-height||Test/review
   |text-align
