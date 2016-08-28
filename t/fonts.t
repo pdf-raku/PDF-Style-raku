@@ -34,27 +34,45 @@ sub show-text($text, :$css!) {
     }
 }
 
-for <courier helvetica times-roman> -> $font-family {
-    $css.font-family = :ident($font-family);
-    for <normal bold> -> $font-weight {
-        $css.font-weight = :keyw($font-weight);
-        for <normal italic> -> $font-style {
-            $css.font-style = :keyw($font-style);
-            show-text("font: $font-style $font-weight $font-family", :$css);
+$Vp.block: {
+    for <courier helvetica times-roman> -> $font-family {
+        $css.font-family = :ident($font-family);
+        for <normal bold> -> $font-weight {
+            $css.font-weight = :keyw($font-weight);
+            for <normal italic> -> $font-style {
+                $css.font-style = :keyw($font-style);
+                show-text("font: $font-style $font-weight $font-family", :$css);
+            }
         }
     }
 }
 
-for 300, 400 ... 900 -> $num {
-    $css.font-weight = :$num;
-    show-text("font-weight: $num", :$css);
+$Vp.block: {
+    for 300, 400 ... 900 -> $num {
+        $css.font-weight = :$num;
+        show-text("font-weight: $num", :$css);
+    }
+
+    $css.font-weight = :keyw<lighter>;
+    for (1..5)  { show-text("font-weight: lighter", :$css); }
+
+    $css.font-weight = :keyw<bolder>;
+    for (1..5)  { show-text("font-weight: bolder", :$css); }
 }
 
-$css.font-weight = :keyw<lighter>;
-for (1..5)  { show-text("font-weight: lighter", :$css); }
-
-$css.font-weight = :keyw<bolder>;
-for (1..5)  { show-text("font-weight: bolder", :$css); }
+$Vp.block: {
+    for <x-small small medium large x-large> -> $keyw {
+        $css.font-size = :$keyw;
+        show-text("font-size: $keyw", :$css);
+    }
+    for 10, 12 -> $pt {
+        $css.font-size = :$pt;
+        show-text("font-size: {$pt}pt", :$css);
+    }
+    for 'smaller' xx 3 -> $keyw {
+        $css.font-size = :$keyw;
+    }
+}
 
 lives-ok {$pdf.save-as: "t/fonts.pdf"};
 

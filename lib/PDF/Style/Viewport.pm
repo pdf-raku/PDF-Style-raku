@@ -15,10 +15,35 @@ class PDF::Style::Viewport {
     has Numeric $.ex = 9pt;
     my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
     has FontWeight $!font-weight = 400;
+    has Hash @save;
+
+    method save {
+        @save.push: {
+            :$!width, :$!height, :$!em, :$!ex, :$!font-weight,
+        }
+    }
+
+    method restore {
+        if @save {
+            with @save.pop {
+                $!width       = .<width>;
+                $!height      = .<height>;
+                $!em          = .<em>;
+                $!ex          = .<ex>;
+                $!font-weight = .<font-weight>;
+            }
+        }
+    }
+
+    method block( &do-stuff! ) {
+        $.save;
+        &do-stuff();
+        $.restore;
+    }
 
     #| converts a weight name to a three digit number:
     #| 100 lightest ... 900 heaviest
-    method !weight($_) returns FontWeight {
+    method !font-weight($_) returns FontWeight {
         given .lc {
             when FontWeight       { $_ }
             when /^ <[1..9]>00 $/ { .Int }
@@ -26,7 +51,29 @@ class PDF::Style::Viewport {
             when 'bold'           { 700 }
             when 'lighter'        { max($!font-weight - 100, 100) }
             when 'bolder'         { min($!font-weight + 100, 900) }
-            default { die "unknown font weight: $_"; }
+            default {
+                warn "unhandled font-weight: $_";
+                400;
+            }
+        }
+    }
+
+    method !font-size($_) returns Numeric {
+        return self!length($_) if $_ ~~ Numeric;
+        given .lc {
+            when 'xx-small' { 6pt }
+            when 'x-small'  { 7.5pt }
+            when 'small'    { 10pt }
+            when 'medium'   { 12pt }
+            when 'large'    { 13.5pt }
+            when 'x-large'  { 18pt }
+            when 'xx-large' { 24pt }
+            when 'larger'   { $!em * 1.2 }
+            when 'smaller'  { $!em / 1.2 }
+            default {
+                warn "unhandled font-size: $_";
+                12pt;
+            }
         }
     }
 
@@ -38,11 +85,11 @@ class PDF::Style::Viewport {
 
         my $family = $css.font-family // 'arial';
         my $font-style = $css.font-style // 'normal';
-        $!font-weight = self!weight($css.font-weight // 'normal');
+        $!font-weight = self!font-weight($css.font-weight // 'normal');
         my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
 
-        my Numeric $font-size = { :medium(12pt), :large(16pt), :small(9pt) }{$css.font-size} // self!length($css.font-size) // 12pt;
         my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
+        my $font-size = self!font-size($css.font-size);
         $!em = $font-size;
         $!ex = $font-size * $_ / 1000
             with $font.XHeight;
@@ -81,7 +128,7 @@ class PDF::Style::Viewport {
 
         my $kern = $css.font-kerning
             && ( $css.font-kerning eq 'normal'
-                 || ($css.font-kerning eq 'auto' && $font-size <= 32));
+                 || ($css.font-kerning eq 'auto' && $!em <= 32));
 
         my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
             ?? $css.text-align
