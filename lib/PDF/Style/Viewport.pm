@@ -94,7 +94,7 @@ class PDF::Style::Viewport {
         $!ex = $font-size * $_ / 1000
             with $font.XHeight;
 
-        my $css-top = self!length($css.top);
+        my $top = self!length($css.top);
         my $bottom = self!length($css.bottom);
 
         my Numeric $height = $_ with self!length($css.height);
@@ -107,7 +107,7 @@ class PDF::Style::Viewport {
                 if $height.defined && $height < $_;
         }
 
-        my $max-height = $height // self.height - ($css-top//0) - ($bottom//0);
+        my $max-height = $height // self.height - ($top//0) - ($bottom//0);
 
         my $left = self!length($css.left);
         my $right = self!length($css.right);
@@ -143,22 +143,40 @@ class PDF::Style::Viewport {
         with self!length($css.min-width) -> $min {
             $width = $min if $min > $width
         }
-        $left //= $right.defined
-            ?? self.width - $right - $width
-            !! 0;
 
         $height //= $text-block.actual-height;
         with self!length($css.min-height) -> $min {
             $height = $min if $min > $height
         }
-        $css-top //= $bottom.defined
-            ?? self.height - $bottom - $height
-            !! 0;
 
-        #| adjust from PDF cordinates. Shift origin from top-left to bottom-left;
-        my $top = self!length($.height) - $css-top;
+        if $left.defined {
+            # X position from left
+            $left += $_ with self!length($css.padding-left);
+        }
+        else {
+            # X position from right
+            $left = $right.defined
+                ?? self.width - $right - $width
+                !! 0;
+            $left -= $_ with self!length($css.padding-right);
+        }
 
-        PDF::Style::Box.new: :$css, :$left, :$top, :$width, :$height, :$!em, :$!ex, :content($text-block);
+        if $top.defined {
+            # Y position from top
+            $top += $_ with self!length($css.padding-top);
+        }
+        else {
+            # Y position from bottom
+            $top = $bottom.defined
+                ?? self.height - $bottom - $height
+                !! 0;
+            $top -= $_ with self!length($css.padding-bottom);
+        }
+
+        #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
+        my $pdf-top = self!length($.height) - $top;
+
+        PDF::Style::Box.new: :$css, :$left, :top($pdf-top), :$width, :$height, :$!em, :$!ex, :content($text-block);
     }
 
 }

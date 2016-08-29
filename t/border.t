@@ -9,10 +9,9 @@ use PDF::Content::PDF;
 
 # also dump to HTML, for comparision
 
-my @html = '<html>', '<body style="position:relative">';
-
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt");
 my $vp = PDF::Style::Viewport.new;
+my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
@@ -20,38 +19,49 @@ $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
 my $n;
 
-for [ { :width(:px(2)), :style( :keyw<solid> ), :color<red> },
-      { :width(:keyw<thick>), :style( :keyw<solid>), :color<green> },
-      { :width(:keyw<thin>) , :style( :keyw<dashed> ), :color<purple> },
-      { :width(:keyw<thin>) , :style( :keyw<dotted> ), :color<blue> },
-      { :width(:keyw<medium>) , :style( :keyw<dotted> ), :top-color<blue>, :left-color<green>, :bottom-color<yellow>, :right-color<red> },
-      ] -> $border {
-
-    for $border.pairs {
-        my $v = .value;
-        $v := 'color' => $v
-            if .key ~~ /'color'/ && .value.isa(Str);
-        $css."border-{.key}"() = $v;
-    }
+sub test($vp, $css, $settings = {}, Bool :$feed = True) {
+    $css."{.key}"() = .value
+        for $settings.pairs;
 
     my $style = $css.write;
-    my $width = $css.width; warn {:$width, :$style}.perl;
+    warn {:$style}.perl;
     my $box = $vp.text( $style, :$css );
-    @html.push: $box.html;
+    @Html.push: $box.html;
     $box.pdf($page);
 
-    if ++$n %% 2 {
-        $css.top += 100pt;
-        $css.left = 20pt;
-    }
-    else {
-        $css.left += 270pt;
+    if ($feed) {
+        if ++$n %% 2 {
+            $css.top += 100pt;
+            $css.left = 20pt;
+        }
+        else {
+            $css.left += 270pt;
+        }
     }
 }
 
+for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
+      { :border-width<thick>, :border-style<solid>, :border-color<green> },
+      { :border-width<thin>, :border-style<dashed>, :border-color<purple> },
+      { :border-width<thin>, :border-style<dotted>, :border-color<blue> },
+      { :border-width<medium>, :border-style<dotted>, :border-top-color<blue>, :border-left-color<green>, :border-bottom-color<yellow>, :border-right-color<red> },
+      { :padding(5pt), },
+      ] {
+
+    test($vp, $css, $_);
+}
+
+# do one padded block positioned from the bottom
+
+$css.bottom = $css.top + $css.height + 30pt;
+$css.delete('top');
+$css.right = $vp.width - $css.left - $css.width;
+$css.delete('left');
+test($vp, $css, :!feed);
+
 lives-ok {$pdf.save-as: "t/border.pdf"};
 
-@html.append: '</body>', '</html>', '';
-"t/border.html".IO.spurt: @html.join: "\n";
+@Html.append: '</body>', '</html>', '';
+"t/border.html".IO.spurt: @Html.join: "\n";
 
 done-testing;
