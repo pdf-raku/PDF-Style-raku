@@ -100,7 +100,7 @@ class PDF::Style::Viewport {
         my Numeric $height = $_ with self!length($css.height);
         with self!length($css.max-height) {
             $height = $_
-                if !$height.defined || $height > $_;
+                if $height.defined && $height > $_;
         }
         with self!length($css.min-height) {
             $height = $_
