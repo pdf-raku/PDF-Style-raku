@@ -7,7 +7,7 @@ class PDF::Style::Viewport {
     use CSS::Declarations;
     use CSS::Declarations::Units;
     use PDF::Style :pt;
-    use PDF::Style::Box;
+    use PDF::Style::Box :Edges;
 
     has Numeric $.width = 595pt;
     has Numeric $.height = 842pt;
@@ -149,34 +149,36 @@ class PDF::Style::Viewport {
             $height = $min if $min > $height
         }
 
-        if $left.defined {
-            # X position from left
-            $left += $_ with self!length($css.padding-left);
-        }
-        else {
-            # X position from right
+        my Bool \from-left = $left.defined;
+        unless from-left {
             $left = $right.defined
                 ?? self.width - $right - $width
                 !! 0;
-            $left -= $_ with self!length($css.padding-right);
         }
 
-        if $top.defined {
-            # Y position from top
-            $top += $_ with self!length($css.padding-top);
-        }
-        else {
-            # Y position from bottom
+        my Bool \from-top = $top.defined;
+        unless from-top {
             $top = $bottom.defined
                 ?? self.height - $bottom - $height
                 !! 0;
-            $top -= $_ with self!length($css.padding-bottom);
         }
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
-        my $pdf-top = self!length($.height) - $top;
+        my \pdf-top = self.height - $top;
+        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :content($text-block);
 
-        PDF::Style::Box.new: :$css, :$left, :top($pdf-top), :$width, :$height, :$!em, :$!ex, :content($text-block);
+        # reposition to outside of border
+        my Numeric @content-box[4] = box.Array.list;
+        my Numeric @border-box[4]  = box.border.list;
+        my \dx = from-left
+               ?? @content-box[Left]  - @border-box[Left]
+               !! @content-box[Right] - @border-box[Right];
+        my \dy = from-top
+               ?? @content-box[Top]    - @border-box[Top]
+               !! @content-box[Bottom] - @border-box[Bottom];
+
+        box.translate(dx, dy);
+        box;
     }
 
 }

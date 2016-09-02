@@ -6,7 +6,7 @@ class PDF::Style::Box {
     use CSS::Declarations::Units;
     use HTML::Entity;
 
-    my Int enum Sides <Top Right Bottom Left>;
+    my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
     
     has Numeric $.em;
     has Numeric $.ex;
@@ -23,17 +23,23 @@ class PDF::Style::Box {
     has CSS::Declarations $.css;
     has $.content;
 
-    submethod BUILD(Numeric :$!top!, Numeric :$!left!, CSS::Declarations:$!css!,
+    submethod BUILD(Numeric :$!top!, Numeric :$!left!,
                     Numeric :$width, Numeric :$height,
                     Numeric :$!bottom = $!top - $height,
                     Numeric :$!right = $!left + $width,
                     Numeric :$!em = 12pt, Numeric :$!ex = 9pt,
-                            :$!content,
+                    CSS::Declarations :$!css!,
+                    :$!content,
                    ) {
     }
 
+    method translate( \x = 0, \y = 0) {
+        self.Array = [ $!top    + y, $!right + x,
+                       $!bottom + y, $!left  + x ];
+    }
+
     method !length($qty) {
-        { :thin(1pt), :medium(3pt), :thick(5pt) }{$qty} // pt($qty, :$!em, :$!ex)
+        { :thin(1pt), :medium(2pt), :thick(3pt) }{$qty} // pt($qty, :$!em, :$!ex)
     }
 
     method !lengths(List $qtys) {
@@ -85,8 +91,8 @@ class PDF::Style::Box {
 
     method !border($gfx) {
         for <top right bottom left> -> $edge {
-            with $!css."border-{$edge}-width"() {
-                $gfx.SetLineWidth: self!length($_);
+            with $!css."border-{$edge}-width"() -> \width {
+                $gfx.SetLineWidth: self!length(width);
                 my $color = $!css."border-{$edge}-color"() // 255 xx 3;
                 $gfx.SetStrokeRGB( |$color.map: ( */255 ) );
                 $gfx.SetDash( |self!dash-pattern($!css."border-{$edge}-style"()) );

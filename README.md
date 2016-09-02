@@ -48,8 +48,8 @@ border (boxed)|
   |border-color||
   |border-spacing||NYI
   |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
-Edges|
   |border-width
+Edges|
   |margin
   |padding
 Position|
