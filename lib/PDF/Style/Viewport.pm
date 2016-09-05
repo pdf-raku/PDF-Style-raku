@@ -107,7 +107,7 @@ class PDF::Style::Viewport {
                 if $height.defined && $height < $_;
         }
 
-        my $max-height = $height // self.height - ($top//0) - ($bottom//0);
+        my \max-height = $height // self.height - ($top//0) - ($bottom//0);
 
         my $left = self!length($css.left);
         my $right = self!length($css.right);
@@ -121,8 +121,8 @@ class PDF::Style::Viewport {
                 if $width.defined && $width < $_;
         }
 
-        my $max-width = $width // self.width - ($left//0) - ($right//0);
-        $width //= $max-width if $left.defined && $right.defined;
+        my \max-width = $width // self.width - ($left//0) - ($right//0);
+        $width //= max-width if $left.defined && $right.defined;
 
         my $line-height = self!length($css.line-height) // $font-size * 1.2;
 
@@ -135,16 +135,16 @@ class PDF::Style::Viewport {
             !! 'left';
 
         $valign //= 'top';
-        my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$align, :$valign, :width($max-width), :height($max-height);
+        my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$align, :$valign, :width(max-width), :height(max-height);
 
-        my $text-block = PDF::Content::Text::Block.new: |%opt;
+        my \text-block = PDF::Content::Text::Block.new: |%opt;
 
-        $width //= $text-block.actual-width;
+        $width //= text-block.actual-width;
         with self!length($css.min-width) -> $min {
             $width = $min if $min > $width
         }
 
-        $height //= $text-block.actual-height;
+        $height //= text-block.actual-height;
         with self!length($css.min-height) -> $min {
             $height = $min if $min > $height
         }
@@ -165,7 +165,7 @@ class PDF::Style::Viewport {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = self.height - $top;
-        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :content($text-block);
+        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :content(text-block);
 
         # reposition to outside of border
         my Numeric @content-box[4] = box.Array.list;
