@@ -1,12 +1,9 @@
 use v6;
 use Test;
-use PDF::Compose;
-# css 2.1 compat - for now
-use CSS::Module::CSS21;
-use CSS::Module::CSS21::Actions;
+use CSS::Declarations;
 use HTML::Parser::XML;
 
-plan 14;
+plan 12;
 
 diag "loading html";
 my $html = 't/html/basic-p-tag.html'.IO.slurp;
@@ -21,13 +18,13 @@ warn "progressing...";
 
 my $root = $xmldoc.root;
 my $body;
-my $actions = CSS::Module::CSS21::Actions.new;
+my $css = CSS::Declarations.new;
 
 if $root.name eq 'html' {
     my @bodies = $root.nodes.grep({.can('name') && .name eq 'body' });
     die "unable to find html body"
         unless @bodies;
-    die "html has multiple bodie elements"
+    die "html has multiple body elements"
         if @bodies > 1;
     $body = @bodies[0];
 }
@@ -45,16 +42,15 @@ for $body.nodes.list {
     when XML::Element {
         if my $style = .<style> {
             diag "style: $style";
-            ok CSS::Module::CSS21.parse($style,:$actions), "style parse";
-            my $style-ast = $/.ast;
-            ok $style-ast, 'got style ast';
+            lives-ok { $css = CSS::Declarations.new: :$style }, 'style processing';
+            note ~$css;
             todo "style attribute processing";
             flunk "style tests";
         }
 
         given .name {
             when 'div' { todo "div tests"; flunk "div tests" }
-            when 'p' { todo "paragraph tests"; flunk "paragpaph tests" }
+            when 'p' { todo "paragraph tests"; flunk "paragraph tests" }
             when 'span' { todo "span tests"; flunk "span tests" }
             default { diag "unhandled {.name} tag"; }
         }

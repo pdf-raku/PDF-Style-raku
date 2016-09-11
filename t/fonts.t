@@ -36,11 +36,11 @@ sub show-text($text, :$css!) {
 
 $Vp.block: {
     for <courier helvetica times-roman> -> $font-family {
-        $css.font-family = :ident($font-family);
+        $css.font-family = $font-family;
         for <normal bold> -> $font-weight {
-            $css.font-weight = :keyw($font-weight);
+            $css.font-weight = $font-weight;
             for <normal italic> -> $font-style {
-                $css.font-style = :keyw($font-style);
+                $css.font-style = $font-style;
                 show-text("font: $font-style $font-weight $font-family", :$css);
             }
         }
@@ -48,29 +48,30 @@ $Vp.block: {
 }
 
 $Vp.block: {
-    for 300, 400 ... 900 -> $num {
-        $css.font-weight = :$num;
-        show-text("font-weight: $num", :$css);
+    for 300, 400 ... 900 {
+        $css.font-weight = $_;
+        show-text("font-weight: $_", :$css);
     }
 
-    $css.font-weight = :keyw<lighter>;
+    $css.font-weight = 'lighter';
     for (1..5)  { show-text("font-weight: lighter", :$css); }
 
-    $css.font-weight = :keyw<bolder>;
+    $css.font-weight = 'bolder';
     for (1..5)  { show-text("font-weight: bolder", :$css); }
 }
 
 $Vp.block: {
-    for <x-small small medium large x-large> -> $keyw {
-        $css.font-size = :$keyw;
-        show-text("font-size: $keyw", :$css);
+    for <x-small small medium large x-large> {
+        $css.font-size = $_;
+        show-text("font-size: $_", :$css);
     }
     for 10, 12 -> $pt {
         $css.font-size = :$pt;
         show-text("font-size: {$pt}pt", :$css);
     }
-    for 'smaller' xx 3 -> $keyw {
-        $css.font-size = :$keyw;
+    for 'smaller' xx 3 {
+        $css.font-size = $_;
+        show-text("font-size: $_", :$css);
     }
 }
 

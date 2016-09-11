@@ -10,17 +10,17 @@ $css.padding = 5pt;
 $css.border-width = 3pt;
 $css.margin = [1pt, 2pt, 3pt, 4pt];
 
-my $top    = 80.0pt;
-my $right  = 50.0pt;
-my $bottom = 0.0pt;
-my $left   = 0.0pt;
+my $top    = 80e0pt;
+my $right  = 50e0pt;
+my $bottom = 0e0pt;
+my $left   = 0e0pt;
 
 my $box = PDF::Style::Box.new( :$top, :$left, :$bottom, :$right, :$css );
 
 is-deeply $box.Array, [$top, $right, $bottom, $left];
 is $box.padding, [$top+5, $right+5, $bottom-5, $left-5];
-is-deeply $box.border, [$top+8, $right+8, $bottom-8, $left-8];
-is-deeply $box.margin, [$top+9, $right+10, $bottom-11, $left-12];
+is $box.border, [$top+8, $right+8, $bottom-8, $left-8];
+is $box.margin, [$top+9, $right+10, $bottom-11, $left-12];
 
 is-deeply $box.padding, [$box.padding-top, $box.padding-right, $box.padding-bottom, $box.padding-left];
 is-deeply $box.border, [$box.border-top, $box.border-right, $box.border-bottom, $box.border-left];

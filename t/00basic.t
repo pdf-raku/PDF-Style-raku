@@ -11,13 +11,19 @@ use PDF::Content::PDF;
 
 my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt; top: 30pt; border: 1pt solid red";
 my $css = CSS::Declarations.new( :$style );
-my $vp = PDF::Style::Viewport.new;
+my $Vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
-my $page = $pdf.add-page;
-$page.gfx.comment-ops = True;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ]; 
-my @html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
+my $Page = $pdf.add-page;
+$Page.gfx.comment-ops = True;
+$Page.media-box = [0, 0, pt($Vp.width), pt($Vp.height) ]; 
+my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $Vp.width, $Vp.height);
+
+sub show-text($text, :$css!, |c) {
+    my $box = $Vp.text( $text, :$css, |c );
+    $box.pdf($Page);
+    @Html.push: $box.html;
+}
 
 for <left center right justify> -> $alignment {
     my $header = [~] '*** ALIGN:', $alignment, ' ***', "\n";
@@ -27,20 +33,15 @@ for <left center right justify> -> $alignment {
         --ENOUGH!!--
 
     note "% **** align $alignment *** ";
-    $css.text-align = :keyw($alignment);
-    $css.font-weight = :keyw<bold>;
-        
-    for $header, $body {
-        my Str $style = $css.write;
-        my Str $text = $_;
-        $text ~= ' ' ~ $style if $css.font-weight eq 'normal';
-        my $box = $vp.text( $text, :$css );
-        @html.push: $box.html;
-        $box.pdf($page);
-        $css.top += 15pt;
-        $css.font-weight = :keyw<normal>;
-    }
-    $css.top += 100pt;
+    $css.text-align = $alignment;
+    $css.font-weight = 'bold';
+
+    show-text($header, :$css);
+    $css.top += 15pt;
+
+    $css.font-weight = 'normal';
+    show-text($body ~ ' ' ~ $css.write, :$css);
+    $css.top += 120pt;
 }
 
 $css.delete("text-align");
@@ -56,21 +57,14 @@ for <top center bottom> -> $valign {
 
     note "% **** valign $valign *** ";
     $css.delete("height");
-    $css.font-weight = :keyw<bold>;
-    my Str $style = $css.write;
-        
-    my $box = $vp.text( $header, :$css);
-    @html.push: $box.html;
-    $box.pdf($page);
+    $css.font-weight = 'bold';
+    show-text($header, :$css);
 
     $css.top += 15pt;
-    $css.font-weight = :keyw<normal>;
+    $css.font-weight = 'normal';
     $css.height = 130pt;
-    $style = $css.write;
     my $text = $body ~ $style;
-    $box = $vp.text( $text, :$css, :$valign);
-    @html.push: $box.html;
-    $box.pdf($page);
+    show-text($text, :$css, :$valign);
 
     $css.top += 165pt;
 }
@@ -80,25 +74,22 @@ note "% **** position right *** ";
 $css.delete('left');
 $css.right = 25pt;
 $css.height = 100pt;
+$css.top += 12pt;
 
-my $box = $vp.text( $css.write, :$css );
-@html.push: $box.html;
-$box.pdf($page);
+show-text( $css.write, :$css );
 
 note "% **** position bottom *** ";
 
 $css.left = 20pt;
 $css.height = 100pt;
-$css.bottom = 172pt;
+$css.bottom = 160pt;
 $css.delete('top');
 
-$box = $vp.text( $css.write, :$css );
-@html.push: $box.html;
-$box.pdf($page);
+show-text( $css.write, :$css );
 
 lives-ok {$pdf.save-as: "t/00basic.pdf"};
 
-@html.append: '</body>', '</html>', '';
-"t/00basic.html".IO.spurt: @html.join: "\n";
+@Html.append: '</body>', '</html>', '';
+"t/00basic.html".IO.spurt: @Html.join: "\n";
 
 done-testing;
