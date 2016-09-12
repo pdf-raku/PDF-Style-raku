@@ -54,10 +54,10 @@ $Vp.block: {
     }
 
     $css.font-weight = 'lighter';
-    for (1..5)  { show-text("font-weight: lighter", :$css); }
+    for 1..5  { show-text("font-weight: lighter", :$css); }
 
     $css.font-weight = 'bolder';
-    for (1..5)  { show-text("font-weight: bolder", :$css); }
+    for 1..5  { show-text("font-weight: bolder", :$css); }
 }
 
 $Vp.block: {
@@ -69,7 +69,7 @@ $Vp.block: {
         $css.font-size = :$pt;
         show-text("font-size: {$pt}pt", :$css);
     }
-    for 'smaller' xx 3 {
+    for flat 'smaller' xx 3, '120%' xx 2 {
         $css.font-size = $_;
         show-text("font-size: $_", :$css);
     }

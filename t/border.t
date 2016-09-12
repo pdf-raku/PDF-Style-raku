@@ -44,6 +44,7 @@ for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
       { :border-width<thick>, :border-style<solid>, :border-color<green> },
       { :border-width<thin>, :border-style<dashed>, :border-color<purple> },
       { :border-width<thin>, :border-style<dotted>, :border-color<blue> },
+      { :border-width<3%>, :border-style<dashed>, :border-color<purple> },
       { :border-width<medium>, :border-style<dotted>, :border-top-color<blue>, :border-left-color<green>, :border-bottom-color<yellow>, :border-right-color<red> },
       { :padding(5pt), },
       ] {
@@ -51,10 +52,11 @@ for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
     test($vp, $css, $_);
 }
 
+$css.delete('top');
+
 # do one padded block positioned from the bottom
 
-$css.bottom = $css.top + $css.height + 30pt;
-$css.delete('top');
+$css.bottom = $css.height + 30pt;
 $css.right = $vp.width - $css.left - $css.width;
 $css.delete('left');
 test($vp, $css, :!feed);

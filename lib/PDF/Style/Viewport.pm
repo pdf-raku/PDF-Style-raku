@@ -59,7 +59,11 @@ class PDF::Style::Viewport {
     }
 
     method !font-size($_) returns Numeric {
-        return self!length($_) if $_ ~~ Numeric;
+        if $_ ~~ Numeric {
+            return .?key ~~ 'percent'
+                ?? $!em * $_ / 100
+                !! self!length($_);
+        }
         given .lc {
             when 'xx-small' { 6pt }
             when 'x-small'  { 7.5pt }

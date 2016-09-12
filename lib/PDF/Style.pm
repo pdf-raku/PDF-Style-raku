@@ -9,6 +9,7 @@ module PDF::Style {
                     my $scale = do given $units {
                         when 'em' { $em }
                         when 'ex' { $ex }
+                        when 'percent' { Inf }
                         default { Units.enums{$units} }
                     } or die "unknown units: $units";
                     ($_ / $scale).Num
