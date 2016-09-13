@@ -5,6 +5,7 @@ class PDF::Style::Box {
     use CSS::Declarations;
     use CSS::Declarations::Units;
     use HTML::Entity;
+    use Color;
 
     my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
     
@@ -80,30 +81,30 @@ class PDF::Style::Box {
             });
     }
 
-    method !dash-pattern(Str $line-style) {
-        my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
-        given $line-style {
-            when 'dashed' { [[3.2,], 0] }
-            when 'dotted' { [[1.6,], 0] }
-            default       { [[], 0] }
-        }
+    my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
+    method !dash-pattern(LineStyle $_) {
+        when 'dashed' { [[3.2,], 0] }
+        when 'dotted' { [[1.6,], 0] }
+        default       { [[], 0] }
     }
 
     method !border($gfx) {
         for <top right bottom left> -> $edge {
             with $!css."border-{$edge}-width"() -> \width {
                 $gfx.SetLineWidth: self!length(width);
-                my $color = $!css."border-{$edge}-color"() // 255 xx 3;
-                $gfx.SetStrokeRGB( |$color.map: ( */255 ) );
-                $gfx.SetDash( |self!dash-pattern($!css."border-{$edge}-style"()) );
-                my $pos = self."border-{$edge}"();
+                my Color \color = $!css."border-{$edge}-color"();
+                warn "todo: color transparency: {color.rgba}"
+                    unless color.a == 255;
+                $gfx.SetStrokeRGB: |color.rgb.map: ( */255 );
+                $gfx.SetDash: |self!dash-pattern($!css."border-{$edge}-style"());
+                my Numeric \pos = self."border-{$edge}"();
                 if $edge eq 'top'|'bottom' {
-                    $gfx.MoveTo( self.border-left, $pos);
-                    $gfx.LineTo( self.border-right, $pos);
+                    $gfx.MoveTo( self.border-left, pos);
+                    $gfx.LineTo( self.border-right, pos);
                 }
                 else {
-                    $gfx.MoveTo( $pos, self.border-top );
-                    $gfx.LineTo( $pos, self.border-bottom );
+                    $gfx.MoveTo( pos, self.border-top );
+                    $gfx.LineTo( pos, self.border-bottom );
                 }
                 $gfx.CloseStroke;
             }
