@@ -91,12 +91,12 @@ class PDF::Style::Box {
     method !border($gfx) {
         for <top right bottom left> -> $edge {
             with $!css."border-{$edge}-width"() -> \width {
-                $gfx.SetLineWidth: self!length(width);
+                $gfx.LineWidth = self!length(width);
                 my Color \color = $!css."border-{$edge}-color"();
                 warn "todo: color transparency: {color.rgba}"
                     unless color.a == 255;
-                $gfx.SetStrokeRGB: |color.rgb.map: ( */255 );
-                $gfx.SetDash: |self!dash-pattern($!css."border-{$edge}-style"());
+                $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                $gfx.DashPattern = self!dash-pattern($!css."border-{$edge}-style"());
                 my Numeric \pos = self."border-{$edge}"();
                 if $edge eq 'top'|'bottom' {
                     $gfx.MoveTo( self.border-left, pos);
