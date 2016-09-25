@@ -89,24 +89,46 @@ class PDF::Style::Box {
     }
 
     method !border($gfx) {
-        for <top right bottom left> -> $edge {
-            with $!css."border-{$edge}-width"() -> \width {
-                $gfx.LineWidth = self!length(width);
-                my Color \color = $!css."border-{$edge}-color"();
-                warn "todo: color transparency: {color.rgba}"
-                    unless color.a == 255;
+        my %border = $!css.border;
+        my @border = self.border.list;
+        if %border<border-width>.unique == 1
+        && %border<border-color>.map(*.Str).unique == 1
+        && %border<border-style>.unique == 1 {
+            # all 4 edges are the same. draw a simple rectangle
+            my $width = %border<border-width>[0];
+            if $width {
+                $gfx.LineWidth = self!length($width);
+                my Color \color = %border<border-color>[0];
+                $gfx.StrokeAlpha = color.a / 255;
                 $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                $gfx.DashPattern = self!dash-pattern($!css."border-{$edge}-style"());
-                my Numeric \pos = self."border-{$edge}"();
-                if $edge eq 'top'|'bottom' {
-                    $gfx.MoveTo( self.border-left, pos);
-                    $gfx.LineTo( self.border-right, pos);
-                }
-                else {
-                    $gfx.MoveTo( pos, self.border-top );
-                    $gfx.LineTo( pos, self.border-bottom );
-                }
+                $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
+                my \width = @border[Right] - @border[Left];
+                my \height = @border[Top] - @border[Bottom];
+                $gfx.Rectangle(@border[Left], @border[Bottom], width, height);
                 $gfx.CloseStroke;
+            }
+        }
+        else {
+            for (Top, Right, Bottom, Left) -> $edge {
+                with %border<border-width>[$edge] -> \width {
+                    if width {
+                        $gfx.LineWidth = self!length(width);
+                        my Color \color = %border<border-color>[$edge];
+                        $gfx.StrokeAlpha = color.a / 255;
+                        $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                        $gfx.DashPattern = self!dash-pattern( %border<border-style>[$edge] );
+                        my Numeric \pos = @border[$edge];
+                        if $edge == Top|Bottom {
+                            $gfx.MoveTo( @border[Left], pos);
+                            $gfx.LineTo( @border[Right], pos);
+                        }
+                        else {
+                            $gfx.MoveTo( pos, @border[Top] );
+                            $gfx.LineTo( pos, @border[Bottom] );
+                        }
+                        $gfx.CloseStroke;
+                    }
+                }
             }
         }
     }

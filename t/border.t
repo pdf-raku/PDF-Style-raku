@@ -46,6 +46,7 @@ for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
       { :border-width<thin>, :border-style<dotted>, :border-color<blue> },
       { :border-width<3%>, :border-style<dashed>, :border-color<purple> },
       { :border-width<medium>, :border-style<dotted>, :border-top-color<blue>, :border-left-color<green>, :border-bottom-color<yellow>, :border-right-color<red> },
+      { :border-width<medium>, :border-style<dotted>, :border-color<rgba(100%,0%,0%,.2)> },
       { :border-width<medium>, :border-style<dotted>, :border-color<hsl(120,100%,50%)> },
       { :padding(5pt), },
       ] {
