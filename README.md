@@ -2,12 +2,10 @@ p6-PDF-Style
 ============
 Experimental PDF composition with HTML like coordinate systems and text/image markup; CSS like styling rules and box model.
 
-** Proposed ** See #1
-
 ```
 use v6;
 use PDF::Content::PDF;
-use Style::Viewport::PDF :pt;
+use PDF::Style::Viewport :pt;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 
@@ -16,7 +14,7 @@ my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; hei
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
-my $vp = Style::Viewport::PDF.new :media($page);
+my $vp = PDF::Style::Viewport.new :media($page);
 
 my $para = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
