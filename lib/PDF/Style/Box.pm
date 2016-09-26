@@ -91,28 +91,33 @@ class PDF::Style::Box {
     method !border($gfx) {
         my %border = $!css.border;
         my @border = self.border.list;
-        if %border<border-width>.unique == 1
+        my @width = %border<border-width>.map: {self!length($_)};
+        @border[Left] += @width[Left]/2;
+        @border[Right] -= (@width[Left] + @width[Right])/2;
+        @border[Top] -= @width[Top]/2;
+        @border[Bottom] += (@width[Top] + @width[Bottom])/2;
+
+        if @width.unique == 1
         && %border<border-color>.map(*.Str).unique == 1
         && %border<border-style>.unique == 1 {
             # all 4 edges are the same. draw a simple rectangle
-            my $width = %border<border-width>[0];
-            if $width {
-                $gfx.LineWidth = self!length($width);
+            if @width[0] {
+                $gfx.LineWidth = @width[0];
                 my Color \color = %border<border-color>[0];
                 $gfx.StrokeAlpha = color.a / 255;
                 $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                 $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
-                my \width = @border[Right] - @border[Left];
-                my \height = @border[Top] - @border[Bottom];
-                $gfx.Rectangle(@border[Left], @border[Bottom], width, height);
+                my \w = @border[Right] - @border[Left];
+                my \h = @border[Top] - @border[Bottom];
+                $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
                 $gfx.CloseStroke;
             }
         }
         else {
             for (Top, Right, Bottom, Left) -> $edge {
-                with %border<border-width>[$edge] -> \width {
+                with @width[$edge] -> \width {
                     if width {
-                        $gfx.LineWidth = self!length(width);
+                        $gfx.LineWidth = width;
                         my Color \color = %border<border-color>[$edge];
                         $gfx.StrokeAlpha = color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
