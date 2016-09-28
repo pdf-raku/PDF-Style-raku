@@ -24,7 +24,7 @@ my $para = q:to"--ENOUGH!!--".lines.join: ' ';
 my $box = $vp.text( $para, :$css );
 
 $css.top += $box.height;
-$css.border-color = :keyw<green>;
+$css.border-color = 'green';
 
 # nyi - images
 $vp.image("t/sample.png", :$css);
@@ -60,6 +60,7 @@ Position|
   |font-size
   |font-kerning
   |font-weight||
+  |font-color||NYI
   |letter-spacing||NYI
   |line-height||Test/review
   |text-align

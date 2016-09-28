@@ -88,14 +88,16 @@ class PDF::Style::Box {
         default       { [[], 0] }
     }
 
-    method !border($gfx) {
+    method !draw-border($gfx) {
         my %border = $!css.border;
-        my @border = self.border.list;
-        my @width = %border<border-width>.map: {self!length($_)};
-        @border[Left] += @width[Left]/2;
-        @border[Right] -= (@width[Left] + @width[Right])/2;
-        @border[Top] -= @width[Top]/2;
-        @border[Bottom] += (@width[Top] + @width[Bottom])/2;
+        my Numeric @border[4] = self.border.list;
+        my Numeric @width[4] = %border<border-width>.map: {self!length($_)};
+        my @stroke = [
+            @border[Top] - @width[Top]/2,
+            @border[Right] - @width[Right]/2,
+            @border[Bottom] + @width[Bottom]/2,
+            @border[Left] + @width[Left]/2,
+        ];
 
         if @width.unique == 1
         && %border<border-color>.map(*.Str).unique == 1
@@ -107,13 +109,16 @@ class PDF::Style::Box {
                 $gfx.StrokeAlpha = color.a / 255;
                 $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                 $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
-                my \w = @border[Right] - @border[Left];
-                my \h = @border[Top] - @border[Bottom];
-                $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
+
+                my \w = @stroke[Right] - @stroke[Left];
+                my \h = @stroke[Top] - @stroke[Bottom];
+                $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
+
                 $gfx.CloseStroke;
             }
         }
         else {
+            # edges differ. draw them separately
             for (Top, Right, Bottom, Left) -> $edge {
                 with @width[$edge] -> \width {
                     if width {
@@ -122,29 +127,52 @@ class PDF::Style::Box {
                         $gfx.StrokeAlpha = color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                         $gfx.DashPattern = self!dash-pattern( %border<border-style>[$edge] );
-                        my Numeric \pos = @border[$edge];
+                        my Numeric \pos = @stroke[$edge];
                         if $edge == Top|Bottom {
-                            $gfx.MoveTo( @border[Left], pos);
-                            $gfx.LineTo( @border[Right], pos);
+                            $gfx.MoveTo( @stroke[Left], pos);
+                            $gfx.LineTo( @stroke[Right], pos);
                         }
                         else {
-                            $gfx.MoveTo( pos, @border[Top] );
-                            $gfx.LineTo( pos, @border[Bottom] );
+                            $gfx.MoveTo( pos, @stroke[Top] );
+                            $gfx.LineTo( pos, @stroke[Bottom] );
                         }
                         $gfx.CloseStroke;
                     }
                 }
             }
         }
+        with $!css.background-color {
+            unless $_ ~~ 'transparent' {
+                $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+                $gfx.FillAlpha = .a / 255;
+                my Numeric @inner[4] = [
+                    @border[Top] - @width[Top],
+                    @border[Right] - @width[Right],
+                    @border[Bottom] + @width[Bottom],
+                    @border[Left] + @width[Left],
+                ];
+                my \w = @inner[Right] - @inner[Left];
+                my \h = @inner[Top] - @inner[Bottom];
+                $gfx.Rectangle(@inner[Left], @inner[Bottom], w, h);
+                $gfx.Fill;
+            }
+        }
+    }
+
+    method !set-font-color($gfx) {
+        # stub
+        $gfx.FillAlpha = 1.0;
+        $gfx.FillColor = :DeviceGray[0.0];
     }
 
     method style($gfx) {
-        self!border($gfx)
+        self!draw-border($gfx);
     }
 
     method pdf($page) {
         $page.graphics: {
             self.style($_);
+            self!set-font-color($_);
             $page.text: {
                 my $left = self.left;
                 my $top = self.top;
