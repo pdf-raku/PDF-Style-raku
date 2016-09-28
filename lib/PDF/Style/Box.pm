@@ -101,7 +101,8 @@ class PDF::Style::Box {
 
         if @width.unique == 1
         && %border<border-color>.map(*.Str).unique == 1
-        && %border<border-style>.unique == 1 {
+        && %border<border-style>.unique == 1
+        && %border<border-color>[0].a != 0 { # not transparent
             # all 4 edges are the same. draw a simple rectangle
             if @width[0] {
                 $gfx.LineWidth = @width[0];
@@ -124,6 +125,7 @@ class PDF::Style::Box {
                     if width {
                         $gfx.LineWidth = width;
                         my Color \color = %border<border-color>[$edge];
+                        next if color.a == 0; # transparent
                         $gfx.StrokeAlpha = color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                         $gfx.DashPattern = self!dash-pattern( %border<border-style>[$edge] );
@@ -142,7 +144,8 @@ class PDF::Style::Box {
             }
         }
         with $!css.background-color {
-            unless $_ ~~ 'transparent' {
+            my Bool \transparent = .a == 0;
+            unless transparent {
                 $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
                 $gfx.FillAlpha = .a / 255;
                 my Numeric @inner[4] = [
