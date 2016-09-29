@@ -37,14 +37,13 @@ This will be more familiar to those from an HTML background and may form a usefu
 ## CSS Property todo list:
 Group|Property|Notes|To-do
 ---|---|---|---
-background||NYI
+background||
   |background-color||
   |background-position||NYI
   |background-repeat||NYI
   |background-attachment||NYI
 border (boxed)|
   |border-color||
-  |border-spacing||NYI
   |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
   |border-width
 Edges|
@@ -61,7 +60,7 @@ Position|
   |font-kerning
   |font-stretch
   |font-weight||
-  |font-color||NYI
+  |color||NYI
   |letter-spacing||NYI
   |line-height||
   |text-align

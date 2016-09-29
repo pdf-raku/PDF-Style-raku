@@ -69,9 +69,16 @@ $Vp.block: {
         $css.font-size = :$pt;
         show-text("font-size: {$pt}pt", :$css);
     }
-    for flat 'smaller' xx 3, '120%' xx 2 {
+    for flat 'smaller' xx 2, '120%' xx 2 {
         $css.font-size = $_;
         show-text("font-size: $_", :$css);
+    }
+}
+
+$Vp.block: {
+    for <blue rgba(10,30,130,.2)> {
+        $css.color = $_;
+        show-text("color: $_", :$css);
     }
 }
 

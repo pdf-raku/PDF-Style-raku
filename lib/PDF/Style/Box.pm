@@ -163,9 +163,14 @@ class PDF::Style::Box {
     }
 
     method !set-font-color($gfx) {
-        # stub
-        $gfx.FillAlpha = 1.0;
-        $gfx.FillColor = :DeviceGray[0.0];
+        with $!css.color {
+            $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+            $gfx.FillAlpha = .a / 255;
+        }
+        else {
+            $gfx.FillColor = :DeviceGray[0.0];
+            $gfx.FillAlpha = 1.0;
+        }
     }
 
     method style($gfx) {
