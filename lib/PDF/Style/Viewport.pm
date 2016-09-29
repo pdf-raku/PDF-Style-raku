@@ -58,7 +58,7 @@ class PDF::Style::Viewport {
         }
     }
 
-    method !font-size($_) returns Numeric {
+    method !font-length($_) returns Numeric {
         if $_ ~~ Numeric {
             return .?key ~~ 'percent'
                 ?? $!em * $_ / 100
@@ -93,7 +93,7 @@ class PDF::Style::Viewport {
         my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
 
         my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
-        my $font-size = self!font-size($css.font-size);
+        my $font-size = self!font-length($css.font-size);
         $!em = $font-size;
         $!ex = $font-size * $_ / 1000
             with $font.XHeight;
@@ -128,7 +128,12 @@ class PDF::Style::Viewport {
         my \max-width = $width // self.width - ($left//0) - ($right//0);
         $width //= max-width if $left.defined && $right.defined;
 
-        my $line-height = self!length($css.line-height) // $font-size * 1.2;
+        my $leading = do given $css.line-height {
+            when .key eq 'num' { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { $font-size * 1.2 }
+            default       { self!length($_) }
+        }
 
         my $kern = $css.font-kerning
             && ( $css.font-kerning eq 'normal'
@@ -139,7 +144,7 @@ class PDF::Style::Viewport {
             !! 'left';
 
         $valign //= 'top';
-        my %opt = :$text, :$font, :$kern, :$font-size, :$line-height, :$align, :$valign, :width(max-width), :height(max-height);
+        my %opt = :$text, :$font, :$kern, :$font-size, :$leading, :$align, :$valign, :width(max-width), :height(max-height);
 
         my \text-block = PDF::Content::Text::Block.new: |%opt;
 

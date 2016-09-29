@@ -38,7 +38,7 @@ This will be more familiar to those from an HTML background and may form a usefu
 Group|Property|Notes|To-do
 ---|---|---|---
 background||NYI
-  |background-color||NYI
+  |background-color||
   |background-position||NYI
   |background-repeat||NYI
   |background-attachment||NYI
@@ -59,10 +59,11 @@ Position|
   |font-style
   |font-size
   |font-kerning
+  |font-stretch
   |font-weight||
   |font-color||NYI
   |letter-spacing||NYI
-  |line-height||Test/review
+  |line-height||
   |text-align
   |text-decoration||NYI
   |text-indent||NYI
