@@ -20,7 +20,7 @@ my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height
 my $N;
 
 sub show-text($text, :$css!) {
-    warn { :$text, :style($css.write) }.perl;
+    note "$text = {~$css}";
     my $box = $Vp.text( $text, :$css );
     @Html.push: $box.html;
 
@@ -34,7 +34,20 @@ sub show-text($text, :$css!) {
     }
 }
 
-$Vp.block: {
+sub scoped( &codez ) {
+    $Vp.save;
+    my $saved-css = $css;
+    $css = CSS::Declarations.new: :copy($css);
+
+    &codez();
+
+    $saved-css.top = $css.top;
+    $saved-css.left = $css.left;
+    $css = $saved-css;
+    $Vp.restore;
+}
+
+scoped({
     for <courier helvetica times-roman> -> $font-family {
         $css.font-family = $font-family;
         for <normal bold> -> $font-weight {
@@ -45,9 +58,9 @@ $Vp.block: {
             }
         }
     }
-}
+});
 
-$Vp.block: {
+scoped({
     for 300, 400 ... 900 {
         $css.font-weight = $_;
         show-text("font-weight: $_", :$css);
@@ -58,9 +71,9 @@ $Vp.block: {
 
     $css.font-weight = 'bolder';
     for 1..5  { show-text("font-weight: bolder", :$css); }
-}
+});
 
-$Vp.block: {
+scoped({
     for <x-small small medium large x-large> {
         $css.font-size = $_;
         show-text("font-size: $_", :$css);
@@ -73,14 +86,14 @@ $Vp.block: {
         $css.font-size = $_;
         show-text("font-size: $_", :$css);
     }
-}
+});
 
-$Vp.block: {
-    for <blue rgba(10,30,130,.2)> {
+scoped({
+    for <blue rgba(10,30,150,.5)> {
         $css.color = $_;
         show-text("color: $_", :$css);
     }
-}
+});
 
 lives-ok {$pdf.save-as: "t/fonts.pdf"};
 

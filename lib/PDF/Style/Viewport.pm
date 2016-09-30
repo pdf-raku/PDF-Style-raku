@@ -14,7 +14,7 @@ class PDF::Style::Viewport {
     has Numeric $.em = 12pt;
     has Numeric $.ex = 9pt;
     my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
-    has FontWeight $!font-weight = 400;
+    has FontWeight $.font-weight = 400;
     has Hash @save;
 
     method save {
@@ -33,12 +33,6 @@ class PDF::Style::Viewport {
                 $!font-weight = .<font-weight>;
             }
         }
-    }
-
-    method block( &do-stuff! ) {
-        $.save;
-        &do-stuff();
-        $.restore;
     }
 
     #| converts a weight name to a three digit number:
