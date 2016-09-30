@@ -60,18 +60,15 @@ Position|
   |font-kerning
   |font-stretch
   |font-weight||
-  |color||NYI
-  |letter-spacing||NYI
+  |color||
+  |letter-spacing||
   |line-height||
   |text-align
   |text-decoration||NYI
   |text-indent||NYI
   |text-transform||NYI
-  |word-spacing||NYI
+  |word-spacing||
   
-### General
-- percentage values are NYI, e.g. on borders
-
 ### CSS Property Shortlist
 - content
 - direction

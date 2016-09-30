@@ -11,7 +11,7 @@ use PDF::Content::PDF;
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid green");
 my $vp = PDF::Style::Viewport.new;
-my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
+my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt"O>', $vp.width, $vp.height);
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $pdf.add-page;
@@ -46,6 +46,10 @@ for [ { :line-height<9pt> },
       { :line-height<110%> },
       { :line-height(.85) },
       { :line-height(1.1) },
+      { :letter-spacing<1pt> },
+      { :letter-spacing<-1pt> },
+      { :word-spacing<5pt> },
+      { :word-spacing<15pt> },
       ] {
 
     test($vp, $css, $_);

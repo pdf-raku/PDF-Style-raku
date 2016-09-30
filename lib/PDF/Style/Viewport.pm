@@ -146,6 +146,18 @@ class PDF::Style::Viewport {
         $valign //= 'top';
         my %opt = :$text, :$font, :$kern, :$font-size, :$leading, :$align, :$valign, :width(max-width), :height(max-height);
 
+        %opt<CharSpacing> = do given $css.letter-spacing {
+            when .key eq 'num'     { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { 0.0 }
+            default       { self!length($_) }
+        }
+
+        %opt<WordSpacing> = do given $css.word-spacing {
+            when 'normal' { 0.0 }
+            default       { self!length($_) - $font.stringwidth(' ', $font-size) }
+        }
+
         my \text-block = PDF::Content::Text::Block.new: |%opt;
 
         $width //= text-block.actual-width;
