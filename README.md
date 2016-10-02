@@ -1,6 +1,6 @@
 p6-PDF-Style
 ============
-Experimental PDF composition with HTML like coordinate systems and text/image markup; CSS like styling rules and box model.
+Experimental PDF composition with HTML like coordinate systems and CSS styling rules and box model.
 
 ```
 use v6;
@@ -39,9 +39,9 @@ Group|Property|Notes|To-do
 ---|---|---|---
 background||
   |background-color||
+  |background-image||NYI
   |background-position||NYI
   |background-repeat||NYI
-  |background-attachment||NYI
 border (boxed)|
   |border-color||
   |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
@@ -100,7 +100,7 @@ Tagged PDF!
 
 - support for core fonts only, latin-1 encoding
 - basic image rendering and placement (PNG, GIF and JPEG)
-- support for a small subset of available css 2.1 properties
+- support for a modest subset of available css 2.1 properties
 - some ability to import base template pdf pages (viewport background-image)
 - very basic HTML support, e.g. `<p>, <div> & <span>` elements
 

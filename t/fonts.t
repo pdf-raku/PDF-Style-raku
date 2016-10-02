@@ -37,7 +37,7 @@ sub show-text($text, :$css!) {
 sub scoped( &codez ) {
     $Vp.save;
     my $saved-css = $css;
-    $css = CSS::Declarations.new: :copy($css);
+    $css = $css.clone;
 
     &codez();
 
@@ -89,7 +89,7 @@ scoped({
 });
 
 scoped({
-    for <blue rgba(10,30,150,.5)> {
+    for <blue rgba(10,150,30,.5)> {
         $css.color = $_;
         show-text("color: $_", :$css);
     }
