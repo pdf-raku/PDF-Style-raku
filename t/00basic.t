@@ -20,8 +20,8 @@ $Page.media-box = [0, 0, pt($Vp.width), pt($Vp.height) ];
 my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $Vp.width, $Vp.height);
 
 sub show-text($text, :$css!, |c) {
-    my $box = $Vp.text( $text, :$css, |c );
-    $box.pdf($Page);
+    my $box = $Vp.text-box( $text, :$css, |c );
+    $box.render($Page);
     @Html.push: $box.html;
 }
 

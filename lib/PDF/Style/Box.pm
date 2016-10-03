@@ -28,13 +28,19 @@ class PDF::Style::Box {
     has CSS::Declarations $.css;
     has $.content;
 
-    submethod BUILD(Numeric :$!top = 0.0, Numeric :$!left = 0.0,
-                    Numeric :$!width = 595pt, Numeric :$!height = 842pt,
-                    Numeric :$!bottom = $!top - $!height,
-                    Numeric :$!right = $!left + $!width,
-                    Numeric :$!em = 12pt, Numeric :$!ex = 9pt,
-                    CSS::Declarations :$!css = CSS::Declarations.new,
-                    :$!content,
+    my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
+    has FontWeight $.font-weight = 400;
+    has Hash @.save;
+
+    submethod BUILD(
+        CSS::Declarations :$!css = CSS::Declarations.new,
+        Numeric :$!em = 12pt, Numeric :$!ex = 0.75 * $!em,
+        Numeric :$!top = 0.0, Numeric :$!left = 0.0,
+        Numeric :$!width = self.css-width($!css) || 595pt,
+        Numeric :$!height = self.css-height($!css) || 842pt,
+        Numeric :$!bottom = $!top - $!height,
+        Numeric :$!right = $!left + $!width,
+        :$!content,
                    ) {
     }
 
@@ -185,7 +191,7 @@ class PDF::Style::Box {
         self!draw-border($gfx);
     }
 
-    method pdf($page) {
+    method render($page) {
         $page.graphics: {
             self.style($_);
             self!set-font-color($_);
@@ -206,19 +212,15 @@ class PDF::Style::Box {
         sprintf '<div style="%s">%s</div>', $style, $text;
     }
 
-    my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
-    has FontWeight $.font-weight = 400;
-    has Hash @save;
-
     method save {
-        @save.push: {
+        @!save.push: {
             :$!width, :$!height, :$!em, :$!ex, :$!font-weight,
         }
     }
 
     method restore {
-        if @save {
-            with @save.pop {
+        if @!save {
+            with @!save.pop {
                 $!width       = .<width>;
                 $!height      = .<height>;
                 $!em          = .<em>;
@@ -268,22 +270,7 @@ class PDF::Style::Box {
         }
     }
 
-    method text( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
-
-        my $family = $css.font-family // 'arial';
-        my $font-style = $css.font-style // 'normal';
-        $!font-weight = self!font-weight($css.font-weight // 'normal');
-        my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
-
-        my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
-        my $font-size = self!font-length($css.font-size);
-        $!em = $font-size;
-        $!ex = $font-size * $_ / 1000
-            with $font.XHeight;
-
-        my $top = self!length($css.top);
-        my $bottom = self!length($css.bottom);
-
+    method css-height($css) {
         my Numeric $height = $_ with self!length($css.height);
         with self!length($css.max-height) {
             $height = $_
@@ -293,11 +280,10 @@ class PDF::Style::Box {
             $height = $_
                 if $height.defined && $height < $_;
         }
+        $height;
+    }
 
-        my \max-height = $height // self.height - ($top//0) - ($bottom//0);
-
-        my $left = self!length($css.left);
-        my $right = self!length($css.right);
+    method css-width($css) {
         my Numeric $width = $_ with self!length($css.width);
         with self!length($css.max-width) {
             $width = $_
@@ -307,50 +293,33 @@ class PDF::Style::Box {
             $width = $_
                 if $width.defined && $width < $_;
         }
+        $width;
+    }
 
+    method !build-content($css, $class, %opt) {
+        my $top = self!length($css.top);
+        my $bottom = self!length($css.bottom);
+
+        my $height = self.css-height($css);
+        my \max-height = $height // self.height - ($top//0) - ($bottom//0);
+
+
+        my $left = self!length($css.left);
+        my $right = self!length($css.right);
+        my $width = self.css-width($css);
         my \max-width = $width // self.width - ($left//0) - ($right//0);
         $width //= max-width if $left.defined && $right.defined;
 
-        my $leading = do given $css.line-height {
-            when .key eq 'num' { $_ * $font-size }
-            when .key eq 'percent' { $_ * $font-size / 100 }
-            when 'normal' { $font-size * 1.2 }
-            default       { self!length($_) }
+        my $content = $class.new: |%opt, :width(max-width), :height(max-height);
+
+        $width //= $content.actual-width;
+        with self!length($css.min-width) -> \min {
+            $width = min if min > $width
         }
 
-        my $kern = $css.font-kerning
-            && ( $css.font-kerning eq 'normal'
-                 || ($css.font-kerning eq 'auto' && $!em <= 32));
-
-        my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
-            ?? $css.text-align
-            !! 'left';
-
-        $valign //= 'top';
-        my %opt = :$text, :$font, :$kern, :$font-size, :$leading, :$align, :$valign, :width(max-width), :height(max-height);
-
-        %opt<CharSpacing> = do given $css.letter-spacing {
-            when .key eq 'num'     { $_ * $font-size }
-            when .key eq 'percent' { $_ * $font-size / 100 }
-            when 'normal' { 0.0 }
-            default       { self!length($_) }
-        }
-
-        %opt<WordSpacing> = do given $css.word-spacing {
-            when 'normal' { 0.0 }
-            default       { self!length($_) - $font.stringwidth(' ', $font-size) }
-        }
-
-        my \text-block = PDF::Content::Text::Block.new: |%opt;
-
-        $width //= text-block.actual-width;
-        with self!length($css.min-width) -> $min {
-            $width = $min if $min > $width
-        }
-
-        $height //= text-block.actual-height;
-        with self!length($css.min-height) -> $min {
-            $height = $min if $min > $height
+        $height //= $content.actual-height;
+        with self!length($css.min-height) -> \min {
+            $height = min if min > $height
         }
 
         my Bool \from-left = $left.defined;
@@ -369,7 +338,7 @@ class PDF::Style::Box {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = self.height - $top;
-        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :content(text-block);
+        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :$content;
 
         # reposition to outside of border
         my Numeric @content-box[4] = box.Array.list;
@@ -383,6 +352,52 @@ class PDF::Style::Box {
 
         box.translate(dx, dy);
         box;
+    }
+
+    method text-box( Str $text, CSS::Declarations :$css!, Str :$valign is copy) {
+
+        my $family = $css.font-family // 'arial';
+        my $font-style = $css.font-style // 'normal';
+        $!font-weight = self!font-weight($css.font-weight // 'normal');
+        my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
+
+        my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
+        my $font-size = self!font-length($css.font-size);
+        $!em = $font-size;
+        $!ex = $font-size * $_ / 1000
+            with $font.XHeight;
+
+        my $leading = do given $css.line-height {
+            when .key eq 'num' { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { $font-size * 1.2 }
+            default       { self!length($_) }
+        }
+
+        my $kern = $css.font-kerning
+            && ( $css.font-kerning eq 'normal'
+                 || ($css.font-kerning eq 'auto' && $!em <= 32));
+
+        my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
+            ?? $css.text-align
+            !! 'left';
+
+        $valign //= 'top';
+        my %opt = :$text, :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
+
+        %opt<CharSpacing> = do given $css.letter-spacing {
+            when .key eq 'num'     { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { 0.0 }
+            default       { self!length($_) }
+        }
+
+        %opt<WordSpacing> = do given $css.word-spacing {
+            when 'normal' { 0.0 }
+            default       { self!length($_) - $font.stringwidth(' ', $font-size) }
+        }
+
+        self!build-content($css, PDF::Content::Text::Block, %opt);
     }
 
     #| absolute positions

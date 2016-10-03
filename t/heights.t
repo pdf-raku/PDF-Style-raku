@@ -44,9 +44,9 @@ for [ '_=_' => '=',
     $css.max-height = $_ with $max-height;
 
     my $style = $css.write;
-    my $box = $vp.text( (++$n,.value, ':', .key, $style).join(' '), :$css );
+    my $box = $vp.text-box( (++$n,.value, ':', .key, $style).join(' '), :$css );
     @html.push: $box.html;
-    $box.pdf($page);
+    $box.render($page);
 
     my $box-height = $box.top - $box.bottom;
     my $expected-height = $test-height eq 'snug'

@@ -44,9 +44,9 @@ for [ '_=_' => '=',
     $css.max-width = $_ with $max-width;
 
     my $style = $css.write;
-    my $box = $vp.text( (++$n,.value, ':', .key, $style).join(' '), :$css );
+    my $box = $vp.text-box( (++$n,.value, ':', .key, $style).join(' '), :$css );
     @html.push: $box.html;
-    $box.pdf($page);
+    $box.render($page);
 
     my $box-width = $box.right - $box.left;
     my $expected-width = $test-width eq 'long'

@@ -25,9 +25,9 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
 
     my $style = $css.write;
     warn {:$style}.perl;
-    my $box = $vp.text( $style, :$css );
+    my $box = $vp.text-box( $style, :$css );
     @Html.push: $box.html;
-    $box.pdf($page);
+    $box.render($page);
 
     if ($feed) {
         if ++$n %% 2 {
