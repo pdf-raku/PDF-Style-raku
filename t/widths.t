@@ -13,10 +13,9 @@ my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:60pt; pos
 my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
-my $page = $pdf.add-page;
+my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
-my @html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $vp.width, $vp.height);
+my @html = '<html>', $vp.html-start;
 my $n;
 
 constant %Width = %('_' => Mu, '-' => 200pt, '=' => 250pt, '+' => 300pt);
@@ -66,7 +65,7 @@ for [ '_=_' => '=',
 
 lives-ok {$pdf.save-as: "t/widths.pdf"};
 
-@html.append: '</body>', '</html>', '';
+@html.append: $vp.html-end, '</html>', '';
 "t/widths.html".IO.spurt: @html.join: "\n";
 
 done-testing;

@@ -13,10 +13,9 @@ my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:30pt; wid
 my $Vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
-my $Page = $pdf.add-page;
+my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
-$Page.media-box = [0, 0, pt($Vp.width), pt($Vp.height) ];
-my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $Vp.width, $Vp.height);
+my @Html = '<html>', $Vp.html-start;
 my $N;
 
 sub show-text($text, :$css!) {
@@ -97,7 +96,7 @@ scoped({
 
 lives-ok {$pdf.save-as: "t/fonts.pdf"};
 
-@Html.append: '</body>', '</html>', '';
+@Html.append: $Vp.html-end, '</html>', '';
 "t/fonts.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

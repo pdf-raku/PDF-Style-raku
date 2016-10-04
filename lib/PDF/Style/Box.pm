@@ -33,11 +33,12 @@ class PDF::Style::Box {
     has Hash @.save;
 
     submethod BUILD(
-        CSS::Declarations :$!css = CSS::Declarations.new,
+        Str :$style = '',
+        CSS::Declarations :$!css = CSS::Declarations.new(:$style),
         Numeric :$!em = 12pt, Numeric :$!ex = 0.75 * $!em,
-        Numeric :$!top = 0.0, Numeric :$!left = 0.0,
         Numeric :$!width = self.css-width($!css) || 595pt,
         Numeric :$!height = self.css-height($!css) || 842pt,
+        Numeric :$!top = $!height, Numeric :$!left = 0.0,
         Numeric :$!bottom = $!top - $!height,
         Numeric :$!right = $!left + $!width,
         :$!content,
@@ -114,13 +115,14 @@ class PDF::Style::Box {
         ];
 
         if @width.unique == 1
-        && %border<border-color>.map(*.Str).unique == 1
-        && %border<border-style>.unique == 1
-        && %border<border-color>[0].a != 0 { # not transparent
+        && %border<border-color>.map({($_//'').Str}).unique == 1
+        && %border<border-style>.unique == 1 {
             # all 4 edges are the same. draw a simple rectangle
-            if @width[0] {
+            my \border-style = %border<border-style>[0];
+            my Color \color = $_
+                with %border<border-color>[0];
+            if @width[0] && border-style ne 'none' && color && color.a != 0 {
                 $gfx.LineWidth = @width[0];
-                my Color \color = %border<border-color>[0];
                 $gfx.StrokeAlpha = color.a / 255;
                 $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                 $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
@@ -136,13 +138,14 @@ class PDF::Style::Box {
             # edges differ. draw them separately
             for (Top, Right, Bottom, Left) -> $edge {
                 with @width[$edge] -> \width {
-                    if width {
+                    my \border-style = %border<border-style>[$edge];
+                    my Color \color = $_
+                        with %border<border-color>[$edge];
+                    if width && border-style ne 'none' && color && color.a != 0 {
                         $gfx.LineWidth = width;
-                        my Color \color = %border<border-color>[$edge];
-                        next if color.a == 0; # transparent
                         $gfx.StrokeAlpha = color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                        $gfx.DashPattern = self!dash-pattern( %border<border-style>[$edge] );
+                        $gfx.DashPattern = self!dash-pattern(  border-style );
                         my Numeric \pos = @stroke[$edge];
                         if $edge == Top|Bottom {
                             $gfx.MoveTo( @stroke[Left], pos);
@@ -194,11 +197,13 @@ class PDF::Style::Box {
     method render($page) {
         $page.graphics: {
             self.style($_);
-            self!set-font-color($_);
-            $page.text: {
-                my $left = self.left;
-                my $top = self.top;
-                .print(self.content, :position[ :$left, :$top]);
+            with self.content -> \content {
+                self!set-font-color($_);
+                $page.text: {
+                    my $left = self.left;
+                    my $top = self.top;
+                    .print(content, :position[ :$left, :$top]);
+                }
             }
         }
     }

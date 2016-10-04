@@ -14,10 +14,9 @@ my $css = CSS::Declarations.new( :$style );
 my $Vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Content::PDF.new;
-my $Page = $pdf.add-page;
+my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
-$Page.media-box = [0, 0, pt($Vp.width), pt($Vp.height) ]; 
-my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt">', $Vp.width, $Vp.height);
+my @Html = '<html>', $Vp.html-start;
 
 sub show-text($text, :$css!, |c) {
     my $box = $Vp.text-box( $text, :$css, |c );
@@ -89,7 +88,7 @@ show-text( $css.write, :$css );
 
 lives-ok {$pdf.save-as: "t/00basic.pdf"};
 
-@Html.append: '</body>', '</html>', '';
+@Html.append: $Vp.html-end, '</html>', '';
 "t/00basic.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

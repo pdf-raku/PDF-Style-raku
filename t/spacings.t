@@ -11,12 +11,11 @@ use PDF::Content::PDF;
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid green");
 my $vp = PDF::Style::Viewport.new;
-my @Html = '<html>', sprintf('<body style="position:relative; width:%dpt; height:%dpt"O>', $vp.width, $vp.height);
+my @Html = '<html>', $vp.html-start;
 
 my $pdf = PDF::Content::PDF.new;
-my $page = $pdf.add-page;
+my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
 my $n;
 
 sub test($vp, $css, $settings = {}, Bool :$feed = True) {
@@ -66,7 +65,7 @@ test($vp, $css, :!feed);
 
 lives-ok {$pdf.save-as: "t/spacings.pdf"};
 
-@Html.append: '</body>', '</html>', '';
+@Html.append: $vp.html-end, '</html>', '';
 "t/spacings.html".IO.spurt: @Html.join: "\n";
 
 done-testing;
