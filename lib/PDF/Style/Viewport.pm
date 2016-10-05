@@ -21,6 +21,8 @@ class PDF::Style::Viewport
     method html-start {
         use HTML::Entity;
         my $css = $.css.clone;
+        $css.width = :pt(self.width);
+        $css.height = :pt(self.height);
         $css.position = :keyw<relative>;
         my $style = encode-entities($css.write);
         my $text = do with $.content {
@@ -29,8 +31,8 @@ class PDF::Style::Viewport
         else {
             ''
         }
-        sprintf '<body style="%s">%s', $style, $text;
+        sprintf '<div style="%s">%s', $style, $text;
     }
 
-    method html-end { '</body>' }
+    method html-end { '</div>' }
 }

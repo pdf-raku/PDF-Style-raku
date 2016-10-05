@@ -11,7 +11,7 @@ use PDF::Content::PDF;
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid green");
 my $vp = PDF::Style::Viewport.new;
-my @Html = '<html>', $vp.html-start;
+my @Html = '<html>', '<body>', $vp.html-start;
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $vp.add-page($pdf);
@@ -65,7 +65,7 @@ test($vp, $css, :!feed);
 
 lives-ok {$pdf.save-as: "t/spacings.pdf"};
 
-@Html.append: $vp.html-end, '</html>', '';
+@Html.append: $vp.html-end, '</body>', '</html>', '';
 "t/spacings.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

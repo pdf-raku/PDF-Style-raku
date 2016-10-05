@@ -15,7 +15,7 @@ my $vp = PDF::Style::Viewport.new;
 my $pdf = PDF::Content::PDF.new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
-my @html = '<html>', $vp.html-start;
+my @html = '<html>', '<body>', $vp.html-start;
 my $n;
 
 constant %Width = %('_' => Mu, '-' => 200pt, '=' => 250pt, '+' => 300pt);
@@ -65,7 +65,7 @@ for [ '_=_' => '=',
 
 lives-ok {$pdf.save-as: "t/widths.pdf"};
 
-@html.append: $vp.html-end, '</html>', '';
+@html.append: $vp.html-end, '</body>', '</html>', '';
 "t/widths.html".IO.spurt: @html.join: "\n";
 
 done-testing;

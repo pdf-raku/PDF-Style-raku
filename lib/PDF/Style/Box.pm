@@ -33,14 +33,14 @@ class PDF::Style::Box {
     has Hash @.save;
 
     submethod BUILD(
-        Str :$style = '',
-        CSS::Declarations :$!css = CSS::Declarations.new(:$style),
         Numeric :$!em = 12pt, Numeric :$!ex = 0.75 * $!em,
-        Numeric :$!width = self.css-width($!css) || 595pt,
-        Numeric :$!height = self.css-height($!css) || 842pt,
+        Numeric :$!width  = 595pt,
+        Numeric :$!height = 842pt,
         Numeric :$!top = $!height, Numeric :$!left = 0.0,
         Numeric :$!bottom = $!top - $!height,
         Numeric :$!right = $!left + $!width,
+        Str :$style = '',
+        CSS::Declarations :$!css = CSS::Declarations.new(:$style),
         :$!content,
                    ) {
     }

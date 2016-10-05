@@ -16,7 +16,7 @@ my $pdf = PDF::Content::PDF.new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
-my @html = '<html>', $vp.html-start;
+my @html = '<html>', '<body>', $vp.html-start;
 my $n;
 
 constant %Height = %('_' => Mu, '-' => 50pt, '=' => 75pt, '+' => 100pt);
@@ -66,7 +66,7 @@ for [ '_=_' => '=',
 
 lives-ok {$pdf.save-as: "t/heights.pdf"};
 
-@html.append: $vp.html-end, '</html>', '';
+@html.append: $vp.html-end, '</body>', '</html>', '';
 "t/heights.html".IO.spurt: @html.join: "\n";
 
 done-testing;

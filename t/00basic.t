@@ -16,7 +16,7 @@ my $Vp = PDF::Style::Viewport.new;
 my $pdf = PDF::Content::PDF.new;
 my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
-my @Html = '<html>', $Vp.html-start;
+my @Html = '<html>', '<body>', $Vp.html-start;
 
 sub show-text($text, :$css!, |c) {
     my $box = $Vp.text-box( $text, :$css, |c );
@@ -88,7 +88,7 @@ show-text( $css.write, :$css );
 
 lives-ok {$pdf.save-as: "t/00basic.pdf"};
 
-@Html.append: $Vp.html-end, '</html>', '';
+@Html.append: $Vp.html-end, '</body>', '</html>', '';
 "t/00basic.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

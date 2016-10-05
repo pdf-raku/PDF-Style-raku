@@ -9,9 +9,9 @@ use PDF::Content::PDF;
 
 # also dump to HTML, for comparision
 
-my $vp = PDF::Style::Viewport.new: :style("width:595pt; height:842pt; border: 1px solid red;");
+my $vp = PDF::Style::Viewport.new;
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
-my @Html = '<html>', $vp.html-start,
+my @Html = '<html>', '<body>', $vp.html-start;
 
 my $pdf = PDF::Content::PDF.new;
 my $page = $vp.add-page($pdf);
@@ -46,9 +46,11 @@ for [ { :background-color<rgba(255,0,0,.2)> },
     test($vp, $css, $_);
 }
 
+test($vp, $css,  { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, :width<593pt>, });
+
 lives-ok {$pdf.save-as: "t/background.pdf"};
 
-@Html.append: $vp.html-end, '</html>', '';
+@Html.append: $vp.html-end, '</body>', '</html>', '';
 "t/background.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

@@ -15,7 +15,7 @@ my $Vp = PDF::Style::Viewport.new;
 my $pdf = PDF::Content::PDF.new;
 my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
-my @Html = '<html>', $Vp.html-start;
+my @Html = '<html>', '<body>', $Vp.html-start;
 my $N;
 
 sub show-text($text, :$css!) {
@@ -96,7 +96,7 @@ scoped({
 
 lives-ok {$pdf.save-as: "t/fonts.pdf"};
 
-@Html.append: $Vp.html-end, '</html>', '';
+@Html.append: $Vp.html-end, '</body>', '</html>', '';
 "t/fonts.html".IO.spurt: @Html.join: "\n";
 
 done-testing;
