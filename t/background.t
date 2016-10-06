@@ -22,9 +22,9 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
     $css."{.key}"() = .value
         for $settings.pairs;
 
-    my $style = $css.write;
-    warn {:$style}.perl;
-    my $box = $vp.text-box( $style, :$css );
+    my $text = $css.write;
+    warn {:$text}.perl;
+    my $box = $vp.box( :$text, :$css );
     @Html.push: $box.html;
     $box.render($page);
 

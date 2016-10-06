@@ -44,13 +44,14 @@ for [ '_=_' => '=',
     $css.max-height = $_ with $max-height;
 
     my $style = $css.write;
-    my $box = $vp.text-box( (++$n,.value, ':', .key, $style).join(' '), :$css );
+    my $text = (++$n,.value, ':', .key, $style).join: ' ';
+    my $box = $vp.box( :$text, :$css );
     @html.push: $box.html;
     $box.render($page);
 
     my $box-height = $box.top - $box.bottom;
     my $expected-height = $test-height eq 'snug'
-        ?? $box.content.actual-height
+        ?? $box.text.actual-height
         !! %Height{$test-height};
 
     is-approx $box-height, $expected-height, 'box height';

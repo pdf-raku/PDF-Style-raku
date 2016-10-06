@@ -25,7 +25,7 @@ class PDF::Style::Viewport
         $css.height = :pt(self.height);
         $css.position = :keyw<relative>;
         my $style = encode-entities($css.write);
-        my $text = do with $.content {
+        my $text = do with $.text {
             encode-entities(.text);
         }
         else {

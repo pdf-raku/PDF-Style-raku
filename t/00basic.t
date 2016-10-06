@@ -19,7 +19,7 @@ $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $Vp.html-start;
 
 sub show-text($text, :$css!, |c) {
-    my $box = $Vp.text-box( $text, :$css, |c );
+    my $box = $Vp.box( :$text, :$css, |c );
     $box.render($Page);
     @Html.push: $box.html;
 }

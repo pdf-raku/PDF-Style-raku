@@ -20,7 +20,7 @@ my $N;
 
 sub show-text($text, :$css!) {
     note "$text = {~$css}";
-    my $box = $Vp.text-box( $text, :$css );
+    my $box = $Vp.box( :$text, :$css );
     @Html.push: $box.html;
 
     $box.render($Page);

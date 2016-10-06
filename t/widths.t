@@ -43,7 +43,8 @@ for [ '_=_' => '=',
     $css.max-width = $_ with $max-width;
 
     my $style = $css.write;
-    my $box = $vp.text-box( (++$n,.value, ':', .key, $style).join(' '), :$css );
+    my $text = (++$n,.value, ':', .key, $style).join: ' ';
+    my $box = $vp.box( :$text, :$css );
     @html.push: $box.html;
     $box.render($page);
 
