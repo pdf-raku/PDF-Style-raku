@@ -2,7 +2,7 @@ use v6;
 
 module PDF::Style {
     use CSS::Declarations::Units;
-    sub pt($_, Numeric :$em = 12, Numeric :$ex = 9) is export(:pt) {
+    sub pt($_, Numeric :$em = 12, Numeric :$ex = $em * 3/4) is export(:pt) {
         when Numeric {
             (if $_ {
                     my $units = .?key // 'pt';
@@ -12,7 +12,7 @@ module PDF::Style {
                         when 'percent' { Inf }
                         default { Units.enums{$units} }
                     } or die "unknown units: $units";
-                    ($_ / $scale).Num
+                    ($_ * $scale).Num
                 }
              else {
                  0
