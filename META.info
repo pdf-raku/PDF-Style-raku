@@ -3,7 +3,7 @@
     "perl"        : "6.c",
     "version"     : "0.0.1",
     "description" : "PDF creation, ... with style!",
-    "depends"     : [ "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color" ],
+    "depends"     : [ "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color", "Base64" ],
     "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Style.git",
     "provides"    : {
         "PDF::Style"           : "lib/PDF/Style.pm",

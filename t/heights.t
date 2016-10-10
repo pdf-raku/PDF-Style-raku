@@ -51,7 +51,7 @@ for [ '_=_' => '=',
 
     my $box-height = $box.top - $box.bottom;
     my $expected-height = $test-height eq 'snug'
-        ?? $box.text.actual-height
+        ?? $box.text.content-height
         !! %Height{$test-height};
 
     is-approx $box-height, $expected-height, 'box height';

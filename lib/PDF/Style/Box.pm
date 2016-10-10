@@ -5,8 +5,10 @@ class PDF::Style::Box {
     use CSS::Declarations;
     use CSS::Declarations::Units;
     use HTML::Entity;
+    use PDF::Content::Image;
     use PDF::Content::Text::Block;
     use PDF::Content::Util::Font;
+    use PDF::DAO::Stream;
     use Color;
 
     my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
@@ -26,6 +28,7 @@ class PDF::Style::Box {
     has Array $!margin;
 
     has CSS::Declarations $.css;
+    has PDF::DAO::Stream $.image;
     has PDF::Content::Text::Block $.text;
 
     my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
@@ -42,6 +45,7 @@ class PDF::Style::Box {
         Str :$style = '',
         CSS::Declarations :$!css = CSS::Declarations.new(:$style),
         PDF::Content::Text::Block :$!text,
+        PDF::DAO::Stream :$!image,
                    ) {
     }
 
@@ -197,11 +201,20 @@ class PDF::Style::Box {
     method render($page) {
         $page.graphics: {
             self.style($_);
-            with self.text -> \text {
+            my $left = self.left;
+            with $!image -> \image {
+                my $bottom = self.bottom;
+                $page.graphics: {
+                    .transform: :translate[ $left, $bottom ];
+                    .transform: :scale[ image.x-scale, image.y-scale]
+                        unless image.x-scale =~= 1.0 && image.x-scale =~= 1.0;
+                    .do(image);
+                }
+            }
+            with $!text -> \text {
+                my $top = self.top;
                 self!set-font-color($_);
                 $page.text: {
-                    my $left = self.left;
-                    my $top = self.top;
                     .print(text, :position[ :$left, :$top]);
                 }
             }
@@ -210,11 +223,19 @@ class PDF::Style::Box {
 
     method html {
         my $style = encode-entities($!css.write);
-        my $text = encode-entities($!text.text);
-        $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!text.top-offset, $text
-            if $!text.top-offset;
+        my $text;
+        with $!text {
+            $text = encode-entities(.text);
+            $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!text.top-offset, $text
+                if $!text.top-offset;
+            sprintf '<div style="%s">%s</div>', $style, $text;
+        }
+        else {
+            with $!image {
+                warn "tba - image to html";
+            }
+        }
 
-        sprintf '<div style="%s">%s</div>', $style, $text;
     }
 
     method save {
@@ -301,7 +322,7 @@ class PDF::Style::Box {
         $width;
     }
 
-    method !build-content($css, $class, %opt) {
+    method !build-box($css, &build-content) {
         my $top = self!length($css.top);
         my $bottom = self!length($css.bottom);
 
@@ -315,14 +336,14 @@ class PDF::Style::Box {
         my \max-width = $width // self.width - ($left//0) - ($right//0);
         $width //= max-width if $left.defined && $right.defined;
 
-        my $text = $class.new: |%opt, :width(max-width), :height(max-height);
+        my ($type, $content) = &build-content( :width(max-width), :height(max-height) );
 
-        $width //= $text.actual-width;
+        $width //= $content.content-width;
         with self!length($css.min-width) -> \min {
             $width = min if min > $width
         }
 
-        $height //= $text.actual-height;
+        $height //= $content.content-height;
         with self!length($css.min-height) -> \min {
             $height = min if min > $height
         }
@@ -343,7 +364,7 @@ class PDF::Style::Box {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = self.height - $top;
-        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, :$text;
+        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, |($type => $content);
 
         # reposition to outside of border
         my Numeric @content-box[4] = box.Array.list;
@@ -359,52 +380,79 @@ class PDF::Style::Box {
         box;
     }
 
-    method box( Str :$text, CSS::Declarations :$css!, Str :$valign is copy) {
+    multi method box( Str:D :$text!, CSS::Declarations :$css!, Str :$valign is copy) {
 
-        if $text.defined {
-            my $family = $css.font-family // 'arial';
-            my $font-style = $css.font-style // 'normal';
-            $!font-weight = self!font-weight($css.font-weight // 'normal');
-            my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
+        my $family = $css.font-family // 'arial';
+        my $font-style = $css.font-style // 'normal';
+        $!font-weight = self!font-weight($css.font-weight // 'normal');
+        my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
 
-            my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
-            my $font-size = self!font-length($css.font-size);
-            $!em = $font-size;
-            $!ex = $font-size * $_ / 1000
-                with $font.XHeight;
+        my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
+        my $font-size = self!font-length($css.font-size);
+        $!em = $font-size;
+        $!ex = $font-size * $_ / 1000
+            with $font.XHeight;
 
-            my $leading = do given $css.line-height {
-                when .key eq 'num' { $_ * $font-size }
-                when .key eq 'percent' { $_ * $font-size / 100 }
-                when 'normal' { $font-size * 1.2 }
-                default       { self!length($_) }
-            }
+        my $leading = do given $css.line-height {
+            when .key eq 'num' { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { $font-size * 1.2 }
+            default       { self!length($_) }
+        }
 
-            my $kern = $css.font-kerning
-            && ( $css.font-kerning eq 'normal'
-                 || ($css.font-kerning eq 'auto' && $!em <= 32));
+        my $kern = $css.font-kerning
+        && ( $css.font-kerning eq 'normal'
+             || ($css.font-kerning eq 'auto' && $!em <= 32));
 
-            my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
+        my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
             ?? $css.text-align
             !! 'left';
 
-            $valign //= 'top';
-            my %opt = :$text, :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
+        $valign //= 'top';
+        my %opt = :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
 
-            %opt<CharSpacing> = do given $css.letter-spacing {
-                when .key eq 'num'     { $_ * $font-size }
-                when .key eq 'percent' { $_ * $font-size / 100 }
-                when 'normal' { 0.0 }
-                default       { self!length($_) }
-            }
-
-            %opt<WordSpacing> = do given $css.word-spacing {
-                when 'normal' { 0.0 }
-                default       { self!length($_) - $font.stringwidth(' ', $font-size) }
-            }
-
-            self!build-content($css, PDF::Content::Text::Block, %opt);
+        %opt<CharSpacing> = do given $css.letter-spacing {
+            when .key eq 'num'     { $_ * $font-size }
+            when .key eq 'percent' { $_ * $font-size / 100 }
+            when 'normal' { 0.0 }
+            default       { self!length($_) }
         }
+
+        %opt<WordSpacing> = do given $css.word-spacing {
+            when 'normal' { 0.0 }
+            default       { self!length($_) - $font.stringwidth(' ', $font-size) }
+        }
+
+        my &content-builder = sub (|c) { 'text', PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        self!build-box($css, &content-builder);
+    }
+
+    multi method box( Str :$image!, CSS::Declarations :$css!) {
+        warn :$image.perl;
+        my role ImageBox {
+            has Numeric $.x-scale is rw = 1.0;
+            has Numeric $.y-scale is rw = 1.0;
+            method content-width  { self<Width> * $.x-scale }
+            method content-height { self<Height> * $.y-scale }
+        }
+        my &content-builder = sub (:$width, :$height, |c) {
+            my \image = PDF::Content::Image.open($image) does ImageBox;
+            if $width {
+                image.x-scale = $width / image<Width>;
+                if $height {
+                    image.y-scale = $height / image<Height>;
+                }
+                else {
+                    image.y-scale = image<Height> / image<Width> * $.x-scale;
+                }
+            }
+            elsif $height {
+                $.y-scale = $height / self<Height>;
+                $.x-scale = self<Width>  / self<Height> * $.y-scale;
+            }
+            'image', image
+        }
+        self!build-box($css, &content-builder);
     }
 
     #| absolute positions
