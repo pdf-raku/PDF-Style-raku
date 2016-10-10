@@ -167,18 +167,14 @@ class PDF::Style::Box {
         with $!css.background-color {
             my Bool \transparent = .a == 0;
             unless transparent {
+                $gfx.Save;
                 $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
                 $gfx.FillAlpha = .a / 255;
-                my Numeric @inner[4] = [
-                    @border[Top] - @width[Top],
-                    @border[Right] - @width[Right],
-                    @border[Bottom] + @width[Bottom],
-                    @border[Left] + @width[Left],
-                ];
-                my \w = @inner[Right] - @inner[Left];
-                my \h = @inner[Top] - @inner[Bottom];
-                $gfx.Rectangle(@inner[Left], @inner[Bottom], w, h);
+                my \w = @border[Right] - @border[Left];
+                my \h = @border[Top] - @border[Bottom];
+                $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
                 $gfx.Fill;
+                $gfx.Restore;
             }
         }
     }
