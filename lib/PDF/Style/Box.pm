@@ -447,8 +447,8 @@ class PDF::Style::Box {
                 }
             }
             elsif $height {
-                $.y-scale = $height / self<Height>;
-                $.x-scale = self<Width>  / self<Height> * $.y-scale;
+                $.y-scale = $height / image<Height>;
+                $.x-scale = image<Width>  / image<Height> * $.y-scale;
             }
             'image', image
         }
