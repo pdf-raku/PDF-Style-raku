@@ -232,10 +232,14 @@ class PDF::Style::Box {
         }
         else {
             with $!image {
-                warn "tba - image to html";
+                use Base64;
+                my $path = .path;
+                my $raw = $path.IO.slurp(:bin);
+                my $enc = encode-base64($raw, :str);
+                my $type = lc PDF::Content::Image.type($path);
+                sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style, $type, $enc;
             }
         }
-
     }
 
     method save {
@@ -430,13 +434,15 @@ class PDF::Style::Box {
     multi method box( Str :$image!, CSS::Declarations :$css!) {
         warn :$image.perl;
         my role ImageBox {
-            has Numeric $.x-scale is rw = 1.0;
-            has Numeric $.y-scale is rw = 1.0;
+            has Numeric  $.x-scale is rw = 1.0;
+            has Numeric  $.y-scale is rw = 1.0;
+            has IO::Path $.path is rw;
             method content-width  { self<Width> * $.x-scale }
             method content-height { self<Height> * $.y-scale }
         }
         my &content-builder = sub (:$width, :$height, |c) {
             my \image = PDF::Content::Image.open($image) does ImageBox;
+            image.path = $image.IO;
             if $width {
                 image.x-scale = $width / image<Width>;
                 if $height {
