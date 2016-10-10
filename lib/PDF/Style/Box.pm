@@ -202,9 +202,9 @@ class PDF::Style::Box {
                 my $bottom = self.bottom;
                 $page.graphics: {
                     .transform: :translate[ $left, $bottom ];
-                    .transform: :scale[ image.x-scale, image.y-scale]
-                        unless image.x-scale =~= 1.0 && image.x-scale =~= 1.0;
-                    .do(image);
+                    my $width = image.content-width;
+                    my $height = image.content-height;
+                    .do(image, :$width, :$height);
                 }
             }
             with $!text -> \text {
@@ -428,7 +428,6 @@ class PDF::Style::Box {
     }
 
     multi method box( Str :$image!, CSS::Declarations :$css!) {
-        warn :$image.perl;
         my role ImageBox {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
