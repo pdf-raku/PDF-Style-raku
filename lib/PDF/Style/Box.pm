@@ -432,10 +432,12 @@ class PDF::Style::Box {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
             has IO::Path $.path is rw;
-            method content-width  { self<Width> * $.x-scale }
-            method content-height { self<Height> * $.y-scale }
+            method content-width  { self<Width> * self.x-scale }
+            method content-height { self<Height> * self.y-scale }
         }
-        my &content-builder = sub (:$width, :$height, |c) {
+        my $width = self.css-width($css);
+        my $height = self.css-height($css);
+        my &content-builder = sub (|c) {
             my \image = PDF::Content::Image.open($image) does ImageBox;
             image.path = $image.IO;
             if $width {
@@ -448,8 +450,8 @@ class PDF::Style::Box {
                 }
             }
             elsif $height {
-                $.y-scale = $height / image<Height>;
-                $.x-scale = image<Width>  / image<Height> * $.y-scale;
+                image.y-scale = $height / image<Height>;
+                image.x-scale = image<Width>  / image<Height> * image.y-scale;
             }
             'image', image
         }
