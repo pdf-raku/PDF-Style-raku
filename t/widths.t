@@ -50,7 +50,7 @@ for [ '_=_' => '=',
 
     my $box-width = $box.right - $box.left;
     my $expected-width = $test-width eq 'long'
-        ?? $vp.width - $css.left - $css.right
+        ?? $vp.width - $css.left - $css.right - $css.border-left-width - $css.border-right-width
         !! %Width{$test-width};
 
     is-approx $box-width, $expected-width, 'box width';

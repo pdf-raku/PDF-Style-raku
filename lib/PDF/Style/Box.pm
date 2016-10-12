@@ -325,19 +325,36 @@ class PDF::Style::Box {
     method !build-box($css, &build-content) {
         my $top = self!length($css.top);
         my $bottom = self!length($css.bottom);
-
-        my $height = self.css-height($css);
-        my \max-height = $height // self.height - ($top//0) - ($bottom//0);
-
-
         my $left = self!length($css.left);
         my $right = self!length($css.right);
         my $width = self.css-width($css);
-        my \max-width = $width // self.width - ($left//0) - ($right//0);
-        $width //= max-width if $left.defined && $right.defined;
+        my $height = self.css-height($css);
 
-        my ($type, $content) = &build-content( :width(max-width), :height(max-height) );
+        my \height-max = do with $height {
+            $_
+        }
+        else {
+            my $max = self.height - ($top//0) - ($bottom//0);
+            for <padding-top padding-bottom border-top-width border-bottom-width> {
+                $max -= $_ with $css."$_"();
+            }
+            $max;
+        }
 
+        my \width-max = do with $width {
+            $_
+        }
+        else {
+            my $max = self.width - ($left//0) - ($right//0);
+            for <padding-left padding-right border-left-width border-right-width> {
+                $max -= $_ with $css."$_"();
+            }
+            $max;
+        }
+
+        my ($type, $content) = &build-content( :width(width-max), :height(height-max) );
+
+        $width //= width-max if $left.defined && $right.defined;
         $width //= $content.content-width;
         with self!length($css.min-width) -> \min {
             $width = min if min > $width
