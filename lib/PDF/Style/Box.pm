@@ -9,6 +9,7 @@ class PDF::Style::Box {
     use PDF::Content::Text::Block;
     use PDF::Content::Util::Font;
     use PDF::DAO::Stream;
+    use HTML::Canvas;
     use Color;
 
     my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
@@ -30,6 +31,7 @@ class PDF::Style::Box {
     has CSS::Declarations $.css;
     has PDF::DAO::Stream $.image;
     has PDF::Content::Text::Block $.text;
+    has HTML::Canvas $.canvas;
 
     my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
     has FontWeight $.font-weight = 400;
@@ -214,6 +216,14 @@ class PDF::Style::Box {
                     .print(text, :position[ :$left, :$top]);
                 }
             }
+            with $!canvas -> \canvas {
+                my $gfx = $page.gfx;
+                use  HTML::Canvas::Render::PDF;
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new( :$gfx );
+                $gfx.Save;
+                canvas.render($canvas-pdf-renderer);
+                $gfx.Restore;
+            }
         }
     }
 
@@ -232,7 +242,7 @@ class PDF::Style::Box {
                 my $path = .path;
                 my $raw = $path.IO.slurp(:bin);
                 my $enc = encode-base64($raw, :str);
-                my $type = lc PDF::Content::Image.type($path);
+                my $type = lc PDF::Content::Image.image-type($path);
                 sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style, $type, $enc;
             }
         }
@@ -444,7 +454,7 @@ class PDF::Style::Box {
         self!build-box($css, &content-builder);
     }
 
-    multi method box( Str :$image!, CSS::Declarations :$css!) {
+    multi method box( :$image! where Str|PDF::DAO::Stream, CSS::Declarations :$css!) {
         my role ImageBox {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
@@ -455,7 +465,10 @@ class PDF::Style::Box {
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = PDF::Content::Image.open($image) does ImageBox;
+            my \image = ($image.isa(Str)
+                         ?? PDF::Content::Image.open($image)
+                         !! $image
+                        ) does ImageBox;
             image.path = $image.IO;
             if $width {
                 image.x-scale = $width / image<Width>;
@@ -472,6 +485,11 @@ class PDF::Style::Box {
             }
             'image', image
         }
+        self!build-box($css, &content-builder);
+    }
+
+    multi method box( HTML::Canvas :$canvas!, :$css!) {
+        my &content-builder = sub (|c) { 'canvas', $canvas };
         self!build-box($css, &content-builder);
     }
 

@@ -3,9 +3,9 @@ use Test;
 use PDF::Style :pt;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
+use PDF::Content::PDF;
 use CSS::Declarations;
 use CSS::Declarations::Units;
-use PDF::Content::PDF;
 
 # also dump to HTML, for comparision
 
