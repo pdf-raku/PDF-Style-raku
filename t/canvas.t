@@ -26,6 +26,7 @@ sub test($vp, $css, $properties = {}, Bool :$feed = True) {
     $canvas.beginPath();
     $canvas.arc(95, 50, 40, 0, 2 * pi);
     $canvas.stroke();
+    $canvas.strokeRect(10, 30, 50, 25);
     $canvas.fillText("Hello World", 10, 50);
 
     my $box = $vp.box( :$canvas, :$css );

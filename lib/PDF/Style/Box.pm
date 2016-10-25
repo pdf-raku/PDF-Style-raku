@@ -48,6 +48,7 @@ class PDF::Style::Box {
         CSS::Declarations :$!css = CSS::Declarations.new(:$style),
         PDF::Content::Text::Block :$!text,
         PDF::DAO::Stream :$!image,
+        HTML::Canvas :$!canvas,
                    ) {
     }
 
@@ -193,15 +194,17 @@ class PDF::Style::Box {
     }
 
     method style($gfx) {
+        $gfx.Save;
         self!draw-border($gfx);
+        $gfx.Restore;
     }
 
     method render($page) {
         $page.graphics: {
             self.style($_);
             my $left = self.left;
+            my $bottom = self.bottom;
             with $!image -> \image {
-                my $bottom = self.bottom;
                 $page.graphics: {
                     .transform: :translate[ $left, $bottom ];
                     my $width = image.content-width;
@@ -217,9 +220,12 @@ class PDF::Style::Box {
                 }
             }
             with $!canvas -> \canvas {
+                .transform: :translate[ $left, $bottom ];
                 my $gfx = $page.gfx;
+                my $height = self.height;
                 use  HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new( :$gfx );
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new( :$gfx, :$height );
+                warn :$canvas-pdf-renderer.perl;
                 $gfx.Save;
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;
@@ -362,7 +368,8 @@ class PDF::Style::Box {
             $max;
         }
 
-        my ($type, $content) = &build-content( :width(width-max), :height(height-max) );
+        my ($type, $content) = (.key, .value)
+            with &build-content( :width(width-max), :height(height-max) );
 
         $width //= width-max if $left.defined && $right.defined;
         $width //= $content.content-width;
@@ -450,7 +457,7 @@ class PDF::Style::Box {
             default       { self!length($_) - $font.stringwidth(' ', $font-size) }
         }
 
-        my &content-builder = sub (|c) { 'text', PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
         self!build-box($css, &content-builder);
     }
 
@@ -483,13 +490,13 @@ class PDF::Style::Box {
                 image.y-scale = $height / image<Height>;
                 image.x-scale = image<Width>  / image<Height> * image.y-scale;
             }
-            'image', image
+            image => image
         }
         self!build-box($css, &content-builder);
     }
 
     multi method box( HTML::Canvas :$canvas!, :$css!) {
-        my &content-builder = sub (|c) { 'canvas', $canvas };
+        my &content-builder = sub (|c) { :$canvas };
         self!build-box($css, &content-builder);
     }
 
