@@ -8,6 +8,7 @@
     "provides"    : {
         "PDF::Style"           : "lib/PDF/Style.pm",
         "PDF::Style::Box"      : "lib/PDF/Style/Box.pm",
+        "PDF::Style::Font"      : "lib/PDF/Style/Font.pm",
         "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
      }
 }

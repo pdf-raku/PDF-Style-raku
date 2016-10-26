@@ -1,21 +1,17 @@
 use v6;
 
 class PDF::Style::Box {
-    use PDF::Style :pt;
+    use PDF::Style::Font;
     use CSS::Declarations;
     use CSS::Declarations::Units;
     use HTML::Entity;
     use PDF::Content::Image;
     use PDF::Content::Text::Block;
-    use PDF::Content::Util::Font;
     use PDF::DAO::Stream;
     use HTML::Canvas;
     use Color;
 
     my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
-    
-    has Numeric $.em is rw;
-    has Numeric $.ex is rw;
 
     has Numeric $.top;
     has Numeric $.right;
@@ -28,17 +24,17 @@ class PDF::Style::Box {
     has Array $!border;
     has Array $!margin;
 
+    has PDF::Style::Font $.font handles <em ex>;
+
     has CSS::Declarations $.css;
     has PDF::DAO::Stream $.image;
     has PDF::Content::Text::Block $.text;
     has HTML::Canvas $.canvas;
 
-    my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
-    has FontWeight $.font-weight = 400;
     has Hash @.save;
 
     submethod BUILD(
-        Numeric :$!em = 12pt, Numeric :$!ex = 0.75 * $!em,
+        Numeric :$em = 12pt, Numeric :$ex = 0.75 * $em,
         Numeric :$!width  = 595pt,
         Numeric :$!height = 842pt,
         Numeric :$!top = $!height, Numeric :$!left = 0.0,
@@ -49,16 +45,17 @@ class PDF::Style::Box {
         PDF::Content::Text::Block :$!text,
         PDF::DAO::Stream :$!image,
         HTML::Canvas :$!canvas,
-                   ) {
+    ) {
+        $!font = PDF::Style::Font.new: :$em, :$ex;
+    }
+
+    method !length($v) {
+        self.font.length($v);
     }
 
     method translate( \x = 0, \y = 0) {
         self.Array = [ $!top    + y, $!right + x,
                        $!bottom + y, $!left  + x ];
-    }
-
-    method !length($v) {
-        pt($v, :$!em, :$!ex);
     }
 
     method !width($qty) {
@@ -223,9 +220,8 @@ class PDF::Style::Box {
                 .transform: :translate[ $left, $bottom ];
                 my $gfx = $page.gfx;
                 my $height = self.height;
-                use  HTML::Canvas::Render::PDF;
+                use HTML::Canvas::Render::PDF;
                 my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new( :$gfx, :$height );
-                warn :$canvas-pdf-renderer.perl;
                 $gfx.Save;
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;
@@ -255,8 +251,11 @@ class PDF::Style::Box {
     }
 
     method save {
+        my $em = $!font.em;
+        my $ex = $!font.ex;
+        my $font-weight = $!font.weight;
         @!save.push: {
-            :$!width, :$!height, :$!em, :$!ex, :$!font-weight,
+            :$!width, :$!height, :$em, :$ex, :$font-weight,
         }
     }
 
@@ -265,49 +264,9 @@ class PDF::Style::Box {
             with @!save.pop {
                 $!width       = .<width>;
                 $!height      = .<height>;
-                $!em          = .<em>;
-                $!ex          = .<ex>;
-                $!font-weight = .<font-weight>;
-            }
-        }
-    }
-
-    #| converts a weight name to a three digit number:
-    #| 100 lightest ... 900 heaviest
-    method !font-weight($_) returns FontWeight {
-        given .lc {
-            when FontWeight       { $_ }
-            when /^ <[1..9]>00 $/ { .Int }
-            when 'normal'         { 400 }
-            when 'bold'           { 700 }
-            when 'lighter'        { max($!font-weight - 100, 100) }
-            when 'bolder'         { min($!font-weight + 100, 900) }
-            default {
-                warn "unhandled font-weight: $_";
-                400;
-            }
-        }
-    }
-
-    method !font-length($_) returns Numeric {
-        if $_ ~~ Numeric {
-            return .?key ~~ 'percent'
-                ?? $!em * $_ / 100
-                !! self!length($_);
-        }
-        given .lc {
-            when 'xx-small' { 6pt }
-            when 'x-small'  { 7.5pt }
-            when 'small'    { 10pt }
-            when 'medium'   { 12pt }
-            when 'large'    { 13.5pt }
-            when 'x-large'  { 18pt }
-            when 'xx-large' { 24pt }
-            when 'larger'   { $!em * 1.2 }
-            when 'smaller'  { $!em / 1.2 }
-            default {
-                warn "unhandled font-size: $_";
-                12pt;
+                $!font.em     = .<em>;
+                $!font.ex     = .<ex>;
+                $!font.weight = .<font-weight>;
             }
         }
     }
@@ -398,7 +357,7 @@ class PDF::Style::Box {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = self.height - $top;
-        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$!em, :$!ex, |($type => $content);
+        my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
 
         # reposition to outside of border
         my Numeric @content-box[4] = box.Array.list;
@@ -416,48 +375,33 @@ class PDF::Style::Box {
 
     multi method box( Str:D :$text!, CSS::Declarations :$css!, Str :$valign is copy) {
 
-        my $family = $css.font-family // 'arial';
-        my $font-style = $css.font-style // 'normal';
-        $!font-weight = self!font-weight($css.font-weight // 'normal');
-        my Str $weight = $!font-weight >= 700 ?? 'bold' !! 'normal'; 
-
-        my $font = PDF::Content::Util::Font::core-font( :$family, :$weight, :style($font-style) );
-        my $font-size = self!font-length($css.font-size);
-        $!em = $font-size;
-        $!ex = $font-size * $_ / 1000
-            with $font.XHeight;
-
-        my $leading = do given $css.line-height {
-            when .key eq 'num' { $_ * $font-size }
-            when .key eq 'percent' { $_ * $font-size / 100 }
-            when 'normal' { $font-size * 1.2 }
-            default       { self!length($_) }
-        }
-
+        self.font.setup($css);
         my $kern = $css.font-kerning
         && ( $css.font-kerning eq 'normal'
-             || ($css.font-kerning eq 'auto' && $!em <= 32));
+             || ($css.font-kerning eq 'auto' && $.em <= 32));
 
         my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
             ?? $css.text-align
             !! 'left';
 
-        $valign //= 'top';
-        my %opt = :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
+        my $leading = $!font.leading;
+        my $font-size = $!font.em;
+        my $font = $!font.face;
+        my %opt = :$font, :$kern, :$font-size, :$leading, :$align;
 
         %opt<CharSpacing> = do given $css.letter-spacing {
             when .key eq 'num'     { $_ * $font-size }
             when .key eq 'percent' { $_ * $font-size / 100 }
             when 'normal' { 0.0 }
-            default       { self!length($_) }
+            default       { $!font.length($_) }
         }
 
         %opt<WordSpacing> = do given $css.word-spacing {
             when 'normal' { 0.0 }
-            default       { self!length($_) - $font.stringwidth(' ', $font-size) }
+            default       { $!font.length($_) - $!font.face.stringwidth(' ', $font-size) }
         }
-
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        $valign //= 'top';
+        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :$valign, |%opt, |c) };
         self!build-box($css, &content-builder);
     }
 
@@ -472,9 +416,9 @@ class PDF::Style::Box {
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = ($image.isa(Str)
-                         ?? PDF::Content::Image.open($image)
-                         !! $image
+            my \image = ($image.isa(PDF::DAO::Stream)
+                         ?? $image
+                         !! PDF::Content::Image.open($image)
                         ) does ImageBox;
             image.path = $image.IO;
             if $width {
