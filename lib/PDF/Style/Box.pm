@@ -373,16 +373,16 @@ class PDF::Style::Box {
         box;
     }
 
-    multi method box( Str:D :$text!, CSS::Declarations :$css!, Str :$valign is copy) {
+    multi method box( Str:D :$text!, CSS::Declarations :$css!, Str :$valign) {
 
         self.font.setup($css);
-        my $kern = $css.font-kerning
-        && ( $css.font-kerning eq 'normal'
-             || ($css.font-kerning eq 'auto' && $.em <= 32));
+        my $kern = $css.font-kerning eq 'normal' || (
+            $css.font-kerning eq 'auto' && $.em <= 32
+        );
 
-        my $align = $css.text-align && $css.text-align eq 'left'|'right'|'center'|'justify'
-            ?? $css.text-align
-            !! 'left';
+        my $align = $css.text-align // (
+            $css.direction eq 'ltr' ?? 'left' !! 'right'
+        );
 
         my $leading = $!font.leading;
         my $font-size = $!font.em;
@@ -400,8 +400,8 @@ class PDF::Style::Box {
             when 'normal' { 0.0 }
             default       { $!font.length($_) - $!font.face.stringwidth(' ', $font-size) }
         }
-        $valign //= 'top';
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :$valign, |%opt, |c) };
+        %opt<valign> = $valign // 'top';
+        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
         self!build-box($css, &content-builder);
     }
 

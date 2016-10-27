@@ -6,6 +6,15 @@ use PDF::Style::Box;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Content::PDF;
+use PDF::Style::Font;
+
+my $font = PDF::Style::Font.new;
+$font.parse: 'italic bold 10pt/12pt times-roman';
+is $font.style, 'italic', 'font.style';
+is $font.weight, '700', 'font.weight';
+is $font.family, 'times-roman', 'font.family';
+is $font.leading, 12, 'font.leading';
+isa-ok $font.face, 'Font::Metrics::times-bolditalic', 'font.face';
 
 # also dump to HTML, for comparision
 
