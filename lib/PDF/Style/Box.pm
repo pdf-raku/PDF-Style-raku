@@ -444,22 +444,35 @@ class PDF::Style::Box {
         self!build-box($css, &content-builder);
     }
 
-    #| absolute positions
-    multi method FALLBACK($meth where /^ (padding|border|margin)'-'(top|right|bottom|left) $/) {
-        my Str $box = ~$0;
-        my UInt $edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){ $1 };
-        self.^add_method($meth, method { self."$box"()[$edge] });
-        self."$meth"();
+    method can(Str \name) {
+       my @meth = callsame;
+       if !@meth {
+           given name {
+               when /^ (padding|border|margin)'-'(top|right|bottom|left) $/ {
+                   #| absolute positions
+                   my Str $box = ~$0;
+                   my UInt $edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){$1};
+                   @meth.push: method { self."$box"()[$edge] };
+               }
+               when /^ (padding|border|margin)'-'(width|height) $/ {
+                   #| cumulative widths and heights
+                   my Str $box = ~$0;
+                   @meth.push: do given ~$1 {
+                       when 'width'  { method { .[Right] - .[Left] with self."$box"() } }
+                       when 'height' { method { .[Top] - .[Bottom] with self."$box"() } }
+                   }
+               }
+           }
+           self.^add_method(name, @meth[0]) if @meth;
+       }
+       @meth;
     }
-
-    #| cumulative widths and heights
-    multi method FALLBACK($meth where /^ (padding|border|margin)'-'(width|height) $/) {
-        my Str $box = ~$0;
-        my &meth = do given ~$1 {
-            when 'width'  { method { .[Right] - .[Left] with self."$box"() } }
-            when 'height' { method { .[Top] - .[Bottom] with self."$box"() } }
-        };
-        self.^add_method($meth, &meth);
-        self."$meth"();
+    method dispatch:<.?>(\name, |c) is raw {
+        self.can(name) ?? self."{name}"(|c) !! Nil
+    }
+    method FALLBACK(Str \name, |c) {
+        self.can(name)
+            ?? self."{name}"(|c)
+            !! die die X::Method::NotFound.new( :method(name), :typename(self.^name) );
     }
 }
