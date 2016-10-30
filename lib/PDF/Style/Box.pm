@@ -247,6 +247,21 @@ class PDF::Style::Box {
                 my $type = lc PDF::Content::Image.image-type($path);
                 sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style, $type, $enc;
             }
+            else {
+                with $!canvas {
+                    my $width = self.width;
+                    my $height = self.height;
+                    my $id = ~ $!canvas.WHERE;
+                    my $js = $!canvas.js(:context<ctx>, :sep("\n    "));
+                    qq:to"END-HTML";
+                    <canvas width="{$width}pt" height="{$height}pt" style="$style" id="$id"></canvas>
+                    <script>
+                        var ctx = document.getElementById("$id").getContext("2d");
+                        $js
+                    </script>
+                    END-HTML
+                }
+            }
         }
     }
 
