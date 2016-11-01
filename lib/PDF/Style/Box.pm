@@ -221,7 +221,7 @@ class PDF::Style::Box {
                 my $gfx = $page.gfx;
                 my $height = self.height;
                 use HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new( :$gfx, :$height, :$!font );
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$height, :font-object($!font);
                 $gfx.Save;
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;

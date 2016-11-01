@@ -58,13 +58,17 @@ class PDF::Style::Font {
         }
     }
 
-    has CSS::Declarations $!css;
-    #| parses a CSS font specification
-    #| e.g. $font.parse: 'italic bold 10pt/12pt sans-serif';
-    method parse(Str $font-css) {
-        $!css //= CSS::Declarations.new;
-        $!css.font = $font-css;
-        self.setup;
+    has CSS::Declarations $!css = CSS::Declarations.new;
+    #| sets/gets the css font property
+    #| e.g. $font.css-font-prop = 'italic bold 10pt/12pt sans-serif';
+    method css-font-prop is rw {
+        Proxy.new(
+            FETCH => sub ($) { $!css.font },
+            STORE => sub ($, Str \font-prop) {
+                $!css.font = font-prop;
+                self.setup;
+                $!css.font;
+            });
     }
 
     method setup(CSS::Declarations $css = $!css) {

@@ -9,7 +9,7 @@ use PDF::Content::PDF;
 use PDF::Style::Font;
 
 my $font = PDF::Style::Font.new;
-$font.parse: 'italic bold 10pt/12pt times-roman';
+$font.css-font-prop = 'italic bold 10pt/12pt times-roman';
 is $font.style, 'italic', 'font.style';
 is $font.weight, '700', 'font.weight';
 is $font.family, 'times-roman', 'font.family';
