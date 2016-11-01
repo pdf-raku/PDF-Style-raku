@@ -5,13 +5,13 @@ class PDF::Style::Font {
     use CSS::Declarations::Units;
     use PDF::Content::Util::Font;
 
-    has Numeric $.em is rw;
-    has Numeric $.ex is rw;
+    has Numeric $.em is rw = 10;;
+    has Numeric $.ex is rw = $!em * 0.75;
     my subset FontWeight of Numeric where { 100 .. 900 && $_ %% 100 }
     has FontWeight $.weight is rw = 400;
-    has Str $.family;
-    has Str $.style;
-    has $.face;
+    has Str $.family = 'times-roman';
+    has Str $.style = 'normal';
+    has $.face = PDF::Content::Util::Font::core-font( :$!family, :$!style );
     has Numeric $.leading;
 
     method length($v) {
@@ -79,8 +79,7 @@ class PDF::Style::Font {
 
         $!face = PDF::Content::Util::Font::core-font( :$!family, :$weight, :$!style );
         $!em = self!font-length($css.font-size);
-        $!ex = $!em * $_ / 1000
-            with $!face.XHeight;
+        $!ex = do with $!face.XHeight {$!em * $_ / 1000} else {$!em * 0.75}; 
 
         $!leading = do given $css.line-height {
             when .key eq 'num'     { $_ * $!em }

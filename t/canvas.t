@@ -11,7 +11,7 @@ use HTML::Canvas;
 # also dump to HTML, for comparision
 
 my $vp = PDF::Style::Viewport.new;
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2); background-color: rgba(0,255,0,.1);");
+my $css = CSS::Declarations.new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2); background-color: rgba(0,255,0,.1);");
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my $pdf = PDF::Content::PDF.new;
@@ -50,10 +50,11 @@ do {
 
 do {
     my HTML::Canvas $canvas .= new;
+    my $n;
     for 1, 239 -> \x {
         for 1, 64 -> \y {
             $canvas.strokeRect(x, y, 10, 15);
-            $canvas.strokeRect(x, y, 10, 15);
+            $canvas.fillText("{++$n}", x + 2, y + 10);
         }
     }
     test($vp, $css, :$canvas, );

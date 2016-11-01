@@ -220,8 +220,9 @@ class PDF::Style::Box {
                 .transform: :translate[ $left, $bottom ];
                 my $gfx = $page.gfx;
                 my $height = self.height;
+                my $font-object = PDF::Style::Font.new;
                 use HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$height, :font-object($!font);
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$height, :$font-object;
                 $gfx.Save;
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;
