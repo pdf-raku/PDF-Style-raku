@@ -12,7 +12,7 @@ my $font = PDF::Style::Font.new;
 is $font.style, 'normal', 'default font.style';
 is $font.weight, '400', 'default font.weight';
 is $font.family, 'times-roman', 'default font.family';
-is $font.em, 9, 'default font.em';
+is $font.em, 10, 'default font.em';
 
 $font.css-font-prop = 'italic bold 10pt/12pt helvetica';
 is $font.style, 'italic', 'css font.style';
