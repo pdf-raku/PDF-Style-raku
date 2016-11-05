@@ -219,10 +219,11 @@ class PDF::Style::Box {
             with $!canvas -> \canvas {
                 .transform: :translate[ $left, $bottom ];
                 my $gfx = $page.gfx;
+                my $width = self.width;
                 my $height = self.height;
                 my $font-object = PDF::Style::Font.new;
                 use HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$height, :$font-object;
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height, :$font-object;
                 $gfx.Save;
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;
