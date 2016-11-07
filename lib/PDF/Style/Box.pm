@@ -107,74 +107,75 @@ class PDF::Style::Box {
         default       { [[], 0] }
     }
 
-    method !draw-border($gfx) {
+    #| Do basic styling, common to all box types (image, text, canvas)
+    method !style-box($_) {
         my %border = $!css.border;
         my Numeric @border[4] = self.border.list;
         my Numeric @width[4] = %border<border-width>.map: {self!width($_)};
-        my @stroke = [
-            @border[Top] - @width[Top]/2,
-            @border[Right] - @width[Right]/2,
-            @border[Bottom] + @width[Bottom]/2,
-            @border[Left] + @width[Left]/2,
-        ];
+        .graphics: -> $gfx {
+            my @stroke = [
+                @border[Top] - @width[Top]/2,
+                @border[Right] - @width[Right]/2,
+                @border[Bottom] + @width[Bottom]/2,
+                @border[Left] + @width[Left]/2,
+            ];
 
-        if @width.unique == 1
-        && %border<border-color>.map({($_//'').Str}).unique == 1
-        && %border<border-style>.unique == 1 {
-            # all 4 edges are the same. draw a simple rectangle
-            my \border-style = %border<border-style>[0];
-            my Color \color = $_
+            if @width.unique == 1
+            && %border<border-color>.map({($_//'').Str}).unique == 1
+            && %border<border-style>.unique == 1 {
+                # all 4 edges are the same. draw a simple rectangle
+                my \border-style = %border<border-style>[0];
+                my Color \color = $_
                 with %border<border-color>[0];
-            if @width[0] && border-style ne 'none' && color && color.a != 0 {
-                $gfx.LineWidth = @width[0];
-                $gfx.StrokeAlpha = color.a / 255;
-                $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
+                if @width[0] && border-style ne 'none' && color && color.a != 0 {
+                    $gfx.LineWidth = @width[0];
+                    $gfx.StrokeAlpha = color.a / 255;
+                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                    $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
 
-                my \w = @stroke[Right] - @stroke[Left];
-                my \h = @stroke[Top] - @stroke[Bottom];
-                $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
+                    my \w = @stroke[Right] - @stroke[Left];
+                    my \h = @stroke[Top] - @stroke[Bottom];
+                    $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
 
-                $gfx.CloseStroke;
+                    $gfx.CloseStroke;
+                }
             }
-        }
-        else {
-            # edges differ. draw them separately
-            for (Top, Right, Bottom, Left) -> $edge {
-                with @width[$edge] -> \width {
-                    my \border-style = %border<border-style>[$edge];
-                    my Color \color = $_
+            else {
+                # edges differ. draw them separately
+                for (Top, Right, Bottom, Left) -> $edge {
+                    with @width[$edge] -> \width {
+                        my \border-style = %border<border-style>[$edge];
+                        my Color \color = $_
                         with %border<border-color>[$edge];
-                    if width && border-style ne 'none' && color && color.a != 0 {
-                        $gfx.LineWidth = width;
-                        $gfx.StrokeAlpha = color.a / 255;
-                        $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                        $gfx.DashPattern = self!dash-pattern(  border-style );
-                        my Numeric \pos = @stroke[$edge];
-                        if $edge == Top|Bottom {
-                            $gfx.MoveTo( @stroke[Left], pos);
-                            $gfx.LineTo( @stroke[Right], pos);
+                        if width && border-style ne 'none' && color && color.a != 0 {
+                            $gfx.LineWidth = width;
+                            $gfx.StrokeAlpha = color.a / 255;
+                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                            $gfx.DashPattern = self!dash-pattern(  border-style );
+                            my Numeric \pos = @stroke[$edge];
+                            if $edge == Top|Bottom {
+                                $gfx.MoveTo( @stroke[Left], pos);
+                                $gfx.LineTo( @stroke[Right], pos);
+                            }
+                            else {
+                                $gfx.MoveTo( pos, @stroke[Top] );
+                                $gfx.LineTo( pos, @stroke[Bottom] );
+                            }
+                            $gfx.CloseStroke;
                         }
-                        else {
-                            $gfx.MoveTo( pos, @stroke[Top] );
-                            $gfx.LineTo( pos, @stroke[Bottom] );
-                        }
-                        $gfx.CloseStroke;
                     }
                 }
             }
-        }
-        with $!css.background-color {
-            my Bool \transparent = .a == 0;
-            unless transparent {
-                $gfx.Save;
-                $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-                $gfx.FillAlpha = .a / 255;
-                my \w = @border[Right] - @border[Left];
-                my \h = @border[Top] - @border[Bottom];
-                $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
-                $gfx.Fill;
-                $gfx.Restore;
+            with $!css.background-color {
+                my Bool \transparent = .a == 0;
+                unless transparent {
+                    $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+                    $gfx.FillAlpha = .a / 255;
+                    my \w = @border[Right] - @border[Left];
+                    my \h = @border[Top] - @border[Bottom];
+                    $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
+                    $gfx.Fill;
+                }
             }
         }
     }
@@ -190,41 +191,34 @@ class PDF::Style::Box {
         }
     }
 
-    method style($gfx) {
-        $gfx.Save;
-        self!draw-border($gfx);
-        $gfx.Restore;
-    }
-
     method render($page) {
-        $page.graphics: {
-            self.style($_);
+        $page.graphics: -> $gfx {
+            self!style-box($gfx);
             my $left = self.left;
             my $bottom = self.bottom;
             with $!image -> \image {
-                $page.graphics: {
-                    .transform: :translate[ $left, $bottom ];
-                    my $width = image.content-width;
-                    my $height = image.content-height;
-                    .do(image, :$width, :$height);
-                }
+                $gfx.Save;
+                $gfx.transform: :translate[ $left, $bottom ];
+                my $width = image.content-width;
+                my $height = image.content-height;
+                $gfx.do(image, :$width, :$height);
+                $gfx.Restore;
             }
             with $!text -> \text {
                 my $top = self.top;
-                self!set-font-color($_);
+                self!set-font-color($gfx);
                 $page.text: {
                     .print(text, :position[ :$left, :$top]);
                 }
             }
             with $!canvas -> \canvas {
-                .transform: :translate[ $left, $bottom ];
-                my $gfx = $page.gfx;
                 my $width = self.width;
                 my $height = self.height;
-                my $font-object = PDF::Style::Font.new;
+                canvas.font-object //= PDF::Style::Font.new;
                 use HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height, :$font-object;
+                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height;
                 $gfx.Save;
+                $gfx.transform: :translate[ $left, $bottom ];
                 canvas.render($canvas-pdf-renderer);
                 $gfx.Restore;
             }

@@ -1,12 +1,13 @@
 use v6;
 use Test;
-use PDF::Style :pt;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
+use PDF::Style::Font;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Content::PDF;
 use HTML::Canvas;
+use HTML::Canvas::Render::PDF;
 
 # also dump to HTML, for comparision
 

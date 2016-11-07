@@ -3,12 +3,11 @@
     "perl"        : "6.c",
     "version"     : "0.0.1",
     "description" : "PDF creation, ... with style!",
-    "depends"     : [ "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color", "Base64", "HTML::Canvas" ],
+    "depends"     : [ "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color", "Base64", "HTML::Canvas", "PDF::Style::Font" ],
     "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Style.git",
     "provides"    : {
         "PDF::Style"           : "lib/PDF/Style.pm",
         "PDF::Style::Box"      : "lib/PDF/Style/Box.pm",
-        "PDF::Style::Font"      : "lib/PDF/Style/Font.pm",
         "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
      }
 }

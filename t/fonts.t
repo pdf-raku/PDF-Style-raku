@@ -1,26 +1,10 @@
 use v6;
 use Test;
-use PDF::Style :pt;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Content::PDF;
-use PDF::Style::Font;
-
-my $font = PDF::Style::Font.new;
-is $font.style, 'normal', 'default font.style';
-is $font.weight, '400', 'default font.weight';
-is $font.family, 'times-roman', 'default font.family';
-is $font.em, 10, 'default font.em';
-
-$font.css-font-prop = 'italic bold 10pt/12pt helvetica';
-is $font.style, 'italic', 'css font.style';
-is $font.weight, '700', 'css font.weight';
-is $font.family, 'helvetica', 'css font.family';
-is $font.em, 10, 'css font.em';
-is $font.leading, 12, 'css font.leading';
-isa-ok $font.face, 'Font::Metrics::helvetica-boldoblique', 'font.face';
 
 # also dump to HTML, for comparision
 
