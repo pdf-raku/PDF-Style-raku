@@ -226,13 +226,14 @@ class PDF::Style::Box {
     }
 
     method html {
-        my $style = encode-entities($!css.write);
+        my $style = $!css.write;
+        my $style-html = encode-entities($style);
         my $text;
         with $!text {
             $text = encode-entities(.text);
             $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!text.top-offset, $text
                 if $!text.top-offset;
-            sprintf '<div style="%s">%s</div>', $style, $text;
+            sprintf '<div style="%s">%s</div>', $style-html, $text;
         }
         else {
             with $!image {
@@ -241,22 +242,12 @@ class PDF::Style::Box {
                 my $raw = $path.IO.slurp(:bin);
                 my $enc = encode-base64($raw, :str);
                 my $type = lc PDF::Content::Image.image-type($path);
-                sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style, $type, $enc;
+                sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style-html, $type, $enc;
             }
             else {
-                with $!canvas {
-                    my $width = self.width;
-                    my $height = self.height;
-                    my $id = ~ $!canvas.WHERE;
-                    my $js = $!canvas.js(:context<ctx>, :sep("\n    "));
-                    qq:to"END-HTML";
-                    <canvas width="{$width}pt" height="{$height}pt" style="$style" id="$id"></canvas>
-                    <script>
-                        var ctx = document.getElementById("$id").getContext("2d");
-                        $js
-                    </script>
-                    END-HTML
-                }
+                my $width = self.width;
+                my $height = self.height;
+                .html(:$width, :$height, :$style) with $!canvas;
             }
         }
     }
