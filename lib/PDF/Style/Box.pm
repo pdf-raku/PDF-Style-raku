@@ -16,9 +16,9 @@ class PDF::Style::Box {
     has Numeric $.top;
     has Numeric $.right;
     has Numeric $.bottom;
-    has Numeric $.left;
-    has Numeric $.width;
-    has Numeric $.height;
+    has Numeric $.left = 0;
+    has Numeric $.width = 595pt;
+    has Numeric $.height = 842pt;
 
     has Array $!padding;
     has Array $!border;
@@ -33,18 +33,13 @@ class PDF::Style::Box {
 
     has Hash @.save;
 
-    submethod BUILD(
-        Numeric :$em = 12pt, Numeric :$ex = 0.75 * $em,
-        Numeric :$!width  = 595pt,
-        Numeric :$!height = 842pt,
-        Numeric :$!top = $!height, Numeric :$!left = 0.0,
+    submethod TWEAK(
+        Numeric :$!top = $!height,
         Numeric :$!bottom = $!top - $!height,
         Numeric :$!right = $!left + $!width,
+        Numeric :$em = 12pt, Numeric :$ex = 0.75 * $em,
         Str :$style = '',
         CSS::Declarations :$!css = CSS::Declarations.new(:$style),
-        PDF::Content::Text::Block :$!text,
-        PDF::DAO::Stream :$!image,
-        HTML::Canvas :$!canvas,
     ) {
         $!font = PDF::Style::Font.new: :$em, :$ex;
     }
