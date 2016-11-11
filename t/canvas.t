@@ -7,7 +7,7 @@ use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Content::PDF;
 use HTML::Canvas;
-use HTML::Canvas::Render::PDF;
+use HTML::Canvas::To::PDF;
 
 # also dump to HTML, for comparision
 

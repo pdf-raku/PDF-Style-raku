@@ -210,8 +210,8 @@ class PDF::Style::Box {
                 my $width = self.width;
                 my $height = self.height;
                 canvas.font-object //= PDF::Style::Font.new;
-                use HTML::Canvas::Render::PDF;
-                my HTML::Canvas::Render::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height;
+                use HTML::Canvas::To::PDF;
+                my HTML::Canvas::To::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height;
                 $gfx.Save;
                 $gfx.transform: :translate[ $left, $bottom ];
                 canvas.render($canvas-pdf-renderer);
