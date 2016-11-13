@@ -14,7 +14,7 @@ my $vp = PDF::Style::Viewport.new;
 my $pdf = PDF::Content::PDF.new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
+$page.media-box = [0, 0, ($vp.width)pt, ($vp.height)pt ];
 my @html = '<html>', '<body>', $vp.html-start;
 my $n;
 
