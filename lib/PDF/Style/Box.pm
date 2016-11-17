@@ -398,7 +398,7 @@ class PDF::Style::Box {
             default       { $!font.length($_) - $!font.face.stringwidth(' ', $font-size) }
         }
         %opt<valign> = $valign // 'top';
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
         self!build-box($css, &content-builder);
     }
 
