@@ -1,33 +1,36 @@
 p6-PDF-Style
 ============
-Experimental PDF composition with HTML like coordinate systems and CSS styling rules and box model.
+Experimental PDF composition with HTML positioning and CSS styling rules and box model.
 
 ```
 use v6;
 use PDF::Content::PDF;
-use PDF::Style::Viewport :pt;
+use PDF::Style::Viewport;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border 1pt dashed green");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
 my $pdf = PDF::Content::PDF.new;
-my $page = $pdf.add-page;
-$page.media-box = [0, 0, pt($vp.width), pt($vp.height) ];
-my $vp = PDF::Style::Viewport.new :media($page);
+my $vp = PDF::Style::Viewport.new: :width(300), :height(520);
+my $page = $vp.add-page($pdf);
 
-my $para = q:to"--ENOUGH!!--".lines.join: ' ';
+my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my $box = $vp.text( $para, :$css );
+my $box = $vp.box( :$text, :$css );
+$box.render($page);
 
+# make some styling adjustments
+$css.border-color = 'red';
+# todo: padding adjustments
 $css.top += $box.height;
-$css.border-color = 'green';
+$css.delete('height');
 
-# nyi - images
-$vp.image("t/sample.png", :$css);
+my $image = "t/images/snoopy-happy-dance.jpg";
+$vp.box(:$image, :$css).render($page);
 
 $pdf.save-as: "t/example.pdf";
 ```

@@ -402,34 +402,49 @@ class PDF::Style::Box {
         self!build-box($css, &content-builder);
     }
 
-    multi method box( :$image! where Str|PDF::DAO::Stream, CSS::Declarations :$css!) {
+    multi method box( Str :$image!, CSS::Declarations :$css!) {
         my role ImageBox {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
+            has Numeric $.w is rw;
+            has Numeric $.h is rw;
             has IO::Path $.path is rw;
-            method content-width  { self<Width> * self.x-scale }
-            method content-height { self<Height> * self.y-scale }
+            method content-width  { self.w * self.x-scale }
+            method content-height { self.h * self.y-scale }
         }
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = ($image.isa(PDF::DAO::Stream)
-                         ?? $image
-                         !! PDF::Content::Image.open($image)
-                        ) does ImageBox;
+            my \image = PDF::Content::Image.open($image) does ImageBox;
             image.path = $image.IO;
+            given image<Subtype> {
+                when 'Image' {
+                    image.w = image<Width>;
+                    image.h = image<Height>
+                }
+                when 'Form' {
+                    my $bbox = image<BBox>;
+                    image.w = $bbox[2] - $bbox[0];
+                    image.h = $bbox[3] - $bbox[1];
+                }
+                default {
+                    die "not an XObject Image";
+                }
+            }
+            die "unable to determine image width" unless image.w;
+            die "unable to determine image height" unless image.h;
             if $width {
-                image.x-scale = $width / image<Width>;
+                image.x-scale = $width / image.w;
                 if $height {
-                    image.y-scale = $height / image<Height>;
+                    image.y-scale = $height / image.h;
                 }
                 else {
-                    image.y-scale = image<Height> / image<Width> * $.x-scale;
+                    image.y-scale = image.h / image.w * image.x-scale;
                 }
             }
             elsif $height {
-                image.y-scale = $height / image<Height>;
-                image.x-scale = image<Width>  / image<Height> * image.y-scale;
+                image.y-scale = $height / image.h;
+                image.x-scale = image.w  / image.h * image.y-scale;
             }
             image => image
         }
