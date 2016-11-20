@@ -35,10 +35,6 @@ $vp.box(:$image, :$css).render($page);
 $pdf.save-as: "t/example.pdf";
 ```
 
-Output:
-
-![Simple styling](t/example.pdf)
-
 This will be more familiar to those from an HTML background and may form a useful basis for HTML rendering.
 
 ## CSS Property todo list:
