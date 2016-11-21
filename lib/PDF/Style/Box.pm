@@ -20,6 +20,34 @@ class PDF::Style::Box {
     has Numeric $.width = 595pt;
     has Numeric $.height = 842pt;
 
+    my subset BoundingBox of Str where 'content'|'border'|'margin'|'padding';
+
+    method top(BoundingBox $box = 'content') {
+        self."$box"()[Top];
+    }
+
+    method right(BoundingBox $box = 'content') {
+        self."$box"()[Right];
+    }
+
+    method bottom(BoundingBox $box = 'content') {
+        self."$box"()[Bottom]
+    }
+
+    method left(BoundingBox $box = 'content') {
+        self."$box"()[Left]
+    }
+
+    method width(BoundingBox $box = 'content') {
+        my \box = self."$box"();
+        box[Right] - box[Left]
+    }
+
+    method height(BoundingBox $box = 'content') {
+        my \box = self."$box"();
+        box[Top] - box[Bottom]
+    }
+
     has Array $!padding;
     has Array $!border;
     has Array $!margin;
@@ -70,6 +98,8 @@ class PDF::Style::Box {
     method margin returns Array {
         $!margin //= $.enclose($.border, self!widths($!css.margin));
     }
+
+    method content returns Array { self.Array }
 
     method enclose(List $inner, List $outer) {
         [

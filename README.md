@@ -26,7 +26,7 @@ $box.render($page);
 # make some styling adjustments
 $css.border-color = 'red';
 # todo: padding adjustments
-$css.top += $box.height;
+$css.top += ($box.height('padding') + 5)pt;
 $css.delete('height');
 
 my $image = "t/images/snoopy-happy-dance.jpg";

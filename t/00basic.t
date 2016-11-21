@@ -21,6 +21,7 @@ sub show-text($text, :$css!, |c) {
     my $box = $Vp.box( :$text, :$css, |c );
     $box.render($Page);
     @Html.push: $box.html;
+    $box;
 }
 
 for <left center right justify> -> $alignment {
@@ -74,7 +75,13 @@ $css.right = 25pt;
 $css.height = 100pt;
 $css.top += 12pt;
 
-show-text( $css.write, :$css );
+my $box = show-text( $css.write, :$css );
+is $box.height, 100, 'content height';
+is $box.height('border'), 102, 'border height';
+is $box.width, 220, 'content width';
+is $box.width('border'), 222, 'border width';
+is $box.left, 349, 'content left';
+is $box.left('border'), 348, 'border left';
 
 note "% **** position bottom *** ";
 
