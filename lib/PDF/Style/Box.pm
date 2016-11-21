@@ -22,28 +22,34 @@ class PDF::Style::Box {
 
     my subset BoundingBox of Str where 'content'|'border'|'margin'|'padding';
 
-    method top(BoundingBox $box = 'content') {
+    multi method top { $!top }
+    multi method top(BoundingBox $box) {
         self."$box"()[Top];
     }
 
-    method right(BoundingBox $box = 'content') {
+    multi method right { $!right }
+    multi method right(BoundingBox $box) {
         self."$box"()[Right];
     }
 
-    method bottom(BoundingBox $box = 'content') {
+    multi method bottom { $!bottom }
+    multi method bottom(BoundingBox $box) {
         self."$box"()[Bottom]
     }
 
-    method left(BoundingBox $box = 'content') {
+    multi method left { $!left }
+    multi method left(BoundingBox $box) {
         self."$box"()[Left]
     }
 
-    method width(BoundingBox $box = 'content') {
+    multi method width { $!width }
+    multi method width(BoundingBox $box) {
         my \box = self."$box"();
         box[Right] - box[Left]
     }
 
-    method height(BoundingBox $box = 'content') {
+    multi method height { $!height }
+    multi method height(BoundingBox $box) {
         my \box = self."$box"();
         box[Top] - box[Bottom]
     }
