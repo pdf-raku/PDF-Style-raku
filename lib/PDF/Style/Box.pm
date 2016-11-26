@@ -258,8 +258,6 @@ class PDF::Style::Box {
     method html {
         my $style = $!css.write;
         my $style-html = encode-entities($style);
-        my $width = self.width;
-        my $height = self.height;
 
         with $!text {
             my $text = encode-entities(.text);
@@ -269,9 +267,11 @@ class PDF::Style::Box {
         }
         else {
             with $!image {
-                sprintf '<img width="%dpt" height="%dpt", style="%s" src="%s"/>', $width, $height, $style-html, .data-uri;
+                sprintf '<img style="%s" src="%s"/>', $style-html, .data-uri;
             }
             else {
+                my $width = self.width;
+                my $height = self.height;
                 .html(:$width, :$height, :$style) with $!canvas;
             }
         }
@@ -432,7 +432,7 @@ class PDF::Style::Box {
         self!build-box($css, &content-builder);
     }
 
-    multi method box( Str :$image!, CSS::Declarations :$css!) {
+    multi method box( Str:D :$image!, CSS::Declarations :$css!) {
         my role ImageBox {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
@@ -467,19 +467,19 @@ class PDF::Style::Box {
                     image.y-scale = $height / image.h;
                 }
                 else {
-                    image.y-scale = image.h / image.w * image.x-scale;
+                    image.y-scale = image.x-scale;
                 }
             }
             elsif $height {
                 image.y-scale = $height / image.h;
-                image.x-scale = image.w  / image.h * image.y-scale;
+                image.x-scale = image.y-scale;
             }
             image => image
         }
         self!build-box($css, &content-builder);
     }
 
-    multi method box( HTML::Canvas :$canvas!, :$css!) {
+    multi method box( HTML::Canvas:D :$canvas!, :$css!) {
         my &content-builder = sub (|c) { :$canvas };
         self!build-box($css, &content-builder);
     }
