@@ -156,8 +156,7 @@ class PDF::Style::Box {
             && %border<border-style>.unique == 1 {
                 # all 4 edges are the same. draw a simple rectangle
                 my \border-style = %border<border-style>[0];
-                my Color \color = $_
-                with %border<border-color>[0];
+                my Color \color = %border<border-color>[0];
                 if @width[0] && border-style ne 'none' && color && color.a != 0 {
                     $gfx.LineWidth = @width[0];
                     $gfx.StrokeAlpha = color.a / 255;
@@ -259,25 +258,20 @@ class PDF::Style::Box {
     method html {
         my $style = $!css.write;
         my $style-html = encode-entities($style);
-        my $text;
+        my $width = self.width;
+        my $height = self.height;
+
         with $!text {
-            $text = encode-entities(.text);
+            my $text = encode-entities(.text);
             $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!text.top-offset, $text
                 if $!text.top-offset;
             sprintf '<div style="%s">%s</div>', $style-html, $text;
         }
         else {
             with $!image {
-                use Base64;
-                my $path = .path;
-                my $raw = $path.IO.slurp(:bin);
-                my $enc = encode-base64($raw, :str);
-                my $type = lc PDF::Content::Image.image-type($path);
-                sprintf '<img style="%s" src="data:image/%s;base64,%s"/>', $style-html, $type, $enc;
+                sprintf '<img width="%dpt" height="%dpt", style="%s" src="%s"/>', $width, $height, $style-html, .data-uri;
             }
             else {
-                my $width = self.width;
-                my $height = self.height;
                 .html(:$width, :$height, :$style) with $!canvas;
             }
         }
@@ -444,7 +438,6 @@ class PDF::Style::Box {
             has Numeric  $.y-scale is rw = 1.0;
             has Numeric $.w is rw;
             has Numeric $.h is rw;
-            has IO::Path $.path is rw;
             method content-width  { self.w * self.x-scale }
             method content-height { self.h * self.y-scale }
         }
@@ -452,7 +445,6 @@ class PDF::Style::Box {
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
             my \image = PDF::Content::Image.open($image) does ImageBox;
-            image.path = $image.IO;
             given image<Subtype> {
                 when 'Image' {
                     image.w = image<Width>;
