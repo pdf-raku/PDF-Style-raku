@@ -415,10 +415,7 @@ class PDF::Style::Box {
             $css.font-kerning eq 'auto' && $.em <= 32
         );
 
-        my $align = $css.text-align // (
-            $css.direction eq 'ltr' ?? 'left' !! 'right'
-        );
-
+        my $align = $css.text-align;
         my $leading = $!font.leading;
         my $font-size = $!font.em;
         my $font = $!font.face;
