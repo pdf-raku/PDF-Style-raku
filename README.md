@@ -70,6 +70,7 @@ Position|
   |text-decoration||NYI
   |text-indent||NYI
   |text-transform||NYI
+  |vertical-align||'top', 'center', 'bottom' only
   |word-spacing||
   
 ### CSS Property Shortlist

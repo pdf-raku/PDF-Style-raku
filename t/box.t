@@ -1,5 +1,7 @@
 use v6;
 use Test;
+plan 9;
+
 use CSS::Declarations;
 use CSS::Declarations::Units;
 use PDF::Style::Box;

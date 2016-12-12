@@ -1,5 +1,7 @@
 use v6;
 use Test;
+plan 7;
+
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
@@ -17,8 +19,8 @@ my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $Vp.html-start;
 
-sub show-text($text, :$css!, |c) {
-    my $box = $Vp.box( :$text, :$css, |c );
+sub show-text($text, :$css!) {
+    my $box = $Vp.box( :$text, :$css);
     $box.render($Page);
     @Html.push: $box.html;
     $box;
@@ -48,29 +50,30 @@ $css.top = 30pt;
 $css.left = 350pt;
 $css.width = 220pt;
 
-for <top center bottom> -> $valign {
-    my $header = [~] '*** VALIGN:', $valign, ' ***', "\n";
+for <top middle bottom> -> $valign {
+    my $header = [~] '*** VERTICAL-ALIGN:', $valign, ' ***', "\n";
     my $body = q:to"--ENOUGH!!--".lines.join: ' ';
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
         --ENOUGH!!--
 
     note "% **** valign $valign *** ";
-    $css.delete("height");
+    $css.delete('height', 'vertical-align');
     $css.font-weight = 'bold';
     show-text($header, :$css);
 
     $css.top += 15pt;
     $css.font-weight = 'normal';
     $css.height = 130pt;
+    $css.vertical-align = $valign;
     my $text = $body ~ $style;
-    show-text($text, :$css, :$valign);
+    show-text($text, :$css);
 
     $css.top += 165pt;
 }
 
 note "% **** position right *** ";
 
-$css.delete('left');
+$css.delete('left', 'vertical-align');
 $css.right = 25pt;
 $css.height = 100pt;
 $css.top += 12pt;

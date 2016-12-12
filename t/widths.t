@@ -1,5 +1,7 @@
 use v6;
 use Test;
+plan 11;
+
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use PDF::Content::PDF;

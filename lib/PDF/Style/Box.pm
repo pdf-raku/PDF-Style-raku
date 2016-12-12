@@ -256,13 +256,20 @@ class PDF::Style::Box {
     }
 
     method html {
-        my $style = $!css.write;
+        my $css = $!css.clone;
+        $css.delete('vertical-align'); # we'll deal with this later
+        my $style = $css.write;
         my $style-html = encode-entities($style);
 
         with $!text {
             my $text = encode-entities(.text);
-            $text = sprintf '<div style="position:relative; top:%dpt">%s</div>', $!text.top-offset, $text
-                if $!text.top-offset;
+            with $!css.vertical-align -> $valign {
+                unless $valign eq 'baseline' {
+                    # wrap content in a table cell for valign to take affect
+                    $text = sprintf '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>', $valign, $text;
+                }
+            }
+
             sprintf '<div style="%s">%s</div>', $style-html, $text;
         }
         else {
@@ -272,9 +279,10 @@ class PDF::Style::Box {
             else {
                 my $width = self.width;
                 my $height = self.height;
-                .html(:$width, :$height, :$style) with $!canvas;
+                .to-html(:$width, :$height, :$style) with $!canvas;
             }
-        }
+        };
+
     }
 
     method save {
@@ -400,7 +408,7 @@ class PDF::Style::Box {
         box;
     }
 
-    multi method box( Str:D :$text!, CSS::Declarations :$css!, Str :$valign) {
+    multi method box( Str:D :$text!, CSS::Declarations :$css!) {
 
         self.font.setup($css);
         my $kern = $css.font-kerning eq 'normal' || (
@@ -414,11 +422,17 @@ class PDF::Style::Box {
         my $leading = $!font.leading;
         my $font-size = $!font.em;
         my $font = $!font.face;
-        my %opt = :$font, :$kern, :$font-size, :$leading, :$align;
+        # support a veritical-align subset
+        my $valign = do given $css.vertical-align {
+            when 'middle' { 'center' }
+            when 'top'|'bottom' { $_ }
+            default { 'top' };
+        }
+        my %opt = :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
 
         %opt<CharSpacing> = do given $css.letter-spacing {
-            when .key eq 'num'     { $_ * $font-size }
-            when .key eq 'percent' { $_ * $font-size / 100 }
+            when .type eq 'num'     { $_ * $font-size }
+            when .type eq 'percent' { $_ * $font-size / 100 }
             when 'normal' { 0.0 }
             default       { $!font.length($_) }
         }
@@ -427,7 +441,6 @@ class PDF::Style::Box {
             when 'normal' { 0.0 }
             default       { $!font.length($_) - $!font.face.stringwidth(' ', $font-size) }
         }
-        %opt<valign> = $valign // 'top';
         my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
         self!build-box($css, &content-builder);
     }
@@ -436,42 +449,23 @@ class PDF::Style::Box {
         my role ImageBox {
             has Numeric  $.x-scale is rw = 1.0;
             has Numeric  $.y-scale is rw = 1.0;
-            has Numeric $.w is rw;
-            has Numeric $.h is rw;
-            method content-width  { self.w * self.x-scale }
-            method content-height { self.h * self.y-scale }
+            method content-width  { self.width * self.x-scale }
+            method content-height { self.height * self.y-scale }
         }
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
             my \image = PDF::Content::Image.open($image) does ImageBox;
-            given image<Subtype> {
-                when 'Image' {
-                    image.w = image<Width>;
-                    image.h = image<Height>
-                }
-                when 'Form' {
-                    my $bbox = image<BBox>;
-                    image.w = $bbox[2] - $bbox[0];
-                    image.h = $bbox[3] - $bbox[1];
-                }
-                default {
-                    die "not an XObject Image";
-                }
-            }
-            die "unable to determine image width" unless image.w;
-            die "unable to determine image height" unless image.h;
+            die "unable to determine image width" unless image.width;
+            die "unable to determine image height" unless image.height;
             if $width {
-                image.x-scale = $width / image.w;
-                if $height {
-                    image.y-scale = $height / image.h;
-                }
-                else {
-                    image.y-scale = image.x-scale;
-                }
+                image.x-scale = $width / image.width;
+                image.y-scale = $height
+                    ?? $height / image.height
+                    !! image.x-scale;
             }
             elsif $height {
-                image.y-scale = $height / image.h;
+                image.y-scale = $height / image.height;
                 image.x-scale = image.y-scale;
             }
             image => image
