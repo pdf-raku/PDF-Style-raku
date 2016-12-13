@@ -155,19 +155,20 @@ class PDF::Style::Box {
             && %border<border-color>.map({($_//'').Str}).unique == 1
             && %border<border-style>.unique == 1 {
                 # all 4 edges are the same. draw a simple rectangle
-                my \border-style = %border<border-style>[0];
-                my Color \color = %border<border-color>[0];
-                if @width[0] && border-style ne 'none' && color && color.a != 0 {
-                    $gfx.LineWidth = @width[0];
-                    $gfx.StrokeAlpha = color.a / 255;
-                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                    $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
+                with %border<border-color>[0] -> \color {
+                    my \border-style = %border<border-style>[0];
+                    if @width[0] && border-style ne 'none' && color.a != 0 {
+                        $gfx.LineWidth = @width[0];
+                        $gfx.StrokeAlpha = color.a / 255;
+                        $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                        $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
 
-                    my \w = @stroke[Right] - @stroke[Left];
-                    my \h = @stroke[Top] - @stroke[Bottom];
-                    $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
+                        my \w = @stroke[Right] - @stroke[Left];
+                        my \h = @stroke[Top] - @stroke[Bottom];
+                        $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
 
-                    $gfx.CloseStroke;
+                        $gfx.CloseStroke;
+                    }
                 }
             }
             else {
