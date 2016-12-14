@@ -27,25 +27,22 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
     @Html.push: $box.html;
     $box.render($page);
 
-    if ($feed) {
-        if ++$n %% 2 {
-            $css.top += 100pt;
-            $css.left = 20pt;
-        }
-        else {
-            $css.left += 270pt;
-        }
+    if ++$n %% 2 {
+        $css.top += 100pt;
+        $css.left = 20pt;
+    }
+    else {
+        $css.left += 270pt;
     }
 }
 
 for [ { :background-color<rgba(255,0,0,.2)> },
       { :background-color<rgba(255,0,0,.2)>, :border-bottom-style<dashed>, },
+      { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, :width<593pt>, },
       ] {
 
     test($vp, $css, $_);
 }
-
-test($vp, $css,  { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, :width<593pt>, });
 
 lives-ok {$pdf.save-as: "t/background.pdf"};
 

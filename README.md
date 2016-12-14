@@ -66,6 +66,7 @@ Position|
   |color||
   |letter-spacing||
   |line-height||
+  |opacity||
   |text-align
   |text-decoration||NYI
   |text-indent||NYI

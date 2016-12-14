@@ -25,7 +25,7 @@ for [
       { },
       { :background-color<rgba(255,0,0,.2)>, :width<200pt> },
       { :background-color<rgba(255,0,0,.2)>, :border-bottom-style<dashed>, :width<160pt> },
-      { :min-width<240pt> },
+      { :min-width<240pt>, :opacity<.3>, :border("1px solid black") },
       ] {
 
     test($vp, $css, $_, :$image);

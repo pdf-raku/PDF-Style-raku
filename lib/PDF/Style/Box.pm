@@ -212,14 +212,20 @@ class PDF::Style::Box {
     }
 
     method !set-font-color($gfx) {
+        my Numeric $opacity = $!css.opacity;
         with $!css.color {
             $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-            $gfx.FillAlpha = .a / 255;
+            $gfx.FillAlpha = $opacity * .a / 255;
         }
         else {
             $gfx.FillColor = :DeviceGray[0.0];
-            $gfx.FillAlpha = 1.0;
+            $gfx.FillAlpha = $opacity;
         }
+        $gfx.StrokeAlpha = $opacity;
+    }
+
+    method !set-image-color($gfx) {
+        $gfx.StrokeAlpha = $gfx.FillAlpha = $!css.opacity;
     }
 
     method render($page) {
@@ -227,11 +233,14 @@ class PDF::Style::Box {
             self!style-box($gfx);
             my $left = self.left;
             my $bottom = self.bottom;
+
             with $!image -> \image {
-                $gfx.Save;
-                $gfx.transform: :translate[ $left, $bottom ];
                 my $width = image.content-width;
                 my $height = image.content-height;
+
+                $gfx.Save;
+                $gfx.transform: :translate[ $left, $bottom ];
+                self!set-image-color($gfx);
                 $gfx.do(image, :$width, :$height);
                 $gfx.Restore;
             }
@@ -246,11 +255,14 @@ class PDF::Style::Box {
                 my $width = self.width;
                 my $height = self.height;
                 canvas.font-object //= PDF::Style::Font.new;
-                use HTML::Canvas::To::PDF;
-                my HTML::Canvas::To::PDF $canvas-pdf-renderer .= new: :$gfx, :$width, :$height;
+                my \image = (require PDF::Content::PDF).xobject-form: :bbox[0, 0, $width, $height];
+                image.gfx.draw(canvas);
+                image.finish;
+
                 $gfx.Save;
                 $gfx.transform: :translate[ $left, $bottom ];
-                canvas.render($canvas-pdf-renderer);
+                self!set-image-color($gfx);
+                $gfx.do(image, :$width, :$height);
                 $gfx.Restore;
             }
         }

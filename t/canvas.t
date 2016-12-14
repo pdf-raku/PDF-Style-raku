@@ -69,7 +69,7 @@ do {
             }
         }
     }
-    test($vp, $css, :$canvas, );
+    test($vp, $css, :$canvas, { :opacity(.5) });
 }
 
 lives-ok {$pdf.save-as: "t/canvas.pdf"};
