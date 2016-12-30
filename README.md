@@ -4,14 +4,14 @@ Experimental PDF composition with HTML positioning and CSS styling rules and box
 
 ```
 use v6;
-use PDF::Content::PDF;
+use PDF::Lite;
 use PDF::Style::Viewport;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
-my $pdf = PDF::Content::PDF.new;
+my $pdf = PDF::Lite.new;
 my $vp = PDF::Style::Viewport.new: :width(300), :height(520);
 my $page = $vp.add-page($pdf);
 

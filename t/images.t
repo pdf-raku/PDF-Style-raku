@@ -6,7 +6,7 @@ use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
 use CSS::Declarations::Units;
-use PDF::Content::PDF;
+use PDF::Lite;
 
 # also dump to HTML, for comparision
 
@@ -14,7 +14,7 @@ my $vp = PDF::Style::Viewport.new;
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:250pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
 my @Html = '<html>', '<body>', $vp.html-start;
 
-my $pdf = PDF::Content::PDF.new;
+my $pdf = PDF::Lite.new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;

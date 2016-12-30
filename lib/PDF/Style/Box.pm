@@ -1,4 +1,5 @@
 use v6;
+use PDF; # otherwise, canvas.t failed with: No such symbol 'PDF::Lite'
 
 class PDF::Style::Box {
     use PDF::Style::Font;
@@ -255,7 +256,7 @@ class PDF::Style::Box {
                 my $width = self.width;
                 my $height = self.height;
                 canvas.font-object //= PDF::Style::Font.new;
-                my \image = (require PDF::Content::PDF).xobject-form: :bbox[0, 0, $width, $height];
+                my \image = (require PDF::Lite).xobject-form: :bbox[0, 0, $width, $height];
                 image.gfx.draw(canvas);
                 image.finish;
 

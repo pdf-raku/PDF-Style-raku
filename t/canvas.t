@@ -3,11 +3,9 @@ use Test;
 plan 2;
 
 use PDF::Style::Viewport;
-use PDF::Style::Box;
-use PDF::Style::Font;
 use CSS::Declarations;
 use CSS::Declarations::Units;
-use PDF::Content::PDF;
+use PDF::Lite;
 use HTML::Canvas;
 use HTML::Canvas::To::PDF;
 
@@ -17,7 +15,7 @@ my $vp = PDF::Style::Viewport.new;
 my $css = CSS::Declarations.new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
 my @Html = '<html>', '<body>', $vp.html-start;
 
-my $pdf = PDF::Content::PDF.new;
+my $pdf = PDF::Lite.new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;
