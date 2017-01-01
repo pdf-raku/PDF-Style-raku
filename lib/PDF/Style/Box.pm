@@ -9,7 +9,6 @@ class PDF::Style::Box {
     use PDF::Content::Image;
     use PDF::Content::Text::Block;
     use PDF::DAO::Stream;
-    use HTML::Canvas;
     use Color;
 
     my Int enum Edges is export(:Edges) <Top Right Bottom Left>;
@@ -64,7 +63,7 @@ class PDF::Style::Box {
     has CSS::Declarations $.css;
     has PDF::DAO::Stream $.image;
     has PDF::Content::Text::Block $.text;
-    has HTML::Canvas $.canvas;
+    has $.canvas;
 
     has Hash @.save;
 
@@ -484,7 +483,7 @@ class PDF::Style::Box {
         self!build-box($css, &content-builder);
     }
 
-    multi method box( HTML::Canvas:D :$canvas!, :$css!) {
+    multi method box( :$canvas!, :$css!) {
         my &content-builder = sub (|c) { :$canvas };
         self!build-box($css, &content-builder);
     }
