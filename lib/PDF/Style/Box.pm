@@ -20,6 +20,19 @@ class PDF::Style::Box {
     has Numeric $.width = 595pt;
     has Numeric $.height = 842pt;
 
+    has Array $!padding;
+    has Array $!border;
+    has Array $!margin;
+
+    has PDF::Style::Font $.font handles <em ex>;
+
+    has CSS::Declarations $.css;
+    has PDF::DAO::Stream $.image;
+    has PDF::Content::Text::Block $.text;
+    has $.canvas;
+
+    has Hash @.save;
+
     my subset BoundingBox of Str where 'content'|'border'|'margin'|'padding';
 
     multi method top { $!top }
@@ -53,19 +66,6 @@ class PDF::Style::Box {
         my \box = self."$box"();
         box[Top] - box[Bottom]
     }
-
-    has Array $!padding;
-    has Array $!border;
-    has Array $!margin;
-
-    has PDF::Style::Font $.font handles <em ex>;
-
-    has CSS::Declarations $.css;
-    has PDF::DAO::Stream $.image;
-    has PDF::Content::Text::Block $.text;
-    has $.canvas;
-
-    has Hash @.save;
 
     submethod TWEAK(
         Numeric :$!top = $!height,
@@ -143,6 +143,8 @@ class PDF::Style::Box {
         my %border = $!css.border;
         my Numeric @border[4] = self.border.list;
         my Numeric @width[4] = %border<border-width>.map: {self!width($_)};
+        my Numeric $opacity = $!css.opacity;
+
         .graphics: -> $gfx {
             my @stroke = [
                 @border[Top] - @width[Top]/2,
@@ -157,9 +159,9 @@ class PDF::Style::Box {
                 # all 4 edges are the same. draw a simple rectangle
                 with %border<border-color>[0] -> \color {
                     my \border-style = %border<border-style>[0];
-                    if @width[0] && border-style ne 'none' && color.a != 0 {
+                    if @width[0] && border-style ne 'none' && $opacity * color.a !=~= 0 {
                         $gfx.LineWidth = @width[0];
-                        $gfx.StrokeAlpha = color.a / 255;
+                        $gfx.StrokeAlpha = $opacity * color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                         $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
 
@@ -178,9 +180,9 @@ class PDF::Style::Box {
                         my \border-style = %border<border-style>[$edge];
                         my Color \color = $_
                         with %border<border-color>[$edge];
-                        if width && border-style ne 'none' && color && color.a != 0 {
+                        if width && border-style ne 'none' && color && $opacity * color.a !=~= 0 {
                             $gfx.LineWidth = width;
-                            $gfx.StrokeAlpha = color.a / 255;
+                            $gfx.StrokeAlpha = $opacity * color.a / 255;
                             $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
                             $gfx.DashPattern = self!dash-pattern(  border-style );
                             my Numeric \pos = @stroke[$edge];
@@ -198,10 +200,11 @@ class PDF::Style::Box {
                 }
             }
             with $!css.background-color {
-                my Bool \transparent = .a == 0;
+                my Numeric $opacity = $!css.opacity;
+                my Bool \transparent = $opacity * .a =~= 0;
                 unless transparent {
                     $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-                    $gfx.FillAlpha = .a / 255;
+                    $gfx.FillAlpha = $opacity * .a / 255;
                     my \w = @border[Right] - @border[Left];
                     my \h = @border[Top] - @border[Bottom];
                     $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
@@ -228,11 +231,34 @@ class PDF::Style::Box {
         $gfx.StrokeAlpha = $gfx.FillAlpha = $!css.opacity;
     }
 
+    method !render-background-image($gfx, $bg-image) {
+        my Array \padding = self.padding;
+        my Array \border = self.border;
+        my \bg-width = padding[Right] - border[Left];
+        my \bg-height = padding[Top] - border[Bottom];
+        $gfx.Save;
+        $gfx.transform: :translate[ padding[Left], padding[Top]];
+        self!set-image-color($gfx);
+        $gfx.Rectangle(0, 0, bg-width, -bg-height );
+        $gfx.Clip;
+        $gfx.EndPath;
+        $gfx.transform: :scale( Units::px );
+        $gfx.do($bg-image, :valign<top>);
+        $gfx.Restore;
+    }
+
     method render($page) {
         $page.graphics: -> $gfx {
             self!style-box($gfx);
             my $left = self.left;
             my $bottom = self.bottom;
+
+            my $bg-image = $!css.background-image;
+            if $bg-image ~~ PDF::DAO::Stream | /:i ^ 'data:image'/ {
+                $bg-image = PDF::Content::Image.open($bg-image)
+                    unless $bg-image ~~ PDF::DAO::Stream;
+                self!render-background-image($gfx, $bg-image);
+            }
 
             with $!image -> \image {
                 my $width = image.content-width;
@@ -457,8 +483,8 @@ class PDF::Style::Box {
 
     multi method box( Str:D :$image!, CSS::Declarations :$css!) {
         my role ImageBox {
-            has Numeric  $.x-scale is rw = 1.0;
-            has Numeric  $.y-scale is rw = 1.0;
+            has Numeric  $.x-scale is rw = Units::px;
+            has Numeric  $.y-scale is rw = Units::px;
             method content-width  { self.width * self.x-scale }
             method content-height { self.height * self.y-scale }
         }

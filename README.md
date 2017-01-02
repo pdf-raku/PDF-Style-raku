@@ -42,7 +42,7 @@ Group|Property|Notes|To-do
 ---|---|---|---
 background||
   |background-color||
-  |background-image||NYI
+  |background-image||WIP
   |background-position||NYI
   |background-repeat||NYI
 border (boxed)|
