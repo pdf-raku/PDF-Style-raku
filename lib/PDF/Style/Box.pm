@@ -200,11 +200,10 @@ class PDF::Style::Box {
                 }
             }
             with $!css.background-color {
-                my Numeric $opacity = $!css.opacity;
-                my Bool \transparent = $opacity * .a =~= 0;
-                unless transparent {
+                my Numeric \alpha = $!css.opacity * .a / 255;
+                unless alpha =~= 0 {
                     $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-                    $gfx.FillAlpha = $opacity * .a / 255;
+                    $gfx.FillAlpha = alpha;
                     my \w = @border[Right] - @border[Left];
                     my \h = @border[Top] - @border[Bottom];
                     $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
@@ -227,8 +226,8 @@ class PDF::Style::Box {
         $gfx.StrokeAlpha = $opacity;
     }
 
-    method !set-image-color($gfx) {
-        $gfx.StrokeAlpha = $gfx.FillAlpha = $!css.opacity;
+    method !set-image-color($gfx, Numeric $alpha) {
+        $gfx.StrokeAlpha = $gfx.FillAlpha = $alpha;
     }
 
     method !render-background-image($gfx, $bg-image) {
@@ -238,13 +237,25 @@ class PDF::Style::Box {
         my \bg-height = padding[Top] - border[Bottom];
         $gfx.Save;
         $gfx.transform: :translate[ padding[Left], padding[Top]];
-        self!set-image-color($gfx);
-        $gfx.Rectangle(0, 0, bg-width, -bg-height );
-        $gfx.Clip;
-        $gfx.EndPath;
-        $gfx.transform: :scale( Units::px );
-        $gfx.do($bg-image, :valign<top>);
-        $gfx.Restore;
+        my Numeric \alpha = $!css.opacity.Num;
+        unless alpha =~= 0 {
+            $gfx.Rectangle(0, 0, bg-width, -bg-height );
+            $gfx.Clip;
+            $gfx.EndPath;
+            unless alpha =~= 1 {
+                # paint on white background; thwart any blending of background-color, etc
+                self!set-image-color($gfx, 1.0);
+                $gfx.FillColor = :DeviceGray[1.0];
+                my \width  = min( $bg-image.width * Units::px, padding[Right] - padding[Left]);
+                my \height = min( $bg-image.height * Units::px, padding[Top] - padding[Bottom]);
+                $gfx.Rectangle(0, 0, width, -height );
+                $gfx.Fill;
+            }
+            $gfx.transform: :scale( Units::px );
+            self!set-image-color($gfx, alpha);
+            $gfx.do($bg-image, :valign<top>);
+            $gfx.Restore;
+        }
     }
 
     method render($page) {
