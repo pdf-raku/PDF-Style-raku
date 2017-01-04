@@ -125,9 +125,9 @@ class PDF::Style::Box {
                 $v = [$v,] unless $v.isa(List);
                 $!padding = $!border = $!margin = Nil;
                 $!top    = $v[Top] // 0;
-                $!right  = $v[Right] // self.top;
-                $!bottom = $v[Bottom] // self.top;
-                $!left   = $v[Left] // self.right
+                $!right  = $v[Right] // $!top;
+                $!bottom = $v[Bottom] // $!top;
+                $!left   = $v[Left] // $!right
             });
     }
 
@@ -141,16 +141,17 @@ class PDF::Style::Box {
     #| Do basic styling, common to all box types (image, text, canvas)
     method !style-box($_) {
         my %border = $!css.border;
-        my Numeric @border[4] = self.border.list;
         my Numeric @width[4] = %border<border-width>.map: {self!width($_)};
+        my Numeric @border[4] = self.border.list;
+        @border[$_] -= $!left for Left, Right;
+        @border[$_] -= $!bottom for Top, Bottom;
 
         .graphics: -> $gfx {
 
             with $!css.background-color {
-                my Numeric \alpha = .a / 255;
-                unless alpha =~= 0 {
+                unless .a == 0 {
                     $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-                    $gfx.FillAlpha = alpha;
+                    $gfx.FillAlpha = .a / 255;
                     my \w = @border[Right] - @border[Left];
                     my \h = @border[Top] - @border[Bottom];
                     $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
@@ -178,7 +179,7 @@ class PDF::Style::Box {
                 # all 4 edges are the same. draw a simple rectangle
                 with %border<border-color>[0] -> \color {
                     my \border-style = %border<border-style>[0];
-                    if @width[0] && border-style ne 'none' && color.a !=~= 0 {
+                    if @width[0] && border-style ne 'none' && color.a != 0 {
                         $gfx.LineWidth = @width[0];
                         $gfx.StrokeAlpha = color.a / 255;
                         $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
@@ -197,21 +198,21 @@ class PDF::Style::Box {
                 for (Top, Right, Bottom, Left) -> $edge {
                     with @width[$edge] -> \width {
                         my \border-style = %border<border-style>[$edge];
-                        my Color \color = $_
-                        with %border<border-color>[$edge];
-                        if width && border-style ne 'none' && color && color.a !=~= 0 {
-                            $gfx.LineWidth = width;
-                            $gfx.StrokeAlpha = color.a / 255;
-                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                            $gfx.DashPattern = self!dash-pattern(  border-style );
-                            my Numeric \pos = @stroke[$edge];
-                            if $edge == Top|Bottom {
-                                $gfx.MoveTo( @stroke[Left], pos);
-                                $gfx.LineTo( @stroke[Right], pos);
-                            }
-                            else {
-                                $gfx.MoveTo( pos, @stroke[Top] );
-                                $gfx.LineTo( pos, @stroke[Bottom] );
+                        with %border<border-color>[$edge] -> Color \color {
+                            if width && border-style ne 'none' && color.a != 0 {
+                                $gfx.LineWidth = width;
+                                $gfx.StrokeAlpha = color.a / 255;
+                                $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                                $gfx.DashPattern = self!dash-pattern(  border-style );
+                                my Numeric \pos = @stroke[$edge];
+                                if $edge == Top|Bottom {
+                                    $gfx.MoveTo( @stroke[Left], pos);
+                                    $gfx.LineTo( @stroke[Right], pos);
+                                }
+                                else {
+                                    $gfx.MoveTo( pos, @stroke[Top] );
+                                    $gfx.LineTo( pos, @stroke[Bottom] );
+                                }
                             }
                             $gfx.CloseStroke;
                         }
@@ -228,9 +229,9 @@ class PDF::Style::Box {
         }
         else {
             $gfx.FillColor = :DeviceGray[0.0];
-            $gfx.FillAlpha = 1.0;
+            $gfx.FillAlpha = 1;
         }
-        $gfx.StrokeAlpha = 1.0;
+        $gfx.StrokeAlpha = 1;
     }
 
     method !render-background-image($gfx, $bg-image) {
@@ -239,7 +240,7 @@ class PDF::Style::Box {
         my \bg-width = padding[Right] - border[Left];
         my \bg-height = padding[Top] - border[Bottom];
         $gfx.Save;
-        $gfx.transform: :translate[ padding[Left], padding[Top]];
+        $gfx.transform: :translate[ padding[Left] - $!left, padding[Top] - $!bottom];
         $gfx.Rectangle(0, 0, bg-width, -bg-height );
         $gfx.Clip;
         $gfx.EndPath;
@@ -248,40 +249,52 @@ class PDF::Style::Box {
         $gfx.Restore;
     }
 
+    method !render($gfx) {
+        self!style-box($gfx);
+
+        with $!image -> \image {
+            my $width = image.content-width;
+            my $height = image.content-height;
+            
+            $gfx.do(image, :$width, :$height);
+        }
+        with $!text -> \text {
+            my $top = $!top - $!bottom;
+            self!set-font-color($gfx);
+            $gfx.BeginText;
+            $gfx.print(text, :position[ :left(0), :$top]);
+            $gfx.EndText;
+        }
+        with $!canvas -> \canvas {
+            canvas.font-object //= PDF::Style::Font.new;
+            my \image = (require PDF::Lite).xobject-form: :bbox[0, 0, $!width, $!height];
+            image.gfx.draw(canvas);
+            image.finish;
+
+            $gfx.do(image, :$!width, :$!height);
+        }
+    }
+
     method render($page) {
-        $page.graphics: -> $gfx {
-            self!style-box($gfx);
-            my $left = self.left;
-            my $bottom = self.bottom;
-
-            with $!image -> \image {
-                my $width = image.content-width;
-                my $height = image.content-height;
-
-                $gfx.Save;
-                $gfx.transform: :translate[ $left, $bottom ];
-                $gfx.do(image, :$width, :$height);
-                $gfx.Restore;
+        my $opacity = $!css.opacity.Num;
+        if $opacity =~= 1 {
+            $page.graphics: -> $gfx {
+                $gfx.transform: :translate[ $!left, $!bottom ];
+                self!render($gfx);
             }
-            with $!text -> \text {
-                my $top = self.top;
-                self!set-font-color($gfx);
-                $page.text: {
-                    .print(text, :position[ :$left, :$top]);
-                }
+        }
+        elsif $opacity !=~= 0 {
+            my Numeric @b[4] = self.border.list;
+            my @bbox = [@b[Left] - $!left, @b[Bottom] - $!bottom, @b[Right] - $!left, @b[Top] - $!bottom];
+            my \image = (require PDF::Lite).xobject-form: :@bbox;
+            image<Group> = { :S( :name<Transparency> ) };
+            image.graphics: {
+                self!render($_);
             }
-            with $!canvas -> \canvas {
-                my $width = self.width;
-                my $height = self.height;
-                canvas.font-object //= PDF::Style::Font.new;
-                my \image = (require PDF::Lite).xobject-form: :bbox[0, 0, $width, $height];
-                image.gfx.draw(canvas);
-                image.finish;
-
-                $gfx.Save;
-                $gfx.transform: :translate[ $left, $bottom ];
-                $gfx.do(image, :$width, :$height);
-                $gfx.Restore;
+            image.finish;
+            $page.graphics: -> $gfx {
+                $gfx.FillAlpha = $gfx.StrokeAlpha = $opacity;
+                $gfx.do(image, $!left, $!bottom);
             }
         }
     }
@@ -308,9 +321,7 @@ class PDF::Style::Box {
                 sprintf '<img style="%s" src="%s"/>', $style-html, .data-uri;
             }
             else {
-                my $width = self.width;
-                my $height = self.height;
-                .to-html(:$width, :$height, :$style) with $!canvas;
+                .to-html(:$!width, :$!height, :$style) with $!canvas;
             }
         };
 
@@ -375,7 +386,7 @@ class PDF::Style::Box {
             $_
         }
         else {
-            my $max = self.height - ($top//0) - ($bottom//0);
+            my $max = $!height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
                 $max -= $_ with $css."$_"();
             }
@@ -386,7 +397,7 @@ class PDF::Style::Box {
             $_
         }
         else {
-            my $max = self.width - ($left//0) - ($right//0);
+            my $max = $!width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
                 $max -= $_ with $css."$_"();
             }
@@ -410,19 +421,19 @@ class PDF::Style::Box {
         my Bool \from-left = $left.defined;
         unless from-left {
             $left = $right.defined
-                ?? self.width - $right - $width
+                ?? $!width - $right - $width
                 !! 0;
         }
 
         my Bool \from-top = $top.defined;
         unless from-top {
             $top = $bottom.defined
-                ?? self.height - $bottom - $height
+                ?? $!height - $bottom - $height
                 !! 0;
         }
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
-        my \pdf-top = self.height - $top;
+        my \pdf-top = $!height - $top;
         my \box = PDF::Style::Box.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
 
         # reposition to outside of border
