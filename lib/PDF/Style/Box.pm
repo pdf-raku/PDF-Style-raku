@@ -160,9 +160,9 @@ class PDF::Style::Box {
             }
 
             my $bg-image = $!css.background-image;
-            if $bg-image ~~ PDF::DAO::Stream | /:i ^ 'data:image'/ {
+            if $bg-image ne 'none' {
                 $bg-image = PDF::Content::Image.open($bg-image)
-                unless $bg-image ~~ PDF::DAO::Stream;
+                    unless $bg-image ~~ PDF::DAO::Stream;
                 self!render-background-image($gfx, $bg-image);
             }
 
@@ -229,23 +229,43 @@ class PDF::Style::Box {
         }
         else {
             $gfx.FillColor = :DeviceGray[0.0];
-            $gfx.FillAlpha = 1;
+            $gfx.FillAlpha = 1.0;
         }
-        $gfx.StrokeAlpha = 1;
+        $gfx.StrokeAlpha = 1.0;
     }
 
     method !render-background-image($gfx, $bg-image) {
+        my $repeat-x = True;
+        my $repeat-y = True;
+        given $!css.background-repeat {
+            when 'repeat-y' { $repeat-x = False }
+            when 'repeat-x' { $repeat-y = False }
+            when 'no-repeat' { $repeat-x = $repeat-y = False }
+        }
         my Array \padding = self.padding;
         my Array \border = self.border;
-        my \bg-width = padding[Right] - border[Left];
-        my \bg-height = padding[Top] - border[Bottom];
+        my \bg-width = border[Right] - border[Left];
+        my \bg-height = border[Top] - border[Bottom];
         $gfx.Save;
         $gfx.transform: :translate[ padding[Left] - $!left, padding[Top] - $!bottom];
-        $gfx.Rectangle(0, 0, bg-width, -bg-height );
+
+        $gfx.Rectangle(border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height );
         $gfx.Clip;
         $gfx.EndPath;
         $gfx.transform: :scale( Units::px );
-        $gfx.do($bg-image, :valign<top>);
+
+        # todo: use PDF Tiling Pattern;
+        my $img-width = $bg-image.width;
+        my $img-height = $bg-image.height;
+        my $x = $repeat-x ?? -$img-width !! 0;
+        repeat {
+            my $y = $repeat-y ?? -$img-height !! 0;
+            repeat {
+                $gfx.do($bg-image, $x, -$y, :valign<top>);
+                $y += $img-height;
+            } until !$repeat-y || $y - $img-height > bg-height / Units::px;
+            $x += $img-width;
+        } until !$repeat-x || $x - $img-width > bg-width / Units::px;
         $gfx.Restore;
     }
 

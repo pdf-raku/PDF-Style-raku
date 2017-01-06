@@ -10,7 +10,7 @@ use PDF::Content::Image;
 # also dump to HTML, for comparision
 
 my $vp = PDF::Style::Viewport.new;
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); background-repeat: no-repeat; margin: 5pt; padding: 5pt");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my $pdf = PDF::Lite.new;
@@ -37,12 +37,15 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
 
 my $jpg = PDF::Content::Image.open("t/images/snoopy-happy-dance.jpg");
 my $gif = PDF::Content::Image.open("t/images/semitransparent.gif");
+my $png = PDF::Content::Image.open("t/images/tiny.png");
 
-for [   { :background-image(:url($jpg) ) }, { :background-image(:url($jpg) ), :background-color<red> },
-        { :background-image(:url($jpg) ), :opacity<.5> },
-        { :background-image(:url($jpg) ), :opacity<.5>, :background-color<red> },
-        { :background-image(:url($gif) ) },
-        { :background-image(:url($gif) ), :opacity<.3>, :background-color<red> },
+for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, }, { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :background-color<red> },
+        { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5> },
+        { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5>, :background-color<red> },
+        { :background-image(:url($gif) ), :background-repeat<no-repeat>, },
+        { :background-image(:url($gif) ), :background-repeat<no-repeat>, :opacity<.3>, :background-color<red> },
+        { :background-image(:url($png) ), :background-color<rgb(20,220,220)>, :color<white> },
+        { :background-image(:url($png) ), :background-repeat<repeat-x>, :background-color<rgb(20,220,220)>, :color<white> },
       ] {
 
     test($vp, $css, $_);

@@ -42,9 +42,9 @@ Group|Property|Notes|To-do
 ---|---|---|---
 background||
   |background-color||
-  |background-image||WIP
+  |background-image||
+  |background-repeat||
   |background-position||NYI
-  |background-repeat||NYI
 border (boxed)|
   |border-color||
   |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
