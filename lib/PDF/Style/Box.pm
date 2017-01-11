@@ -234,6 +234,14 @@ class PDF::Style::Box {
         $gfx.StrokeAlpha = 1.0;
     }
 
+    sub rectangles-overlap(@ra, @rb) {
+        my enum <Left Bottom Width Height>;
+        @ra[Left]   < (@rb[Left] + @rb[Width])
+        && @rb[Left]   < (@ra[Left] + @ra[Width])
+        && @ra[Bottom] < (@rb[Bottom] + @rb[Height])
+        && @rb[Bottom] < (@ra[Bottom] + @ra[Height]);
+    }
+
     method !render-background-image($gfx, $bg-image) {
         my $repeat-x = True;
         my $repeat-y = True;
@@ -249,23 +257,25 @@ class PDF::Style::Box {
         $gfx.Save;
         $gfx.transform: :translate[ padding[Left] - $!left, padding[Top] - $!bottom];
 
-        $gfx.Rectangle(border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height );
+        my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
+        $gfx.Rectangle(|@bg-region);
         $gfx.Clip;
         $gfx.EndPath;
-        $gfx.transform: :scale( Units::px );
 
         # todo: use PDF Tiling Pattern;
-        my $img-width = $bg-image.width;
-        my $img-height = $bg-image.height;
-        my $x = $repeat-x ?? -$img-width !! 0;
+        my $width = $bg-image.width * Units::px;
+        my $height = $bg-image.height * Units::px;
+        my $x = $repeat-x ?? -$width !! 0;
         repeat {
-            my $y = $repeat-y ?? -$img-height !! 0;
+            my $y = $repeat-y ?? -$height !! 0;
             repeat {
-                $gfx.do($bg-image, $x, -$y, :valign<top>);
-                $y += $img-height;
-            } until !$repeat-y || $y - $img-height > bg-height / Units::px;
-            $x += $img-width;
-        } until !$repeat-x || $x - $img-width > bg-width / Units::px;
+                $gfx.do($bg-image, $x, -$y, :$width, :$height, :valign<top>)
+                    if rectangles-overlap([@bg-region[0], -@bg-region[1], bg-width, bg-height],
+                                          [$x, $y, $width, $height]);
+                $y += $height;
+            } until !$repeat-y || $y - $height > bg-height;
+            $x += $width;
+        } until !$repeat-x || $x - $width > bg-width;
         $gfx.Restore;
     }
 

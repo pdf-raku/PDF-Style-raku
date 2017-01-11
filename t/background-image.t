@@ -42,8 +42,8 @@ my $png = PDF::Content::Image.open("t/images/tiny.png");
 for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, }, { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :background-color<red> },
         { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5> },
         { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5>, :background-color<red> },
-        { :background-image(:url($gif) ), :background-repeat<no-repeat>, },
-        { :background-image(:url($gif) ), :background-repeat<no-repeat>, :opacity<.3>, :background-color<red> },
+        { :background-image(:url($gif) ), },
+        { :background-image(:url($gif) ), :opacity<.3>, :background-color<red> },
         { :background-image(:url($png) ), :background-color<rgb(20,220,220)>, :color<white> },
         { :background-image(:url($png) ), :background-repeat<repeat-x>, :background-color<rgb(20,220,220)>, :color<white> },
       ] {

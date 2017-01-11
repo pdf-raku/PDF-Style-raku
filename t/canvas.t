@@ -64,7 +64,7 @@ do {
         for 1, 239 -> \x {
             for 1, 64 -> \y {
                 ctx.strokeRect(x, y, 10, 15);
-                ctx.fillText("{++$n}", x + 2, y + 10);
+                ctx.fillText("{++$n}", x, y + 12);
             }
         }
     }
