@@ -147,17 +147,8 @@ class PDF::Style::Box {
         @border[$_] -= $!bottom for Top, Bottom;
 
         .graphics: -> $gfx {
-
-            with $!css.background-color {
-                unless .a == 0 {
-                    $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-                    $gfx.FillAlpha = .a / 255;
-                    my \w = @border[Right] - @border[Left];
-                    my \h = @border[Top] - @border[Bottom];
-                    $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
-                    $gfx.Fill;
-                }
-            }
+            self!render-background-color($gfx, @border, $_)
+                with $!css.background-color;
 
             my $bg-image = $!css.background-image;
             if $bg-image ne 'none' {
@@ -242,6 +233,17 @@ class PDF::Style::Box {
         && @rb[Bottom] < (@ra[Bottom] + @ra[Height]);
     }
 
+    method !render-background-color($gfx, @border, $_) {
+        unless .a == 0 {
+            $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+            $gfx.FillAlpha = .a / 255;
+            my \w = @border[Right] - @border[Left];
+            my \h = @border[Top] - @border[Bottom];
+            $gfx.Rectangle(@border[Left], @border[Bottom], w, h);
+            $gfx.Fill;
+        }
+    }
+
     method !render-background-image($gfx, $bg-image) {
         my $repeat-x = True;
         my $repeat-y = True;
@@ -258,24 +260,29 @@ class PDF::Style::Box {
         $gfx.transform: :translate[ padding[Left] - $!left, padding[Top] - $!bottom];
 
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
-        $gfx.Rectangle(|@bg-region);
-        $gfx.Clip;
-        $gfx.EndPath;
 
-        # todo: use PDF Tiling Pattern;
         my $width = $bg-image.width * Units::px;
         my $height = $bg-image.height * Units::px;
-        my $x = $repeat-x ?? -$width !! 0;
-        repeat {
-            my $y = $repeat-y ?? -$height !! 0;
-            repeat {
-                $gfx.do($bg-image, $x, -$y, :$width, :$height, :valign<top>)
-                    if rectangles-overlap([@bg-region[0], -@bg-region[1], bg-width, bg-height],
-                                          [$x, $y, $width, $height]);
-                $y += $height;
-            } until !$repeat-y || $y - $height > bg-height;
-            $x += $width;
-        } until !$repeat-x || $x - $width > bg-width;
+        if ($width >= bg-width && $height >= bg-height)
+        || (!$repeat-x && !$repeat-y) {
+            # doesn't repeat no tiling required
+            $gfx.Rectangle(|@bg-region);
+            $gfx.Clip;
+            $gfx.EndPath;
+            $gfx.do($bg-image, 0, 0, :$width, :$height, :valign<top>);
+        }
+        else {
+            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], );
+            # todo phase via /Matrix
+            $pattern.graphics: {
+                .do($bg-image, 0, 0, :$width, :$height );
+            }
+            $pattern.finish;
+            $gfx.FillColor = :Pattern($gfx.resource-key($pattern));
+            $gfx.Rectangle(|@bg-region);
+            $gfx.Fill;
+        }
+ 
         $gfx.Restore;
     }
 
@@ -315,8 +322,8 @@ class PDF::Style::Box {
         }
         elsif $opacity !=~= 0 {
             my Numeric @b[4] = self.border.list;
-            my @bbox = [@b[Left] - $!left, @b[Bottom] - $!bottom, @b[Right] - $!left, @b[Top] - $!bottom];
-            my \image = (require PDF::Lite).xobject-form: :@bbox;
+            my @BBox = [@b[Left] - $!left, @b[Bottom] - $!bottom, @b[Right] - $!left, @b[Top] - $!bottom];
+            my \image = (require PDF::Lite).xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
             image.graphics: {
                 self!render($_);
