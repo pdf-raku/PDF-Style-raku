@@ -272,7 +272,7 @@ class PDF::Style::Box {
             $gfx.do($bg-image, 0, 0, :$width, :$height, :valign<top>);
         }
         else {
-            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], );
+            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], :Matrix($gfx.CTM) );
             # todo phase via /Matrix
             $pattern.graphics: {
                 .do($bg-image, 0, 0, :$width, :$height );
