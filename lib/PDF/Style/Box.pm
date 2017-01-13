@@ -281,7 +281,6 @@ class PDF::Style::Box {
             unless $repeat-x {
                 # step outside box in X direction
                 $XStep += bg-width;
-                @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[0, bg-width] );
             }
             unless $repeat-y {
                 # step outside box in Y direction
