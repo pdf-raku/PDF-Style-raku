@@ -48,6 +48,7 @@ for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, }, { :b
         { :background-image(:url($gif) ), :background-position("right top") },
         { :background-image(:url($png) ), :background-color<rgb(20,220,220)>, :color<white> },
         { :background-image(:url($png) ), :background-repeat<repeat-x>, :background-color<rgb(20,220,220)>, :color<white> },
+        { :background-image(:url($png) ), :background-repeat<repeat-y>, :background-color<rgb(20,220,220)>, :color<white> },
       ] {
 
     test($vp, $css, $_);

@@ -8,6 +8,7 @@ class PDF::Style::Box {
     use HTML::Entity;
     use PDF::Content::Image;
     use PDF::Content::Text::Block;
+    use PDF::Content::Util::TransformMatrix;
     use PDF::DAO::Stream;
     use Color;
 
@@ -265,15 +266,31 @@ class PDF::Style::Box {
         my $height = $bg-image.height * Units::px;
         if ($width >= bg-width && $height >= bg-height)
         || (!$repeat-x && !$repeat-y) {
-            # doesn't repeat no tiling required
+            # doesn't repeat no tiling pattern required
             $gfx.Rectangle(|@bg-region);
             $gfx.Clip;
             $gfx.EndPath;
             $gfx.do($bg-image, 0, 0, :$width, :$height, :valign<top>);
         }
         else {
-            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], :Matrix($gfx.CTM) );
-            # todo phase via /Matrix
+            my @Matrix = $gfx.CTM.list;
+
+            my $XStep = $width;
+            my $YStep = $height;
+
+            unless $repeat-x {
+                # step outside box in X direction
+                $XStep += bg-width;
+                @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[0, bg-width] );
+            }
+            unless $repeat-y {
+                # step outside box in Y direction
+                $YStep += bg-height;
+                @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[0, bg-height] );
+            }
+
+            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
+
             $pattern.graphics: {
                 .do($bg-image, 0, 0, :$width, :$height );
             }
