@@ -141,8 +141,6 @@ class PDF::Style::Box {
 
     #| Do basic styling, common to all box types (image, text, canvas)
     method !style-box($_) {
-        my %border = $!css.border;
-        my Numeric @width[4] = %border<border-width>.map: {self!width($_)};
         my Numeric @border[4] = self.border.list;
         @border[$_] -= $!left for Left, Right;
         @border[$_] -= $!bottom for Top, Bottom;
@@ -158,56 +156,62 @@ class PDF::Style::Box {
                 self!render-background-image($gfx, $bg-image);
             }
 
-            my @stroke = [
-                @border[Top] - @width[Top]/2,
-                @border[Right] - @width[Right]/2,
-                @border[Bottom] + @width[Bottom]/2,
-                @border[Left] + @width[Left]/2,
-            ];
+            self!render-border($gfx, @border);
+        }
+    }
 
-            if @width.unique == 1
-            && %border<border-color>.map({($_//'').Str}).unique == 1
-            && %border<border-style>.unique == 1 {
-                # all 4 edges are the same. draw a simple rectangle
-                with %border<border-color>[0] -> \color {
-                    my \border-style = %border<border-style>[0];
-                    if @width[0] && border-style ne 'none' && color.a != 0 {
-                        $gfx.LineWidth = @width[0];
-                        $gfx.StrokeAlpha = color.a / 255;
-                        $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                        $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
+    method !render-border($gfx, @border) {
+        my %border = $!css.border;
+        my Numeric @width[4] = %border<border-width>.map: {self!width($_)};
+        my @stroke = [
+            @border[Top] - @width[Top]/2,
+            @border[Right] - @width[Right]/2,
+            @border[Bottom] + @width[Bottom]/2,
+            @border[Left] + @width[Left]/2,
+        ];
 
-                        my \w = @stroke[Right] - @stroke[Left];
-                        my \h = @stroke[Top] - @stroke[Bottom];
-                        $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
+        if @width.unique == 1
+        && %border<border-color>.map({($_//'').Str}).unique == 1
+        && %border<border-style>.unique == 1 {
+            # all 4 edges are the same. draw a simple rectangle
+            with %border<border-color>[0] -> \color {
+                my \border-style = %border<border-style>[0];
+                if @width[0] && border-style ne 'none' && color.a != 0 {
+                    $gfx.LineWidth = @width[0];
+                    $gfx.StrokeAlpha = color.a / 255;
+                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                    $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
 
-                        $gfx.CloseStroke;
-                    }
+                    my \w = @stroke[Right] - @stroke[Left];
+                    my \h = @stroke[Top] - @stroke[Bottom];
+                    $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
+
+                    $gfx.CloseStroke;
                 }
             }
-            else {
-                # edges differ. draw them separately
-                for (Top, Right, Bottom, Left) -> $edge {
-                    with @width[$edge] -> \width {
-                        my \border-style = %border<border-style>[$edge];
-                        with %border<border-color>[$edge] -> Color \color {
-                            if width && border-style ne 'none' && color.a != 0 {
-                                $gfx.LineWidth = width;
-                                $gfx.StrokeAlpha = color.a / 255;
-                                $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                                $gfx.DashPattern = self!dash-pattern(  border-style );
-                                my Numeric \pos = @stroke[$edge];
-                                if $edge == Top|Bottom {
-                                    $gfx.MoveTo( @stroke[Left], pos);
-                                    $gfx.LineTo( @stroke[Right], pos);
-                                }
-                                else {
-                                    $gfx.MoveTo( pos, @stroke[Top] );
-                                    $gfx.LineTo( pos, @stroke[Bottom] );
-                                }
+        }
+        else {
+            # edges differ. draw them separately
+            for (Top, Right, Bottom, Left) -> \edge {
+                with @width[edge] -> \width {
+                    my \border-style = %border<border-style>[edge];
+                    with %border<border-color>[edge] -> Color \color {
+                        if width && border-style ne 'none' && color.a != 0 {
+                            $gfx.LineWidth = width;
+                            $gfx.StrokeAlpha = color.a / 255;
+                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                            $gfx.DashPattern = self!dash-pattern(  border-style );
+                            my Numeric \pos = @stroke[edge];
+                            if edge == Top|Bottom {
+                                $gfx.MoveTo( @stroke[Left], pos);
+                                $gfx.LineTo( @stroke[Right], pos);
                             }
-                            $gfx.CloseStroke;
+                            else {
+                                $gfx.MoveTo( pos, @stroke[Top] );
+                                $gfx.LineTo( pos, @stroke[Bottom] );
+                            }
                         }
+                        $gfx.CloseStroke;
                     }
                 }
             }
@@ -577,8 +581,8 @@ class PDF::Style::Box {
                when /^ (padding|border|margin)'-'(top|right|bottom|left) $/ {
                    #| absolute positions
                    my Str $box = ~$0;
-                   my UInt $edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){$1};
-                   @meth.push: method { self."$box"()[$edge] };
+                   my UInt \edge = %( :top(Top), :right(Right), :bottom(Bottom), :left(Left) ){$1};
+                   @meth.push: method { self."$box"()[edge] };
                }
                when /^ (padding|border|margin)'-'(width|height) $/ {
                    #| cumulative widths and heights
