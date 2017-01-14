@@ -35,29 +35,26 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
     }
 }
 
-my $jpg = PDF::Content::Image.open("t/images/snoopy-happy-dance.jpg");
 my $gif = PDF::Content::Image.open("t/images/semitransparent.gif");
 my $png = PDF::Content::Image.open("t/images/tiny.png");
 
-for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, },
-        { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :background-color<red> },
-        { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5> },
-        { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :opacity<.5>, :background-color<red> },
-        { :background-image(:url($gif) ), },
-        { :background-image(:url($gif) ), :opacity<.3>, :background-color<red> },
-        { :background-image(:url($gif) ), :background-position<center> },
-        { :background-image(:url($gif) ), :background-position("right top") },
-        { :background-image(:url($png) ), :background-color<rgb(20,220,220)>, :color<white> },
-        { :background-image(:url($png) ), :background-repeat<repeat-x>, :background-color<rgb(20,220,220)>, :color<white> },
-        { :background-image(:url($png) ), :background-repeat<repeat-y>, :background-color<rgb(20,220,220)>, :color<white> },
-      ] {
+for [
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>,},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("left top")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("right")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("right bottom")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("bottom right")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("center")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("15% 25%")},
+    { :background-image(:url($gif) ), :background-repeat<no-repeat>, :background-position("10pt 15pt")},
+    ] {
 
     test($vp, $css, $_);
 }
 
-lives-ok {$pdf.save-as: "t/background-image.pdf"};
+lives-ok {$pdf.save-as: "t/background-position.pdf"};
 
 @Html.append: $vp.html-end, '</body>', '</html>', '';
-"t/background-image.html".IO.spurt: @Html.join: "\n";
+"t/background-position.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

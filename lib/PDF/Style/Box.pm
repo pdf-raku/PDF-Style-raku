@@ -265,16 +265,18 @@ class PDF::Style::Box {
         $gfx.transform: :translate[ padding[Left] - $!left, padding[Top] - $!bottom];
 
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
-
         my $width = $bg-image.width * Units::px;
         my $height = $bg-image.height * Units::px;
+        my \x-float = padding[Right] - padding[Left] - $width;
+        my \y-float = padding[Top] - padding[Bottom] - $height;
+        my ($x, $y) = self!align-background-image(x-float, y-float);
         if ($width >= bg-width && $height >= bg-height)
         || (!$repeat-x && !$repeat-y) {
             # doesn't repeat no tiling pattern required
             $gfx.Rectangle(|@bg-region);
             $gfx.Clip;
             $gfx.EndPath;
-            $gfx.do($bg-image, 0, 0, :$width, :$height, :valign<top>);
+            $gfx.do($bg-image, $x, -$y, :$width, :$height, :valign<top>);
         }
         else {
             my @Matrix = $gfx.CTM.list;
@@ -304,6 +306,28 @@ class PDF::Style::Box {
         }
  
         $gfx.Restore;
+    }
+
+    multi sub bg-pos(Str $v, $float, :%keyw!) {
+        (%keyw{$v} // 0) * $float;
+    }
+    multi sub bg-pos(Numeric $v, $float, :$keyw) {
+        given $v.type {
+            when 'percent' { $v * $float / 100 }
+            default        { 0pt + $v }
+        }
+    }
+
+    method !align-background-image($x-float, $y-float) {
+        enum <x y>;
+        my @pos = $!css.background-position.list;
+        @pos.push('center') while @pos < 2;
+        @pos = @pos.reverse
+            if @pos[x] eq 'top'|'bottom' || @pos[y] eq 'left'|'right';
+
+        my $x = bg-pos(@pos[x], $x-float, :keyw{ :left(0.0), :center(0.5), :right(1.0) });
+        my $y = bg-pos(@pos[y], $y-float, :keyw{ :top(0.0), :center(0.5), :bottom(1.0) });
+        $x, $y;
     }
 
     method !render($gfx) {
