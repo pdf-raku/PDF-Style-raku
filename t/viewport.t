@@ -4,7 +4,7 @@ use PDF::Style::Viewport;
 use CSS::Declarations;
 
 my $bg-image = PDF::Content::Image.open("t/images/semitransparent.gif");
-my $css = CSS::Declarations.new: :style("size: a5; margin-left: .5cm; background-image: url($bg-image); background-color: blue; opacity: .3;");
+my $css = CSS::Declarations.new: :style("size: a5; margin-left: .5cm; background-image: url($bg-image); background-color: blue; opacity: .3; border: 1px solid red");
 warn $css;
 
 todo "write general view point styling tests", 3;

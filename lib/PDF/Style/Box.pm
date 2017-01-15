@@ -294,6 +294,8 @@ class PDF::Style::Box {
                 @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[0, bg-height] );
             }
 
+            @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[$x, -$y] )
+                if $x || $y;
             my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.graphics: {

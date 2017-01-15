@@ -44,7 +44,7 @@ background||
   |background-color||
   |background-image||
   |background-repeat||
-  |background-position||NYI
+  |background-position||
 border (boxed)|
   |border-color||
   |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
