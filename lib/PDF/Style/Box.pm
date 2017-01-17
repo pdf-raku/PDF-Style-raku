@@ -350,7 +350,7 @@ class PDF::Style::Box {
         }
         with $!canvas -> \canvas {
             canvas.font-object //= PDF::Style::Font.new;
-            my \image = (require PDF::Lite).xobject-form: :bbox[0, 0, $!width, $!height];
+            my \image = (require PDF::Lite).xobject-form: :BBox[0, 0, $!width, $!height];
             image.gfx.draw(canvas);
             image.finish;
 
@@ -476,10 +476,7 @@ class PDF::Style::Box {
             $max;
         }
 
-        my \width-max = do with $width {
-            $_
-        }
-        else {
+        my \width-max = $width // do {
             my $max = $!width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
                 $max -= $_ with $css."$_"();

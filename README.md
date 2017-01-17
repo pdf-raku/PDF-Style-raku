@@ -12,7 +12,7 @@ use CSS::Declarations::Units;
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
 my $pdf = PDF::Lite.new;
-my $vp = PDF::Style::Viewport.new: :width(300), :height(520);
+my $vp = PDF::Style::Viewport.new: :style("page-size: a4");
 my $page = $vp.add-page($pdf);
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
@@ -56,7 +56,6 @@ Position|
   |bottom, top, left, right
   |height, max-height, min-height
   |width, max-width, min-width
-  |clip||NYI
   |font-family
   |font-style
   |font-size
@@ -67,7 +66,7 @@ Position|
   |letter-spacing||
   |line-height||
   |opacity||
-  |text-align
+  |text-align||
   |text-decoration||NYI
   |text-indent||NYI
   |text-transform||NYI
