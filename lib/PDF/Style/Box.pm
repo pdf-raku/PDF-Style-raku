@@ -386,28 +386,34 @@ class PDF::Style::Box {
         my $css = $!css.clone;
         $css.delete('vertical-align'); # we'll deal with this later
         my $style = $css.write;
-        my $style-html = encode-entities($style);
 
-        with $!text {
-            my $text = encode-entities(.text);
-            with $!css.vertical-align -> $valign {
-                unless $valign eq 'baseline' {
-                    # wrap content in a table cell for valign to take affect
-                    $text = sprintf '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>', $valign, $text;
-                }
-            }
-
-            sprintf '<div style="%s">%s</div>', $style-html, $text;
+        with $!canvas {
+            .to-html(:$!width, :$!height, :$style);
         }
         else {
+            my $style-att = $style
+                ?? ' style="%s"'.sprintf(encode-entities($style))
+                !! '';
             with $!image {
-                sprintf '<img style="%s" src="%s"/>', $style-html, .data-uri;
+                sprintf '<img%s src="%s"/>', $style-att, .data-uri;
             }
             else {
-                .to-html(:$!width, :$!height, :$style) with $!canvas;
-            }
-        };
+                my $text = do with $!text {
+                    encode-entities(.text);
+                }
+                else {
+                    ''
+                }
+                with $!css.vertical-align -> $valign {
+                    unless $valign eq 'baseline' {
+                    # wrap content in a table cell for valign to take affect
+                        $text = sprintf '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>', $valign, $text;
+                    }
+                }
 
+                sprintf '<div%s>%s</div>', $style-att, $text;
+            }
+        }
     }
 
     method save {
@@ -541,7 +547,7 @@ class PDF::Style::Box {
         my $leading = $!font.leading;
         my $font-size = $!font.em;
         my $font = $!font.face;
-        # support a veritical-align subset
+        # support a vertical-align subset
         my $valign = do given $css.vertical-align {
             when 'middle' { 'center' }
             when 'top'|'bottom' { $_ }
@@ -595,6 +601,10 @@ class PDF::Style::Box {
     multi method box( :$canvas!, :$css!) {
         my &content-builder = sub (|c) { :$canvas };
         self!build-box($css, &content-builder);
+    }
+
+    multi method box( :$css = CSS::Declarations.new ) is default {
+        self!build-box($css, sub (|c) {});
     }
 
     method can(Str \name) {

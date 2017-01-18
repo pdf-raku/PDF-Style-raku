@@ -6,7 +6,7 @@ use CSS::Declarations::Units;
 class PDF::Style::Viewport
     is PDF::Style::Box {
 
-    method setup-page($page) {
+    method !setup-page($page) {
         $page.media-box = [0, 0, self.width, self.height ];
         # draw borders + background image
         self.render($page);
@@ -14,24 +14,12 @@ class PDF::Style::Viewport
 
     method add-page($pdf) {
         my \page = $pdf.add-page;
-        self.setup-page(page);
+        self!setup-page(page);
         page;
     }
 
     method html-start {
-        use HTML::Entity;
-        my $css = $.css.clone;
-        $css.width = :pt(self.width);
-        $css.height = :pt(self.height);
-        $css.position = :keyw<relative>;
-        my $style = encode-entities($css.write);
-        my $content = do with $.text {
-            encode-entities(.text);
-        }
-        else {
-            ''
-        }
-        sprintf '<div style="%s">%s', $style, $content;
+        self.html.subst( /:s '</div>' $/, '');
     }
 
     method html-end { '</div>' }
