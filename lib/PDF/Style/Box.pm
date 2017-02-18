@@ -1,9 +1,9 @@
 use v6;
-use PDF; # otherwise, canvas.t failed with: No such symbol 'PDF::Lite'
+use PDF:ver(v0.2.1..*);
 
 class PDF::Style::Box {
-    use PDF::Style::Font;
-    use CSS::Declarations;
+    use PDF::Style::Font:ver(v0.0.1 .. *);
+    use CSS::Declarations:ver(v0.0.4 .. *);
     use CSS::Declarations::Units;
     use HTML::Entity;
     use PDF::Content::Image;
@@ -122,13 +122,12 @@ class PDF::Style::Box {
             FETCH => sub ($) {
                 [$!top, $!right, $!bottom, $!left]
             },
-            STORE => sub ($,$v is copy) {
-                $v = [$v,] unless $v.isa(List);
+            STORE => sub ($,@v) {
                 $!padding = $!border = $!margin = Nil;
-                $!top    = $v[Top] // 0;
-                $!right  = $v[Right] // $!top;
-                $!bottom = $v[Bottom] // $!top;
-                $!left   = $v[Left] // $!right
+                $!top    = @v[Top] // 0;
+                $!right  = @v[Right] // $!top;
+                $!bottom = @v[Bottom] // $!top;
+                $!left   = @v[Left] // $!right
             });
     }
 
@@ -150,7 +149,7 @@ class PDF::Style::Box {
                 with $!css.background-color;
 
             my $bg-image = $!css.background-image;
-            if $bg-image ne 'none' {
+            unless $bg-image ~~ 'none' {
                 $bg-image = PDF::Content::Image.open($bg-image)
                     unless $bg-image ~~ PDF::DAO::Stream;
                 self!render-background-image($gfx, $bg-image);
@@ -232,13 +231,13 @@ class PDF::Style::Box {
 
     sub rectangles-overlap(@ra, @rb) {
         my enum <Left Bottom Width Height>;
-        @ra[Left]   < (@rb[Left] + @rb[Width])
-        && @rb[Left]   < (@ra[Left] + @ra[Width])
+        @ra[Left] < (@rb[Left] + @rb[Width])
+        && @rb[Left] < (@ra[Left] + @ra[Width])
         && @ra[Bottom] < (@rb[Bottom] + @rb[Height])
         && @rb[Bottom] < (@ra[Bottom] + @ra[Height]);
     }
 
-    method !render-background-color($gfx, @border, $_) {
+    method !render-background-color($gfx, @border, Color $_) {
         unless .a == 0 {
             $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
             $gfx.FillAlpha = .a / 255;
@@ -249,6 +248,9 @@ class PDF::Style::Box {
         }
     }
 
+    method !pdf {require PDF::Lite:ver(v0.0.1..*)}
+
+    has %!pattern-cache{Any};
     method !render-background-image($gfx, $bg-image) {
         my $repeat-x = True;
         my $repeat-y = True;
@@ -280,7 +282,6 @@ class PDF::Style::Box {
         }
         else {
             my @Matrix = $gfx.CTM.list;
-
             my $XStep = $width;
             my $YStep = $height;
 
@@ -291,19 +292,20 @@ class PDF::Style::Box {
             unless $repeat-y {
                 # step outside box in Y direction
                 $YStep += bg-height;
-                @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[0, bg-height] );
+                @Matrix = PDF::Content::Util::TransformMatrix::transform( :matrix(@Matrix), :translate[0, bg-height] );
             }
 
-            @Matrix = PDF::Content::Util::TransformMatrix::transform-matrix( :matrix(@Matrix), :translate[$x, -$y] )
+            @Matrix = PDF::Content::Util::TransformMatrix::transform( :matrix(@Matrix), :translate[$x, -$y] )
                 if $x || $y;
-            my $pattern = (require PDF::Lite).tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
+            my $pattern = self!pdf.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.graphics: {
                 .do($bg-image, 0, 0, :$width, :$height );
             }
             $pattern.finish;
+
             $gfx.FillColor = :Pattern($gfx.resource-key($pattern));
-            $gfx.Rectangle(|@bg-region);
+            $gfx.Rectangle: |@bg-region;
             $gfx.Fill;
         }
  
@@ -350,7 +352,7 @@ class PDF::Style::Box {
         }
         with $!canvas -> \canvas {
             canvas.font-object //= PDF::Style::Font.new;
-            my \image = (require PDF::Lite).xobject-form: :BBox[0, 0, $!width, $!height];
+            my \image = self!pdf.xobject-form: :BBox[0, 0, $!width, $!height];
             image.gfx.draw(canvas);
             image.finish;
 
@@ -367,9 +369,10 @@ class PDF::Style::Box {
             }
         }
         elsif $opacity !=~= 0 {
+            # apply opacity to an image group as a whole
             my Numeric @b[4] = self.border.list;
             my @BBox = [@b[Left] - $!left, @b[Bottom] - $!bottom, @b[Right] - $!left, @b[Top] - $!bottom];
-            my \image = (require PDF::Lite).xobject-form: :@BBox;
+            my \image = self!pdf.xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
             image.graphics: {
                 self!render($_);
@@ -392,10 +395,11 @@ class PDF::Style::Box {
         }
         else {
             my $style-att = $style
-                ?? ' style="%s"'.sprintf(encode-entities($style))
+                ?? encode-entities($style).fmt: ' style="%s"'
                 !! '';
+
             with $!image {
-                sprintf '<img%s src="%s"/>', $style-att, .data-uri;
+                '<img%s src="%s"/>'.sprintf($style-att, .data-uri);
             }
             else {
                 my $text = do with $!text {
@@ -407,11 +411,11 @@ class PDF::Style::Box {
                 with $!css.vertical-align -> $valign {
                     unless $valign eq 'baseline' {
                     # wrap content in a table cell for valign to take affect
-                        $text = sprintf '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>', $valign, $text;
+                        $text = '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>'.sprintf($valign, $text);
                     }
                 }
 
-                sprintf '<div%s>%s</div>', $style-att, $text;
+                '<div%s>%s</div>'.sprintf($style-att, $text);
             }
         }
     }

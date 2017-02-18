@@ -9,11 +9,11 @@ use PDF::Style::Viewport;
 use CSS::Declarations;
 use CSS::Declarations::Units;
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
-
 my $pdf = PDF::Lite.new;
-my $vp = PDF::Style::Viewport.new: :style("page-size: a4");
+my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595), :style("background-color: blue; opacity: 0.2;");
 my $page = $vp.add-page($pdf);
+
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
