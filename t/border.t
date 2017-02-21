@@ -41,7 +41,7 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
 }
 
 for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
-      { :border-width<thick>, :border-style<solid>, :border-color<green> },
+      { :border-width<thick>, :border-style<dashed>, :border-color<green> },
       { :border-width<thin>, :border-style<dashed>, :border-color<purple> },
       { :border-width<thin>, :border-style<dotted>, :border-color<blue> },
       { :border-width<5pt>, :border-style<dotted>, :border-color<rgba(100%,0%,0%,.2)> },

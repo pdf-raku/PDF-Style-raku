@@ -132,10 +132,33 @@ class PDF::Style::Box {
     }
 
     my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
-    method !dash-pattern(LineStyle $_) {
-        when 'dashed' { [[3.2,], 0] }
-        when 'dotted' { [[1.6,], 0] }
-        default       { [[], 0] }
+    method !dash-pattern(LineStyle $line-style, Numeric :$width!, Numeric :$length) {
+        my @phases = do given $line-style {
+            when 'dashed' { [$width * 3,] }
+            when 'dotted' { [$width,] }
+            default       { [] }
+        }
+        adjust-phases(@phases, .abs)
+            with $length;
+        [ @phases, 0];
+    }
+    sub adjust-phases(@phases, $length) {
+        # scale slightly. seem to render better if we stop
+        # on a half phase
+        my $on = 0;
+        my $off = 0;
+        for 0, 2 ... +@phases {
+            $on += @phases[$_];
+            $off += @phases[$_ + 1] // @phases[$_];
+        }
+        my $n = ($length / ($on+$off)).round;
+        if $n > 1 {
+            my $l1 = @phases[0]/2 + $n * ($on+$off);
+            my $sc = $l1/$length;
+            unless $sc =~= 1.0 {
+                $_ *= $sc for @phases;
+            }
+        }
     }
 
     #| Do basic styling, common to all box types (image, text, canvas)
@@ -176,10 +199,11 @@ class PDF::Style::Box {
             with %border<border-color>[0] -> \color {
                 my \border-style = %border<border-style>[0];
                 if @width[0] && border-style ne 'none' && color.a != 0 {
-                    $gfx.LineWidth = @width[0];
+                    my $width = @width[0];
+                    $gfx.LineWidth = $width;
                     $gfx.StrokeAlpha = color.a / 255;
                     $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                    $gfx.DashPattern = self!dash-pattern( %border<border-style>[0] );
+                    $gfx.DashPattern = self!dash-pattern( %border<border-style>[0], :$width );
 
                     my \w = @stroke[Right] - @stroke[Left];
                     my \h = @stroke[Top] - @stroke[Bottom];
@@ -192,20 +216,21 @@ class PDF::Style::Box {
         else {
             # edges differ. draw them separately
             for (Top, Right, Bottom, Left) -> \edge {
-                with @width[edge] -> \width {
-                    my \border-style = %border<border-style>[edge];
+                with @width[edge] -> $width {
+                    my $border-style = %border<border-style>[edge];
                     with %border<border-color>[edge] -> Color \color {
-                        if width && border-style ne 'none' && color.a != 0 {
-                            $gfx.LineWidth = width;
+                        if $width && $border-style ne 'none' && color.a != 0 {
+                            $gfx.LineWidth = $width;
                             $gfx.StrokeAlpha = color.a / 255;
                             $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
-                            $gfx.DashPattern = self!dash-pattern(  border-style );
                             my Numeric \pos = @stroke[edge];
                             if edge == Top|Bottom {
+                                $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Left] - @stroke[Right]) );
                                 $gfx.MoveTo( @stroke[Left], pos);
                                 $gfx.LineTo( @stroke[Right], pos);
                             }
                             else {
+                                $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Top] - @stroke[Bottom]) );
                                 $gfx.MoveTo( pos, @stroke[Top] );
                                 $gfx.LineTo( pos, @stroke[Bottom] );
                             }
