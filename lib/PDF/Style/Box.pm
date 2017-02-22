@@ -138,27 +138,7 @@ class PDF::Style::Box {
             when 'dotted' { [$width,] }
             default       { [] }
         }
-        adjust-phases(@phases, .abs)
-            with $length;
         [ @phases, 0];
-    }
-    sub adjust-phases(@phases, $length) {
-        # scale slightly. seem to render better if we stop
-        # on a half phase
-        my $on = 0;
-        my $off = 0;
-        for 0, 2 ... +@phases {
-            $on += @phases[$_];
-            $off += @phases[$_ + 1] // @phases[$_];
-        }
-        my $n = ($length / ($on+$off)).round;
-        if $n > 1 {
-            my $l1 = @phases[0]/2 + $n * ($on+$off);
-            my $sc = $l1/$length;
-            unless $sc =~= 1.0 {
-                $_ *= $sc for @phases;
-            }
-        }
     }
 
     #| Do basic styling, common to all box types (image, text, canvas)
@@ -209,7 +189,7 @@ class PDF::Style::Box {
                     my \h = @stroke[Top] - @stroke[Bottom];
                     $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
 
-                    $gfx.CloseStroke;
+                    $gfx.Stroke;
                 }
             }
         }
@@ -235,7 +215,7 @@ class PDF::Style::Box {
                                 $gfx.LineTo( pos, @stroke[Bottom] );
                             }
                         }
-                        $gfx.CloseStroke;
+                        $gfx.Stroke;
                     }
                 }
             }
