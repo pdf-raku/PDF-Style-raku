@@ -234,14 +234,6 @@ class PDF::Style::Box {
         $gfx.StrokeAlpha = 1.0;
     }
 
-    sub rectangles-overlap(@ra, @rb) {
-        my enum <Left Bottom Width Height>;
-        @ra[Left] < (@rb[Left] + @rb[Width])
-        && @rb[Left] < (@ra[Left] + @ra[Width])
-        && @ra[Bottom] < (@rb[Bottom] + @rb[Height])
-        && @rb[Bottom] < (@ra[Bottom] + @ra[Height]);
-    }
-
     method !render-background-color($gfx, @border, Color $_) {
         unless .a == 0 {
             $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];

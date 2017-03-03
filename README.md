@@ -106,5 +106,4 @@ Tagged PDF!
 - basic image rendering and placement (PNG, GIF and JPEG)
 - support for a modest subset of available css 2.1 properties
 - some ability to import base template pdf pages (viewport background-image)
-- very basic HTML support, e.g. `<p>, <div> & <span>` elements
 
