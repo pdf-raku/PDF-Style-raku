@@ -1,6 +1,6 @@
 use v6;
 
-use PDF::Style::Box :Edges;
+use PDF::Style::Box;
 use CSS::Declarations::Units;
 
 class PDF::Style::Viewport

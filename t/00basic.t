@@ -12,15 +12,15 @@ use PDF::Lite;
 
 my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt; top: 30pt; border: 1pt solid red";
 my $css = CSS::Declarations.new( :$style );
-my $Vp = PDF::Style::Viewport.new;
+my $vp = PDF::Style::Viewport.new;
 
 my $pdf = PDF::Lite.new;
-my $Page = $Vp.add-page($pdf);
+my $Page = $vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
-my @Html = '<html>', '<body>', $Vp.html-start;
+my @Html = '<html>', '<body>', $vp.html-start;
 
 sub show-text($text, :$css!) {
-    my $box = $Vp.box( :$text, :$css);
+    my $box = $vp.box( :$text, :$css);
     $box.render($Page);
     @Html.push: $box.html;
     $box;
@@ -97,7 +97,7 @@ show-text( $css.write, :$css );
 
 lives-ok {$pdf.save-as: "t/00basic.pdf"};
 
-@Html.append: $Vp.html-end, '</body>', '</html>', '';
+@Html.append: $vp.html-end, '</body>', '</html>', '';
 "t/00basic.html".IO.spurt: @Html.join: "\n";
 
 done-testing;
