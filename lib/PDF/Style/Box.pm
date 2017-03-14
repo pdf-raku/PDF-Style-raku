@@ -1,9 +1,10 @@
 use v6;
 use PDF:ver(v0.2.1..*);
-use CSS::Render::Box :Edges;
+use CSS::Declarations:ver(v0.2.0 .. *);
+use CSS::Declarations::Box :Edges;
 
 class PDF::Style::Box
-    is CSS::Render::Box {
+    is CSS::Declarations::Box {
     use HTML::Entity;
     use PDF::Style::Font:ver(v0.0.1 .. *);
     use PDF::Content::Image;
@@ -11,7 +12,6 @@ class PDF::Style::Box
     use PDF::Content::Util::TransformMatrix;
     use PDF::DAO::Stream;
     use Color;
-    use CSS::Declarations;
     use CSS::Declarations::Units;
 
     has PDF::DAO::Stream $.image;
@@ -369,7 +369,7 @@ class PDF::Style::Box
                 image.y-scale = $height / image.height;
                 image.x-scale = image.y-scale;
             }
-            image => image
+            image => image;
         }
         self.build-box($css, &content-builder);
     }
@@ -379,7 +379,7 @@ class PDF::Style::Box
         self.build-box($css, &content-builder);
     }
 
-    multi method box( :$css = CSS::Declarations.new ) is default {
+    multi method box( :$css! ) is default {
         self.build-box($css, sub (|c) {});
     }
 
