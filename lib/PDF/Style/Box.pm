@@ -311,6 +311,85 @@ class PDF::Style::Box
         }
     }
 
+    method !length($v) {
+        self.font.length($v);
+    }
+
+    #| create and position a child box
+    method !place-child-box(CSS::Declarations $css, &build-content) {
+        my $top = self!length($css.top);
+        my $bottom = self!length($css.bottom);
+        my $left = self!length($css.left);
+        my $right = self!length($css.right);
+        my $width = self.css-width($css);
+        my $height = self.css-height($css);
+
+        my \height-max = do with $height {
+            $_
+        }
+        else {
+            my $max = $.height - ($top//0) - ($bottom//0);
+            for <padding-top padding-bottom border-top-width border-bottom-width> {
+                $max -= $_ with $css."$_"();
+            }
+            $max;
+        }
+
+        my \width-max = $width // do {
+            my $max = $.width - ($left//0) - ($right//0);
+            for <padding-left padding-right border-left-width border-right-width> {
+                $max -= $_ with $css."$_"();
+            }
+            $max;
+        }
+
+        my subset ContentType where 'canvas'|'image'|'text';
+        my (ContentType $type, $content) = (.key, .value)
+            with &build-content( :width(width-max), :height(height-max) );
+
+        $width //= width-max if $left.defined && $right.defined;
+        $width //= .content-width with $content;
+        with self!length($css.min-width) -> \min {
+            $width = min if min > $width
+        }
+
+        $height //= .content-height with $content;
+        with self!length($css.min-height) -> \min {
+            $height = min if min > $height
+        }
+
+        my Bool \from-left = $left.defined;
+        unless from-left {
+            $left = $right.defined
+                ?? $.width - $right - $width
+                !! 0;
+        }
+
+        my Bool \from-top = $top.defined;
+        unless from-top {
+            $top = $bottom.defined
+                ?? $.height - $bottom - $height
+                !! 0;
+        }
+
+        #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
+        my \pdf-top = $.height - $top;
+        my \box = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
+
+        # reposition to outside of border
+        my Numeric @content-box[4] = box.Array.list;
+        my Numeric @border-box[4]  = box.border.list;
+        my \dx = from-left
+               ?? @content-box[Left]  - @border-box[Left]
+               !! @content-box[Right] - @border-box[Right];
+        my \dy = from-top
+               ?? @content-box[Top]    - @border-box[Top]
+               !! @content-box[Bottom] - @border-box[Bottom];
+
+        box.translate(dx, dy);
+        box;
+    }
+
 
     multi method box( Str:D :$text!, CSS::Declarations :$css!) {
 
@@ -343,7 +422,7 @@ class PDF::Style::Box
             default       { $.font.length($_) - $.font.face.stringwidth(' ', $font-size) }
         }
         my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
-        self.build-box($css, &content-builder);
+        self!place-child-box($css, &content-builder);
     }
 
     multi method box( Str:D :$image!, CSS::Declarations :$css!) {
@@ -371,16 +450,16 @@ class PDF::Style::Box
             }
             image => image;
         }
-        self.build-box($css, &content-builder);
+        self!place-child-box($css, &content-builder);
     }
 
     multi method box( :$canvas!, :$css!) {
         my &content-builder = sub (|c) { :$canvas };
-        self.build-box($css, &content-builder);
+        self!place-child-box($css, &content-builder);
     }
 
     multi method box( :$css! ) is default {
-        self.build-box($css, sub (|c) {});
+        self!place-child-box($css, sub (|c) {});
     }
 
 }
