@@ -83,8 +83,8 @@ is $box.height, 100, 'content height';
 is $box.height('border'), 102, 'border height';
 is $box.width, 220, 'content width';
 is $box.width('border'), 222, 'border width';
-is $box.left, 349, 'content left';
-is $box.left('border'), 348, 'border left';
+is $box.left, 345, 'content left';
+is $box.left('border'), 344, 'border left';
 
 note "% **** position bottom *** ";
 

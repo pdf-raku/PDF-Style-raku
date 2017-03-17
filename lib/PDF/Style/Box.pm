@@ -374,7 +374,7 @@ class PDF::Style::Box
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = $.height - $top;
-        my \box = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
+        my \box = self.box-delegate.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
 
         # reposition to outside of border
         my Numeric @content-box[4] = box.Array.list;
@@ -390,6 +390,10 @@ class PDF::Style::Box
         box;
     }
 
+    #| class to use for creating child boxes
+    method box-delegate {
+        self
+    }
 
     multi method box( Str:D :$text!, CSS::Declarations :$css!) {
 
