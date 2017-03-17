@@ -65,7 +65,7 @@ class PDF::Style::Viewport
     }
 
     method !setup-page($page) {
-        $page.media-box = [0, 0, self.width, self.height ];
+        $page.media-box = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
         self.render($page);
     }
