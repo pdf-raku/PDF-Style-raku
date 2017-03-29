@@ -1,7 +1,6 @@
 use v6;
 
 use PDF::Style::Box;
-use CSS::Declarations::Units;
 
 class PDF::Style::Viewport
     is PDF::Style::Box {
@@ -11,6 +10,7 @@ class PDF::Style::Viewport
         # @top-left-corner etc
         # page-break-before, page-break-after etc
         use PDF::Content::Page :PageSizes;
+        use CSS::Declarations::Units;
         use CSS::Declarations::Box :Edges;
         my @length;
         my $orientation = 'portrait';
