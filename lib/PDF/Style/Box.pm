@@ -13,7 +13,14 @@ class PDF::Style::Box
     use Color;
     use CSS::Declarations::Units;
 
-    has PDF::DAO::Stream $.image;
+    my class ImageContent {
+        has PDF::DAO::Stream $.image handles <width height data-uri>;
+        has Numeric  $.x-scale is rw = Units::px;
+        has Numeric  $.y-scale is rw = Units::px;
+        method content-width  { self.width * self.x-scale }
+        method content-height { self.height * self.y-scale }
+    }
+    has ImageContent $.image;
     has PDF::Content::Text::Block $.text;
     has $.canvas;
 
@@ -227,11 +234,12 @@ class PDF::Style::Box
     method !render($gfx) {
         self!style-box($gfx);
 
-        with $!image -> \image {
-            my $width = image.content-width;
-            my $height = image.content-height;
+        with $!image {
+            my $image = .image;
+            my $width = .content-width;
+            my $height = .content-height;
             
-            $gfx.do(image, :$width, :$height);
+            $gfx.do($image, :$width, :$height);
         }
         with $!text -> \text {
             my $top = $.top - $.bottom;
@@ -429,16 +437,11 @@ class PDF::Style::Box
     }
 
     multi method box( Str:D :$image!, CSS::Declarations :$css!) {
-        my role ImageBox {
-            has Numeric  $.x-scale is rw = Units::px;
-            has Numeric  $.y-scale is rw = Units::px;
-            method content-width  { self.width * self.x-scale }
-            method content-height { self.height * self.y-scale }
-        }
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = PDF::Content::Image.open($image) does ImageBox;
+            my \image = BoxedImage.new( :image($_) )
+                with PDF::Content::Image.open($image);
             die "unable to determine image width" unless image.width;
             die "unable to determine image height" unless image.height;
             if $width {
