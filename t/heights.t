@@ -3,7 +3,7 @@ use Test;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -56,11 +56,11 @@ for [ '_=_' => '=',
     is-approx $box-height, $expected-height, 'box height';
 
     if $n %% 2 {
-        $css.top += 120pt;
+        $css.top ➕= 120pt;
         $css.left = 20pt;
     }
     else {
-        $css.left += 270pt;
+        $css.left ➕= 270pt;
     }
 }
 

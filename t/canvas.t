@@ -4,7 +4,7 @@ plan 2;
 
 use PDF::Style::Viewport;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
     skip-rest 'HTML::Canvas[::To::PDF] required to run canvas tests';
@@ -31,11 +31,11 @@ sub test($vp, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
 
     if ($feed) {
         if ++$n %% 2 {
-            $css.top += 100pt;
+            $css.top ➕= 100pt;
             $css.left = 20pt;
         }
         else {
-            $css.left += 270pt;
+            $css.left ➕= 270pt;
         }
     }
 }

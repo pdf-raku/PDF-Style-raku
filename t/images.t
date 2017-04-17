@@ -5,7 +5,7 @@ plan 1;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -47,7 +47,7 @@ sub test($vp, $css, $settings = {}, |c) {
         :border("1pt solid black"),
         :background-color("rgba(200,200,200,.5)"),
     );
-    $caption-css.left += 8pt;
+    $caption-css.left ➕= 8pt;
     $caption-css.width = ($box.width - 12)pt;
     $caption-css.top = $css.top + 8pt;
     $caption-css.delete('height');
@@ -59,11 +59,11 @@ sub test($vp, $css, $settings = {}, |c) {
     }
 
     if ++$n %% 2 {
-        $css.top += 300pt;
+        $css.top ➕= 300pt;
         $css.left = 20pt;
     }
     else {
-        $css.left += 270pt;
+        $css.left ➕= 270pt;
     }
 }
 

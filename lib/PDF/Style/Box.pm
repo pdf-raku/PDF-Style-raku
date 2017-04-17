@@ -1,5 +1,5 @@
 use v6;
-use CSS::Declarations:ver(v0.2.0 .. *);
+use CSS::Declarations:ver(v0.3.0 .. *);
 use CSS::Declarations::Box :Edges;
 
 class PDF::Style::Box
@@ -11,12 +11,12 @@ class PDF::Style::Box
     use PDF::Content::Util::TransformMatrix;
     use PDF::DAO::Stream;
     use Color;
-    use CSS::Declarations::Units;
+    use CSS::Declarations::Units :Scale, :pt;
 
     my class ImageContent {
         has PDF::DAO::Stream $.image handles <width height data-uri>;
-        has Numeric  $.x-scale is rw = Units::px;
-        has Numeric  $.y-scale is rw = Units::px;
+        has Numeric  $.x-scale is rw = Scale::px;
+        has Numeric  $.y-scale is rw = Scale::px;
         method content-width  { self.width * self.x-scale }
         method content-height { self.height * self.y-scale }
     }
@@ -164,8 +164,8 @@ class PDF::Style::Box
         $gfx.transform: :translate[ padding[Left] - $.left, padding[Top] - $.bottom];
 
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
-        my $width = $bg-image.width * Units::px;
-        my $height = $bg-image.height * Units::px;
+        my $width = $bg-image.width * Scale::px;
+        my $height = $bg-image.height * Scale::px;
         my \x-float = padding[Right] - padding[Left] - $width;
         my \y-float = padding[Top] - padding[Bottom] - $height;
         my ($x, $y) = self!align-background-image(x-float, y-float);
@@ -440,7 +440,7 @@ class PDF::Style::Box
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = BoxedImage.new( :image($_) )
+            my \image = ImageContent.new( :image($_) )
                 with PDF::Content::Image.open($image);
             die "unable to determine image width" unless image.width;
             die "unable to determine image height" unless image.height;

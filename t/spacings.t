@@ -3,7 +3,7 @@ use Test;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -29,11 +29,11 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
 
     if ($feed) {
         if ++$n %% 2 {
-            $css.top += 100pt;
+            $css.top ➕= 100pt;
             $css.left = 20pt;
         }
         else {
-            $css.left += 270pt;
+            $css.left ➕= 270pt;
         }
     }
 }
@@ -57,8 +57,8 @@ $css.delete('top');
 
 # do one padded block positioned from the bottom
 
-$css.bottom = $css.height + 30pt;
-$css.right = $vp.width - $css.left - $css.width;
+$css.bottom = $css.height ➕ 30pt;
+$css.right = ($vp.width)pt ➖ $css.left ➖ $css.width;
 $css.delete('left');
 test($vp, $css, :!feed);
 

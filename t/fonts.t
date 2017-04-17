@@ -5,7 +5,7 @@ plan 1;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -26,11 +26,11 @@ sub show-text($text, :$css!) {
 
     $box.render($Page);
     if ++$N %% 5 {
-        $css.top += 35pt;
+        $css.top ➕= 35pt;
         $css.left = 10pt;
     }
     else {
-        $css.left += 115pt;
+        $css.left ➕= 115pt;
     }
 }
 

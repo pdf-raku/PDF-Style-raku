@@ -5,7 +5,7 @@ plan 7;
 use PDF::Style::Viewport;
 use PDF::Style::Box;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -38,11 +38,11 @@ for <left center right justify> -> $alignment {
     $css.font-weight = 'bold';
 
     show-text($header, :$css);
-    $css.top += 15pt;
+    $css.top  ➕= 15pt;
 
     $css.font-weight = 'normal';
     show-text($body ~ ' ' ~ $css.write, :$css);
-    $css.top += 120pt;
+    $css.top  ➕= 120pt;
 }
 
 $css.delete("text-align");
@@ -61,14 +61,14 @@ for <top middle bottom> -> $valign {
     $css.font-weight = 'bold';
     show-text($header, :$css);
 
-    $css.top += 15pt;
+    $css.top  ➕= 15pt;
     $css.font-weight = 'normal';
     $css.height = 130pt;
     $css.vertical-align = $valign;
     my $text = $body ~ $style;
     show-text($text, :$css);
 
-    $css.top += 165pt;
+    $css.top  ➕= 165pt;
 }
 
 note "% **** position right *** ";
@@ -76,7 +76,7 @@ note "% **** position right *** ";
 $css.delete('left', 'vertical-align');
 $css.right = 25pt;
 $css.height = 100pt;
-$css.top += 12pt;
+$css.top  ➕= 12pt;
 
 my $box = show-text( $css.write, :$css );
 is $box.height, 100, 'content height';

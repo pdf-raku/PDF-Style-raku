@@ -7,7 +7,7 @@ use v6;
 use PDF::Lite;
 use PDF::Style::Viewport;
 use CSS::Declarations;
-use CSS::Declarations::Units;
+use CSS::Declarations::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
 my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595), :style("background-color: blue; opacity: 0.2;");
@@ -26,7 +26,7 @@ $box.render($page);
 # make some styling adjustments
 $css.border-color = 'red';
 # todo: padding adjustments
-$css.top += ($box.height('padding') + 5)pt;
+$css.top  ➕= ($box.height('padding') + 5)pt;
 $css.delete('height');
 
 my $image = "t/images/snoopy-happy-dance.jpg";
