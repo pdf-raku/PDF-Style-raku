@@ -20,10 +20,10 @@ $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $vp.html-start;
 
 sub show-text($text, :$css!) {
-    my $box = $vp.box( :$text, :$css);
-    $box.render($Page);
-    @Html.push: $box.html;
-    $box;
+    my $elem = $vp.element( :$text, :$css);
+    $elem.render($Page);
+    @Html.push: $elem.html;
+    $elem;
 }
 
 for <left center right justify> -> $alignment {
@@ -78,13 +78,13 @@ $css.right = 25pt;
 $css.height = 100pt;
 $css.top  ➕= 12pt;
 
-my $box = show-text( $css.write, :$css );
-is $box.height, 100, 'content height';
-is $box.height('border'), 102, 'border height';
-is $box.width, 220, 'content width';
-is $box.width('border'), 222, 'border width';
-is $box.left, 345, 'content left';
-is $box.left('border'), 344, 'border left';
+my $elem = show-text( $css.write, :$css );
+is $elem.height, 100, 'content height';
+is $elem.height('border'), 102, 'border height';
+is $elem.width, 220, 'content width';
+is $elem.width('border'), 222, 'border width';
+is $elem.left, 345, 'content left';
+is $elem.left('border'), 344, 'border left';
 
 note "% **** position bottom *** ";
 

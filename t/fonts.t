@@ -21,10 +21,10 @@ my $N;
 
 sub show-text($text, :$css!) {
     note "$text = {~$css}";
-    my $box = $Vp.box( :$text, :$css );
-    @Html.push: $box.html;
+    my $elem = $Vp.element( :$text, :$css );
+    @Html.push: $elem.html;
 
-    $box.render($Page);
+    $elem.render($Page);
     if ++$N %% 5 {
         $css.top ➕= 35pt;
         $css.left = 10pt;

@@ -44,16 +44,16 @@ for [ '_=_' => '=',
 
     my $style = $css.write;
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
-    my $box = $vp.box( :$text, :$css );
-    @html.push: $box.html;
-    $box.render($page);
+    my $elem = $vp.element( :$text, :$css );
+    @html.push: $elem.html;
+    $elem.render($page);
 
-    my $box-height = $box.top - $box.bottom;
+    my $elem-height = $elem.top - $elem.bottom;
     my $expected-height = $test-height eq 'snug'
-        ?? $box.text.content-height
+        ?? $elem.text.content-height
         !! %Height{$test-height};
 
-    is-approx $box-height, $expected-height, 'box height';
+    is-approx $elem-height, $expected-height, 'box height';
 
     if $n %% 2 {
         $css.top ➕= 120pt;

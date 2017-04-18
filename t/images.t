@@ -39,21 +39,21 @@ lives-ok {$pdf.save-as: "t/images.pdf"};
 sub test($vp, $css, $settings = {}, |c) {
     my $base-css = $css.clone;
     $css.set-properties(|$settings);
-    my $box = $vp.box( :$css, |c );
-    @Html.push: $box.html;
-    $box.render($page);
+    my $elem = $vp.element( :$css, |c );
+    @Html.push: $elem.html;
+    $elem.render($page);
 
     my $caption-css = $css.clone(
         :border("1pt solid black"),
         :background-color("rgba(200,200,200,.5)"),
     );
     $caption-css.left ➕= 8pt;
-    $caption-css.width = ($box.width - 12)pt;
-    $caption-css.top = $css.top + 8pt;
+    $caption-css.width = ($elem.width - 12)pt;
+    $caption-css.top = $css.top ➕ 8pt;
     $caption-css.delete('height');
     my $text = ~ CSS::Declarations.new: |$settings;
     if $text {
-        my $caption-box = $vp.box( :css($caption-css), :$text );
+        my $caption-box = $vp.element( :css($caption-css), :$text );
         @Html.push: $caption-box.html;
         $caption-box.render($page);
     }

@@ -45,16 +45,16 @@ for [ '_=_' => '=',
 
     my $style = $css.write;
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
-    my $box = $vp.box( :$text, :$css );
-    @html.push: $box.html;
-    $box.render($page);
+    my $elem = $vp.element( :$text, :$css );
+    @html.push: $elem.html;
+    $elem.render($page);
 
-    my $box-width = $box.right - $box.left;
+    my $elem-width = $elem.right - $elem.left;
     my $expected-width = $test-width eq 'long'
         ?? $vp.width - $css.left - $css.right - $css.border-left-width - $css.border-right-width
         !! %Width{$test-width};
 
-    is-approx $box-width, $expected-width, 'box width';
+    is-approx $elem-width, $expected-width, 'box width';
 
 ##    if ++$n %% 2 {
         $css.top ➕= 75pt;

@@ -17,9 +17,9 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone(|$settings);
     my $text = $css.clone(background-image => :url<...>).write;
     warn {:$text}.perl;
-    my $box = $vp.box( :$text, :$css );
-    @Html.push: $box.html;
-    $box.render($page);
+    my $elem = $vp.element( :$text, :$css );
+    @Html.push: $elem.html;
+    $elem.render($page);
 
     if ++$n %% 2 {
         $base-css.top ➕= 100pt;

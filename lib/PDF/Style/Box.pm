@@ -402,7 +402,7 @@ class PDF::Style::Box
         self
     }
 
-    multi method box( Str:D :$text!, CSS::Declarations :$css!) {
+    multi method element( Str:D :$text!, CSS::Declarations :$css!) {
 
         self.font.setup($css);
         my $kern = $css.font-kerning eq 'normal' || (
@@ -436,7 +436,7 @@ class PDF::Style::Box
         self!place-child-box($css, &content-builder);
     }
 
-    multi method box( Str:D :$image!, CSS::Declarations :$css!) {
+    multi method element( Str:D :$image!, CSS::Declarations :$css!) {
         my $width = self.css-width($css);
         my $height = self.css-height($css);
         my &content-builder = sub (|c) {
@@ -459,12 +459,12 @@ class PDF::Style::Box
         self!place-child-box($css, &content-builder);
     }
 
-    multi method box( :$canvas!, :$css!) {
+    multi method element( :$canvas!, :$css!) {
         my &content-builder = sub (|c) { :$canvas };
         self!place-child-box($css, &content-builder);
     }
 
-    multi method box( :$css! ) is default {
+    multi method element( :$css! ) is default {
         self!place-child-box($css, sub (|c) {});
     }
 

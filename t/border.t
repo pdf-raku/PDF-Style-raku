@@ -25,9 +25,9 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
 
     my $text = $css.write;
     warn {:$text}.perl;
-    my $box = $vp.box( :$text, :$css );
-    @Html.push: $box.html;
-    $box.render($page);
+    my $elem = $vp.element( :$text, :$css );
+    @Html.push: $elem.html;
+    $elem.render($page);
 
     if ($feed) {
         if ++$n %% 2 {

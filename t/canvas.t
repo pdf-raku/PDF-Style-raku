@@ -24,10 +24,10 @@ my $n;
 sub test($vp, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
     $css.set-properties(|$properties);
 
-    my $box = $vp.box( :$canvas, :$css );
+    my $elem = $vp.element( :$canvas, :$css );
 
-    @Html.push: $box.html;
-    $box.render($page);
+    @Html.push: $elem.html;
+    $elem.render($page);
 
     if ($feed) {
         if ++$n %% 2 {

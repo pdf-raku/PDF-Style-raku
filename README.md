@@ -20,17 +20,17 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my $box = $vp.box( :$text, :$css );
-$box.render($page);
+my $elem = $vp.element( :$text, :$css );
+$elem.render($page);
 
 # make some styling adjustments
 $css.border-color = 'red';
 # todo: padding adjustments
-$css.top  ➕= ($box.height('padding') + 5)pt;
+$css.top ➕= ($elem.height('padding') + 5)pt;
 $css.delete('height');
 
 my $image = "t/images/snoopy-happy-dance.jpg";
-$vp.box(:$image, :$css).render($page);
+$vp.element(:$image, :$css).render($page);
 
 $pdf.save-as: "t/example.pdf";
 ```
