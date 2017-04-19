@@ -20,7 +20,7 @@ class PDF::Style::Element {
     }
 
     use CSS::Declarations::Box :Edges;
-    has CSS::Declarations::Box $.box handles<left top bottom right width height css font widths border padding Array em ex>;
+    has CSS::Declarations::Box $.box handles<left top bottom right width height css>;
     has ImageContent $.image;
     has PDF::Content::Text::Block $.text;
     has $.canvas;
@@ -46,7 +46,7 @@ class PDF::Style::Element {
 
     #| Do basic styling, common to all box types (image, text, canvas)
     method !style-box($_) {
-        my Numeric @border[4] = self.border.list;
+        my Numeric @border[4] = self.box.border.list;
         @border[$_] -= $.left for Left, Right;
         @border[$_] -= $.bottom for Top, Bottom;
 
@@ -67,7 +67,7 @@ class PDF::Style::Element {
 
     method !render-border($gfx, @border) {
         my %border = $.css.border;
-        my Numeric @width[4] = self.widths(%border<border-width>);
+        my Numeric @width[4] = self.box.widths(%border<border-width>);
         my @stroke = [
             @border[Top] - @width[Top]/2,
             @border[Right] - @width[Right]/2,
@@ -159,8 +159,8 @@ class PDF::Style::Element {
             when 'repeat-x' { $repeat-y = False }
             when 'no-repeat' { $repeat-x = $repeat-y = False }
         }
-        my Array \padding = self.padding;
-        my Array \border = self.border;
+        my Array \padding = self.box.padding;
+        my Array \border = self.box.border;
         my \bg-width = border[Right] - border[Left];
         my \bg-height = border[Top] - border[Bottom];
         $gfx.Save;
@@ -271,7 +271,7 @@ class PDF::Style::Element {
         }
         elsif $opacity !=~= 0 {
             # apply opacity to an image group as a whole
-            my Numeric @b[4] = self.border.list;
+            my Numeric @b[4] = self.box.border.list;
             my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
             my \image = self!pdf.xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
@@ -384,11 +384,13 @@ class PDF::Style::Element {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = $.height - $top;
-        my \elem = self.element-class.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
+        my $em = $.box.font.em;
+        my $ex = $.box.font.ex;
+        my \elem = self.element-class.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
         my \box = elem.box;
 
         # reposition to outside of border
-        my Numeric @content-box[4] = elem.Array.list;
+        my Numeric @content-box[4] = box.Array.list;
         my Numeric @border-box[4]  = box.border.list;
         my \dx = from-left
                ?? @content-box[Left]  - @border-box[Left]
@@ -408,33 +410,33 @@ class PDF::Style::Element {
 
     multi method element( Str:D :$text!, CSS::Declarations :$css!) {
 
-        self.font.setup($css);
+        my $font = self.box.font;
         my $kern = $css.font-kerning eq 'normal' || (
-            $css.font-kerning eq 'auto' && $.em <= 32
+            $css.font-kerning eq 'auto' && $font.em <= 32
         );
 
         my $align = $css.text-align;
-        my $leading = $.font.leading;
-        my $font-size = $.font.em;
-        my $font = $.font.face;
+        my $leading = $font.leading;
+        my $font-size = $font.em;
+        my $face = $font.face;
         # support a vertical-align subset
         my $valign = do given $css.vertical-align {
             when 'middle' { 'center' }
             when 'top'|'bottom' { $_ }
             default { 'top' };
         }
-        my %opt = :$font, :$kern, :$font-size, :$leading, :$align, :$valign;
+        my %opt = :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
 
         %opt<CharSpacing> = do given $css.letter-spacing {
             when .type eq 'num'     { $_ * $font-size }
             when .type eq 'percent' { $_ * $font-size / 100 }
             when 'normal' { 0.0 }
-            default       { $.font.length($_) }
+            default       { $font.length($_) }
         }
 
         %opt<WordSpacing> = do given $css.word-spacing {
             when 'normal' { 0.0 }
-            default       { $.font.length($_) - $.font.face.stringwidth(' ', $font-size) }
+            default       { $font.length($_) - $font.face.stringwidth(' ', $font-size) }
         }
         my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
         self!place-child-box($css, &content-builder);

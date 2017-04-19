@@ -35,7 +35,7 @@ sub show-text($text, :$css!) {
 }
 
 sub scoped( &codez ) {
-    $Vp.save;
+    $Vp.box.save;
     my $saved-css = $css;
     $css = $css.clone;
 
@@ -44,7 +44,7 @@ sub scoped( &codez ) {
     $saved-css.top = $css.top;
     $saved-css.left = $css.left;
     $css = $saved-css;
-    $Vp.restore;
+    $Vp.box.restore;
 }
 
 scoped({

@@ -15,7 +15,9 @@ class PDF::Style::Viewport
         my @length;
         my $orientation = 'portrait';
 
-        for self.css.size.list {
+        my $box := self.box;
+
+        for $box.css.size.list {
             when Numeric {
                 @length.push: $_;
             }
@@ -37,22 +39,22 @@ class PDF::Style::Viewport
             @length[1] //= @length[0];
             @length;
         } else {
-            (self.width, self.height);
+            ($box.width, $box.height);
         }
 
         ($page-height, $page-width) = ($page-width, $page-height)
             if $orientation eq 'landscape';
 
-        my @padding = self.widths($.css.padding);
-        my @border  = self.widths($.css.border-width);
-        my @margin  = self.widths($.css.margin);
+        my @padding = $box.widths($box.css.padding);
+        my @border  = $box.widths($box.css.border-width);
+        my @margin  = $box.widths($box.css.margin);
         my @box = $page-height, $page-width, 0, 0;
         @box[$_] -= @padding[$_] + @border[$_] + @margin[$_]
             for Top, Right;
         @box[$_] += @padding[$_] + @border[$_] + @margin[$_]
             for Bottom, Left;
 
-        self.Array = @box;
+        $box.Array = @box;
     }
 
     method TWEAK {
