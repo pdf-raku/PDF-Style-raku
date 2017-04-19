@@ -1,9 +1,7 @@
 use v6;
 use CSS::Declarations:ver(v0.3.0 .. *);
-use CSS::Declarations::Box :Edges;
 
-class PDF::Style::Box
-    is CSS::Declarations::Box {
+class PDF::Style::Element {
     use HTML::Entity;
     use PDF::Style::Font:ver(v0.0.1 .. *);
     use PDF::Content::Image;
@@ -20,6 +18,9 @@ class PDF::Style::Box
         method content-width  { self.width * self.x-scale }
         method content-height { self.height * self.y-scale }
     }
+
+    use CSS::Declarations::Box :Edges;
+    has CSS::Declarations::Box $.box handles<left top bottom right width height css font widths border padding Array em ex>;
     has ImageContent $.image;
     has PDF::Content::Text::Block $.text;
     has $.canvas;
@@ -27,8 +28,10 @@ class PDF::Style::Box
     submethod TWEAK(
         Numeric :$em = 12pt,
         Numeric :$ex = 0.75 * $em,
+        |c
     ) {
-        self.font = PDF::Style::Font.new: :$em, :$ex;
+        my $font = PDF::Style::Font.new: :$em, :$ex;
+        $!box //= CSS::Declarations::Box.new( :$font, |c);
     }
 
     my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
@@ -319,7 +322,7 @@ class PDF::Style::Box
     }
 
     method !length($v) {
-        self.font.length($v);
+        self.box.font.length($v);
     }
 
     #| create and position a child box
@@ -328,8 +331,8 @@ class PDF::Style::Box
         my $bottom = self!length($css.bottom);
         my $left = self!length($css.left);
         my $right = self!length($css.right);
-        my $width = self.css-width($css);
-        my $height = self.css-height($css);
+        my $width = self.box.css-width($css);
+        my $height = self.box.css-height($css);
 
         my \height-max = do with $height {
             $_
@@ -381,10 +384,11 @@ class PDF::Style::Box
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = $.height - $top;
-        my \box = self.box-delegate.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
+        my \elem = self.element-class.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$.em, :$.ex, |($type => $content);
+        my \box = elem.box;
 
         # reposition to outside of border
-        my Numeric @content-box[4] = box.Array.list;
+        my Numeric @content-box[4] = elem.Array.list;
         my Numeric @border-box[4]  = box.border.list;
         my \dx = from-left
                ?? @content-box[Left]  - @border-box[Left]
@@ -394,11 +398,11 @@ class PDF::Style::Box
                !! @content-box[Bottom] - @border-box[Bottom];
 
         box.translate(dx, dy);
-        box;
+        elem;
     }
 
     #| class to use for creating child boxes
-    method box-delegate {
+    method element-class {
         self
     }
 
@@ -437,8 +441,8 @@ class PDF::Style::Box
     }
 
     multi method element( Str:D :$image!, CSS::Declarations :$css!) {
-        my $width = self.css-width($css);
-        my $height = self.css-height($css);
+        my $width = self.box.css-width($css);
+        my $height = self.box.css-height($css);
         my &content-builder = sub (|c) {
             my \image = ImageContent.new( :image($_) )
                 with PDF::Content::Image.open($image);

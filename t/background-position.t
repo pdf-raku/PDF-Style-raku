@@ -1,7 +1,7 @@
 use v6;
 use Test;
 use PDF::Style::Viewport;
-use PDF::Style::Box;
+use PDF::Style::Element;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
 use PDF::Lite;

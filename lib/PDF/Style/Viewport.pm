@@ -1,9 +1,9 @@
 use v6;
 
-use PDF::Style::Box;
+use PDF::Style::Element;
 
 class PDF::Style::Viewport
-    is PDF::Style::Box {
+    is PDF::Style::Element {
 
     method !setup-size {
         # todo: see https://www.w3.org/TR/css3-page/
@@ -60,8 +60,8 @@ class PDF::Style::Viewport
     }
 
     #| class to use for creating child boxes
-    method box-delegate {
-        PDF::Style::Box;
+    method element-class {
+        PDF::Style::Element;
     }
 
     method !setup-page($page) {

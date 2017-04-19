@@ -3,7 +3,7 @@ use Test;
 plan 1;
 
 use PDF::Style::Viewport;
-use PDF::Style::Box;
+use PDF::Style::Element;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :px, :ops;
 use PDF::Lite;

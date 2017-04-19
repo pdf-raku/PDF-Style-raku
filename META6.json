@@ -8,7 +8,7 @@
     "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Style.git",
     "provides"    : {
         "PDF::Style"           : "lib/PDF/Style.pm",
-        "PDF::Style::Box"      : "lib/PDF/Style/Box.pm",
+        "PDF::Style::Element"  : "lib/PDF/Style/Element.pm",
         "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
      }
 }
