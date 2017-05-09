@@ -341,7 +341,7 @@ class PDF::Style::Element {
         else {
             my $max = $.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
-                $max -= $_ with $css."$_"();
+                $max -= $_ with self!length($css."$_"());
             }
             $max;
         }
@@ -349,7 +349,7 @@ class PDF::Style::Element {
         my \width-max = $width // do {
             my $max = $.width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
-                $max -= $_ with $css."$_"();
+                $max -= $_ with self!length($css."$_"());
             }
             $max;
         }
@@ -409,7 +409,15 @@ class PDF::Style::Element {
         self
     }
 
-    multi method element( Str:D :$text!, CSS::Declarations :$css!) {
+    #| create a child element. Positioning is relative to this object. CSS styles
+    #| are inherited from this object.
+    multi method element( Str:D :$text!,
+			  CSS::Declarations :$css is copy = self.css,
+			  Bool :$inherit = True) {
+
+	# inherit styles from this element
+	$css = $css.new( :copy($css), :inherit(self.css) )
+	    if $inherit && $css !=== self.css;
 
         my $font = self.box.font.setup($css);
         my $kern = $css.font-kerning eq 'normal' || (

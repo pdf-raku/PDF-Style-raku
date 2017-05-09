@@ -17,10 +17,8 @@ my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $css, $settings = {}, Bool :$feed = True) {
-    $css."{.key}"() = .value
-        for $settings.pairs;
-
+sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+    my $css = $base-css.clone: |$settings;
     my $text = $css.write;
     warn {:$text}.perl;
     my $elem = $vp.element( :$text, :$css );
@@ -29,11 +27,11 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
 
     if ($feed) {
         if ++$n %% 2 {
-            $css.top ➕= 100pt;
-            $css.left = 20pt;
+            $base-css.top ➕= 100pt;
+            $base-css.left = 20pt;
         }
         else {
-            $css.left ➕= 270pt;
+            $base-css.left ➕= 270pt;
         }
     }
 }
