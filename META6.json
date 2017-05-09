@@ -4,8 +4,8 @@
     "version"     : "0.0.1",
     "tags"        : ["pdf", "css"],
     "description" : "PDF creation, ... with style!",
-    "depends"     : [ "PDF::Lite", "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color", "Base64", "HTML::Canvas", "CSS::Render", "PDF::Style::Font" ],
-    "source-url"  : "git://github.com/p6-pdf/perl6-PDF-Style.git",
+    "depends"     : [ "PDF::Lite", "PDF::Content", "PDF", "Font::AFM", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color", "Base64", "HTML::Canvas", "PDF::Style::Font" ],
+    "source-url"  : "git://github.com/p6-pdf/PDF-Style-p6.git",
     "provides"    : {
         "PDF::Style"           : "lib/PDF/Style.pm",
         "PDF::Style::Element"  : "lib/PDF/Style/Element.pm",

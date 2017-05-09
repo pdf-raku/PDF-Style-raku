@@ -1,9 +1,10 @@
 use v6;
-use CSS::Declarations:ver(v0.3.0 .. *);
+use CSS::Declarations:ver(v0.3.1 .. *);
 
 class PDF::Style::Element {
     use HTML::Entity;
     use PDF::Style::Font:ver(v0.0.1 .. *);
+    use PDF::Content:ver(v0.0.4 .. *);
     use PDF::Content::Image;
     use PDF::Content::Text::Block;
     use PDF::Content::Util::TransformMatrix;
@@ -410,15 +411,16 @@ class PDF::Style::Element {
 
     multi method element( Str:D :$text!, CSS::Declarations :$css!) {
 
-        my $font = self.box.font;
+        my $font = self.box.font.setup($css);
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $font.em <= 32
         );
 
         my $align = $css.text-align;
-        my $leading = $font.leading;
         my $font-size = $font.em;
+        my $leading = $font.line-height / $font-size;
         my $face = $font.face;
+
         # support a vertical-align subset
         my $valign = do given $css.vertical-align {
             when 'middle' { 'center' }
