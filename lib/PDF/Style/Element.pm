@@ -262,10 +262,11 @@ class PDF::Style::Element {
         }
     }
 
-    method render($page) {
+    method render($page, :$comment) {
         my $opacity = $.css.opacity.Num;
         if $opacity =~= 1 {
             $page.graphics: -> $gfx {
+		$gfx.add-comment($_) with $comment;
                 $gfx.transform: :translate[ $.left, $.bottom ];
                 self!render($gfx);
             }
@@ -276,8 +277,9 @@ class PDF::Style::Element {
             my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
             my \image = self!pdf.xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
-            image.graphics: {
-                self!render($_);
+            image.graphics: -> $gfx {
+		$gfx.add-comment($_) with $comment;
+                self!render($gfx);
             }
             image.finish;
             $page.graphics: -> $gfx {
@@ -412,12 +414,7 @@ class PDF::Style::Element {
     #| create a child element. Positioning is relative to this object. CSS styles
     #| are inherited from this object.
     multi method element( Str:D :$text!,
-			  CSS::Declarations :$css is copy = self.css,
-			  Bool :$inherit = True) {
-
-	# inherit styles from this element
-	$css = $css.new( :copy($css), :inherit(self.css) )
-	    if $inherit && $css !=== self.css;
+			  CSS::Declarations :$css! ) {
 
         my $font = self.box.font.setup($css);
         my $kern = $css.font-kerning eq 'normal' || (

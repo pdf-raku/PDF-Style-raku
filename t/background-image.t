@@ -24,7 +24,7 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
     warn {:$text}.perl;
     my $elem = $vp.element( :$text, :$css );
     @Html.push: $elem.html;
-    $elem.render($page);
+    $elem.render($page, :comment($text));
 
     if ++$n %% 2 {
         $base-css.top  ➕= 100pt;
