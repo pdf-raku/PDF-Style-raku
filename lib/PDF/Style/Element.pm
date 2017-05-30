@@ -2,29 +2,16 @@ use v6;
 use CSS::Declarations:ver(v0.3.1 .. *);
 
 class PDF::Style::Element {
-    use HTML::Entity;
     use PDF::Style::Font:ver(v0.0.1 .. *);
     use PDF::Content:ver(v0.0.4 .. *);
     use PDF::Content::Image;
-    use PDF::Content::Text::Block;
     use PDF::Content::Util::TransformMatrix;
     use PDF::DAO::Stream;
     use Color;
     use CSS::Declarations::Units :Scale, :pt;
 
-    my class ImageContent {
-        has PDF::DAO::Stream $.image handles <width height data-uri>;
-        has Numeric  $.x-scale is rw = Scale::px;
-        has Numeric  $.y-scale is rw = Scale::px;
-        method content-width  { self.width * self.x-scale }
-        method content-height { self.height * self.y-scale }
-    }
-
     use CSS::Declarations::Box :Edges;
     has CSS::Declarations::Box $.box handles<left top bottom right width height css>;
-    has ImageContent $.image;
-    has PDF::Content::Text::Block $.text;
-    has $.canvas;
 
     submethod TWEAK(
         Numeric :$em = 12pt,
@@ -126,18 +113,6 @@ class PDF::Style::Element {
         }
     }
 
-    method !set-font-color($gfx) {
-        with $.css.color {
-            $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
-            $gfx.FillAlpha = .a / 255;
-        }
-        else {
-            $gfx.FillColor = :DeviceGray[0.0];
-            $gfx.FillAlpha = 1.0;
-        }
-        $gfx.StrokeAlpha = 1.0;
-    }
-
     method !render-background-color($gfx, @border, Color $_) {
         unless .a == 0 {
             $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
@@ -149,7 +124,7 @@ class PDF::Style::Element {
         }
     }
 
-    method !pdf {require PDF::Lite:ver(v0.0.1..*)}
+    method pdf-class {require PDF::Lite:ver(v0.0.1..*)}
 
     has %!pattern-cache{Any};
     method !render-background-image($gfx, $bg-image) {
@@ -198,7 +173,7 @@ class PDF::Style::Element {
 
             @Matrix = PDF::Content::Util::TransformMatrix::transform( :matrix(@Matrix), :translate[$x, -$y] )
                 if $x || $y;
-            my $pattern = self!pdf.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
+            my $pattern = self.pdf-class.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.graphics: {
                 .do($bg-image, 0, 0, :$width, :$height );
@@ -235,51 +210,25 @@ class PDF::Style::Element {
         $x, $y;
     }
 
-    method !render($gfx) {
-        self!style-box($gfx);
-
-        with $!image {
-            my $image = .image;
-            my $width = .content-width;
-            my $height = .content-height;
-            
-            $gfx.do($image, :$width, :$height);
-        }
-        with $!text -> \text {
-            my $top = $.top - $.bottom;
-            self!set-font-color($gfx);
-            $gfx.BeginText;
-            $gfx.print(text, :position[ :left(0), :$top]);
-            $gfx.EndText;
-        }
-        with $!canvas -> \canvas {
-            canvas.font-object //= PDF::Style::Font.new;
-            my \image = self!pdf.xobject-form: :BBox[0, 0, $.width, $.height];
-            image.gfx.draw(canvas);
-            image.finish;
-
-            $gfx.do(image, :$.width, :$.height);
-        }
-    }
-
     method render($page, :$comment) {
         my $opacity = $.css.opacity.Num;
         if $opacity =~= 1 {
             $page.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
                 $gfx.transform: :translate[ $.left, $.bottom ];
-                self!render($gfx);
+                self!style-box($gfx);
+                self.render-element($gfx);
             }
         }
         elsif $opacity !=~= 0 {
             # apply opacity to an image group as a whole
             my Numeric @b[4] = self.box.border.list;
             my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
-            my \image = self!pdf.xobject-form: :@BBox;
+            my \image = self.pdf-class.xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
             image.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
-                self!render($gfx);
+                self.render-element($gfx);
             }
             image.finish;
             $page.graphics: -> $gfx {
@@ -289,69 +238,31 @@ class PDF::Style::Element {
         }
     }
 
-    method html {
-        my $css = $.css.clone;
-        $css.delete('vertical-align'); # we'll deal with this later
-        my $style = $css.write;
-
-        with $!canvas {
-            .to-html(:$.width, :$.height, :$style);
-        }
-        else {
-            my $style-att = $style
-                ?? encode-entities($style).fmt: ' style="%s"'
-                !! '';
-
-            with $!image {
-                '<img%s src="%s"/>'.sprintf($style-att, .data-uri);
-            }
-            else {
-                my $text = do with $!text {
-                    encode-entities(.text);
-                }
-                else {
-                    ''
-                }
-                with $.css.vertical-align -> $valign {
-                    unless $valign eq 'baseline' {
-                    # wrap content in a table cell for valign to take affect
-                        $text = '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>'.sprintf($valign, $text);
-                    }
-                }
-
-                '<div%s>%s</div>'.sprintf($style-att, $text);
-            }
-        }
-    }
-
-    method !length($v) {
-        self.box.font.length($v);
-    }
-
     #| create and position a child box
-    method !place-child-box(CSS::Declarations $css, &build-content) {
-        my $top = self!length($css.top);
-        my $bottom = self!length($css.bottom);
-        my $left = self!length($css.left);
-        my $right = self!length($css.right);
-        my $width = self.box.css-width($css);
-        my $height = self.box.css-height($css);
+    method place-child-box(CSS::Declarations $css, &build-content, :$parent-box!) {
+        sub length($v) { $parent-box.font.length($v) }
+        my $top = length($css.top);
+        my $bottom = length($css.bottom);
+        my $left = length($css.left);
+        my $right = length($css.right);
+        my $width = $parent-box.css-width($css);
+        my $height = $parent-box.css-height($css);
 
         my \height-max = do with $height {
             $_
         }
         else {
-            my $max = $.height - ($top//0) - ($bottom//0);
+            my $max = $parent-box.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
-                $max -= $_ with self!length($css."$_"());
+                $max -= $_ with length($css."$_"());
             }
             $max;
         }
 
         my \width-max = $width // do {
-            my $max = $.width - ($left//0) - ($right//0);
+            my $max = $parent-box.width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
-                $max -= $_ with self!length($css."$_"());
+                $max -= $_ with length($css."$_"());
             }
             $max;
         }
@@ -362,34 +273,34 @@ class PDF::Style::Element {
 
         $width //= width-max if $left.defined && $right.defined;
         $width //= .content-width with $content;
-        with self!length($css.min-width) -> \min {
+        with length($css.min-width) -> \min {
             $width = min if min > $width
         }
 
         $height //= .content-height with $content;
-        with self!length($css.min-height) -> \min {
+        with length($css.min-height) -> \min {
             $height = min if min > $height
         }
 
         my Bool \from-left = $left.defined;
         unless from-left {
             $left = $right.defined
-                ?? $.width - $right - $width
+                ?? $parent-box.width - $right - $width
                 !! 0;
         }
 
         my Bool \from-top = $top.defined;
         unless from-top {
             $top = $bottom.defined
-                ?? $.height - $bottom - $height
+                ?? $parent-box.height - $bottom - $height
                 !! 0;
         }
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
-        my \pdf-top = $.height - $top;
-        my $em = $.box.font.em;
-        my $ex = $.box.font.ex;
-        my \elem = self.element-class.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
+        my \pdf-top = $parent-box.height - $top;
+        my $em = $parent-box.font.em;
+        my $ex = $parent-box.font.ex;
+        my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
         my \box = elem.box;
 
         # reposition to outside of border
@@ -406,79 +317,8 @@ class PDF::Style::Element {
         elem;
     }
 
-    #| class to use for creating child boxes
-    method element-class {
-        self
-    }
-
-    #| create a child element. Positioning is relative to this object. CSS styles
-    #| are inherited from this object.
-    multi method element( Str:D :$text!,
-			  CSS::Declarations :$css! ) {
-
-        my $font = self.box.font.setup($css);
-        my $kern = $css.font-kerning eq 'normal' || (
-            $css.font-kerning eq 'auto' && $font.em <= 32
-        );
-
-        my $align = $css.text-align;
-        my $font-size = $font.em;
-        my $leading = $font.line-height / $font-size;
-        my $face = $font.face;
-
-        # support a vertical-align subset
-        my $valign = do given $css.vertical-align {
-            when 'middle' { 'center' }
-            when 'top'|'bottom' { $_ }
-            default { 'top' };
-        }
-        my %opt = :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
-
-        %opt<CharSpacing> = do given $css.letter-spacing {
-            when .type eq 'num'     { $_ * $font-size }
-            when .type eq 'percent' { $_ * $font-size / 100 }
-            when 'normal' { 0.0 }
-            default       { $font.length($_) }
-        }
-
-        %opt<WordSpacing> = do given $css.word-spacing {
-            when 'normal' { 0.0 }
-            default       { $font.length($_) - $font.face.stringwidth(' ', $font-size) }
-        }
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
-        self!place-child-box($css, &content-builder);
-    }
-
-    multi method element( Str:D :$image!, CSS::Declarations :$css!) {
-        my $width = self.box.css-width($css);
-        my $height = self.box.css-height($css);
-        my &content-builder = sub (|c) {
-            my \image = ImageContent.new( :image($_) )
-                with PDF::Content::Image.open($image);
-            die "unable to determine image width" unless image.width;
-            die "unable to determine image height" unless image.height;
-            if $width {
-                image.x-scale = $width / image.width;
-                image.y-scale = $height
-                    ?? $height / image.height
-                    !! image.x-scale;
-            }
-            elsif $height {
-                image.y-scale = $height / image.height;
-                image.x-scale = image.y-scale;
-            }
-            image => image;
-        }
-        self!place-child-box($css, &content-builder);
-    }
-
-    multi method element( :$canvas!, :$css!) {
-        my &content-builder = sub (|c) { :$canvas };
-        self!place-child-box($css, &content-builder);
-    }
-
-    multi method element( :$css! ) is default {
-        self!place-child-box($css, sub (|c) {});
+    method place-element( :$css!, :$parent-box! ) {
+        self.place-child-box($css, sub (|c) {}, :$parent-box);
     }
 
 }

@@ -5,6 +5,8 @@ use PDF::Style::Element;
 class PDF::Style::Viewport
     is PDF::Style::Element {
 
+    use HTML::Entity;
+
     method !setup-size {
         # todo: see https://www.w3.org/TR/css3-page/
         # @top-left-corner etc
@@ -61,11 +63,6 @@ class PDF::Style::Viewport
         self!setup-size;
     }
 
-    #| class to use for creating child boxes
-    method element-class {
-        PDF::Style::Element;
-    }
-
     method !setup-page($page) {
         $page.media-box = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
@@ -78,8 +75,33 @@ class PDF::Style::Viewport
         page;
     }
 
+    multi method element( :$canvas!, |c) {
+        use PDF::Style::Element::Canvas;
+        PDF::Style::Element::Canvas.place-element( :$canvas, :parent-box(self.box), |c);
+    }
+
+    multi method element( :$image!, |c) {
+        use PDF::Style::Element::Image;
+        PDF::Style::Element::Image.place-element( :$image, :parent-box(self.box), |c);
+    }
+
+    multi method element( :$text!, |c) {
+        use PDF::Style::Element::Text;
+        PDF::Style::Element::Text.place-element( :$text, :parent-box(self.box), |c);
+    }
+
+    multi method element( |c) is default {
+        PDF::Style::Element.place-element( :parent-box(self.box), |c);
+    }
+
+    method render-element($) { }
+
     method html-start {
-        self.html.subst( /:s '</div>' $/, '');
+        my $style = $.css.write;
+        my $style-att = $style
+            ?? encode-entities($style).fmt: ' style="%s"'
+            !! '';
+        '<div%s>'.sprintf($style-att);
     }
 
     method html-end { '</div>' }
