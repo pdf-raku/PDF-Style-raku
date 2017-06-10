@@ -228,6 +228,7 @@ class PDF::Style::Element {
             image<Group> = { :S( :name<Transparency> ) };
             image.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
+                self!style-box($gfx);
                 self.render-element($gfx);
             }
             image.finish;
