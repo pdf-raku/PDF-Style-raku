@@ -5,7 +5,7 @@ class PDF::Style::Element {
     use PDF::Style::Font:ver(v0.0.1 .. *);
     use PDF::Content:ver(v0.0.4 .. *);
     use PDF::Content::Image;
-    use PDF::Content::Util::TransformMatrix;
+    use PDF::Content::Matrix :transform;
     use PDF::DAO::Stream;
     use Color;
     use CSS::Declarations::Units :Scale, :pt;
@@ -168,12 +168,12 @@ class PDF::Style::Element {
             unless $repeat-y {
                 # step outside box in Y direction
                 $YStep += bg-height;
-                @Matrix = PDF::Content::Util::TransformMatrix::transform( :matrix(@Matrix), :translate[0, bg-height] );
+                @Matrix = transform( :matrix(@Matrix), :translate[0, bg-height] );
             }
 
-            @Matrix = PDF::Content::Util::TransformMatrix::transform( :matrix(@Matrix), :translate[$x, -$y] )
+            @Matrix = transform( :matrix(@Matrix), :translate[$x, -$y] )
                 if $x || $y;
-            my $pattern = self.pdf-class.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
+            my $pattern = $gfx.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.graphics: {
                 .do($bg-image, 0, 0, :$width, :$height );
@@ -224,7 +224,7 @@ class PDF::Style::Element {
             # apply opacity to an image group as a whole
             my Numeric @b[4] = self.box.border.list;
             my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
-            my \image = self.pdf-class.xobject-form: :@BBox;
+            my \image = $page.xobject-form: :@BBox;
             image<Group> = { :S( :name<Transparency> ) };
             image.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;

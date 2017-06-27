@@ -14,7 +14,7 @@ class PDF::Style::Element::Canvas
 
     method render-element($gfx) {
         $!canvas.font-object //= PDF::Style::Font.new;
-        my \image = self.pdf-class.xobject-form: :BBox[0, 0, $.width, $.height];
+        my \image = $gfx.xobject-form: :BBox[0, 0, $.width, $.height];
         image.gfx.draw($!canvas);
         image.finish;
         $gfx.do(image, :$.width, :$.height);
