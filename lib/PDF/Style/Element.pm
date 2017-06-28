@@ -225,7 +225,6 @@ class PDF::Style::Element {
             my Numeric @b[4] = self.box.border.list;
             my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
             my \image = $page.xobject-form: :@BBox;
-            image<Group> = { :S( :name<Transparency> ) };
             image.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
                 self!style-box($gfx);
