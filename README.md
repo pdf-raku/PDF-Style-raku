@@ -1,11 +1,12 @@
-p6-PDF-Style
+PDF-Style-p6
 ============
-Experimental PDF composition with HTML positioning and CSS styling rules and box model.
+This module implements simple CSS styling and plaCEMENT of PDF image form, or text elements.
 
 ```
 use v6;
 use PDF::Lite;
 use PDF::Style::Viewport;
+use PDF::Style::Element;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
 
@@ -13,14 +14,14 @@ my $pdf = PDF::Lite.new;
 my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595), :style("background-color: blue; opacity: 0.2;");
 my $page = $vp.add-page($pdf);
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my $elem = $vp.element( :$text, :$css );
+my PDF::Style::Element $elem = $vp.element( :$text, :$css );
 $elem.render($page);
 
 # make some styling adjustments
@@ -29,7 +30,7 @@ $css.border-color = 'red';
 $css.top ➕= ($elem.height('padding') + 5)pt;
 $css.delete('height');
 
-my $image = "t/images/snoopy-happy-dance.jpg";
+my Str $image = "t/images/snoopy-happy-dance.jpg";
 $vp.element(:$image, :$css).render($page);
 
 $pdf.save-as: "t/example.pdf";

@@ -1,10 +1,10 @@
 use v6;
 
 use PDF::Style::Element;
-use PDF::Style::Font;
 
 class PDF::Style::Element::Canvas
     is PDF::Style::Element {
+    use PDF::Style::Font;
     has $.canvas is required;
 
     method place-element( :$canvas!, :$css!, :$parent-box!) {

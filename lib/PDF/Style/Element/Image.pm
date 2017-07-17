@@ -8,9 +8,10 @@ class PDF::Style::Element::Image
     use HTML::Entity;
     use CSS::Declarations;
     use CSS::Declarations::Units :Scale;
+    use PDF::Content::XObject;
 
     my class ImageContent {
-        has PDF::DAO::Stream $.image handles <width height data-uri>;
+        has PDF::Content::XObject['Image'] $.image handles <width height data-uri>;
         has Numeric  $.x-scale is rw = Scale::px;
         has Numeric  $.y-scale is rw = Scale::px;
         method content-width  { self.width * self.x-scale }

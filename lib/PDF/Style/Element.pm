@@ -3,7 +3,7 @@ use CSS::Declarations:ver(v0.3.1 .. *);
 
 class PDF::Style::Element {
     use PDF::Style::Font:ver(v0.0.1 .. *);
-    use PDF::Content:ver(v0.0.4 .. *);
+    use PDF::Content:ver(v0.0.5 .. *);
     use PDF::Content::Image;
     use PDF::Content::Matrix :transform;
     use PDF::DAO::Stream;
@@ -11,7 +11,7 @@ class PDF::Style::Element {
     use CSS::Declarations::Units :Scale, :pt;
 
     use CSS::Declarations::Box :Edges;
-    has CSS::Declarations::Box $.box handles<left top bottom right width height css>;
+    has CSS::Declarations::Box $.box handles<Array left top bottom right width height css>;
 
     submethod TWEAK(
         Numeric :$em = 12pt,
@@ -210,14 +210,15 @@ class PDF::Style::Element {
         $x, $y;
     }
 
-    method render($page, :$comment) {
+        method render($page, :$comment) {
+        my $ret;
         my $opacity = $.css.opacity.Num;
         if $opacity =~= 1 {
             $page.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
                 $gfx.transform: :translate[ $.left, $.bottom ];
                 self!style-box($gfx);
-                self.render-element($gfx);
+                $ret := self.render-element($gfx);
             }
         }
         elsif $opacity !=~= 0 {
@@ -228,7 +229,7 @@ class PDF::Style::Element {
             image.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
                 self!style-box($gfx);
-                self.render-element($gfx);
+                $ret := self.render-element($gfx);
             }
             image.finish;
             $page.graphics: -> $gfx {
@@ -236,10 +237,13 @@ class PDF::Style::Element {
                 $gfx.do(image, $.left, $.bottom);
             }
         }
+        $ret;
     }
 
     #| create and position a child box
-    method place-child-box(CSS::Declarations $css, &build-content, :$parent-box!) {
+    method place-child-box(CSS::Declarations $css,
+                           &build-content,
+                           CSS::Declarations::Box :$parent-box!) {
         sub length($v) { $parent-box.font.length($v) }
         my $top = length($css.top);
         my $bottom = length($css.bottom);
