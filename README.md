@@ -1,6 +1,29 @@
 PDF-Style-p6
 ============
-This module implements simple CSS styling and plaCEMENT of PDF image form, or text elements.
+This module implements simple CSS styling and placement of PDF image form, or text elements.
+
+**To-do lightweight styling without a viewport** something like:
+
+```
+use v6;
+use PDF::Lite;
+use PDF::Style::Element;
+use CSS::Declarations;
+use CSS::Declarations::Units :pt, :ops;
+
+my $pdf = PDF::Lite.new;
+my $gfx = $pdf.add-page.gfx;
+
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt");
+
+my $text = q:to"--ENOUGH!!--".lines.join: ' ';
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+    ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
+    --ENOUGH!!--
+
+my $text-xo = PDF::Style.xobject( :$text, :$css );
+$gfx.do($text-xo, 10, 20);
+```
 
 ```
 use v6;
@@ -11,7 +34,7 @@ use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
-my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595), :style("background-color: blue; opacity: 0.2;");
+my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595pt), :style("background-color: blue; opacity: 0.2;");
 my $page = $vp.add-page($pdf);
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
@@ -103,6 +126,5 @@ Tagged PDF!
 
 ## Restrictions
 
-- support for core fonts only, latin-1 encoding
 - basic image rendering and placement (PNG, GIF and JPEG)
 - support for a modest subset of available css 2.1 properties

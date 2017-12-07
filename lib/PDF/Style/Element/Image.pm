@@ -8,6 +8,7 @@ class PDF::Style::Element::Image
     use HTML::Entity;
     use CSS::Declarations;
     use CSS::Declarations::Units :Scale;
+    use PDF::Content::Image;
     use PDF::Content::XObject;
 
     our class Content {
@@ -19,22 +20,36 @@ class PDF::Style::Element::Image
     }
     has Content $.image;
 
-    method place-element( Str:D :$image!, CSS::Declarations :$css!, :$parent-box!) {
+    multi method place-element( Str:D :$image!, |c) {
+        my $xobject = PDF::Content::Image.open($image);
+        self.place-element( :$xobject, |c);
+    }
+    multi method place-element( PDF::Content::XObject :$xobject!, CSS::Declarations :$css!, :$parent-box!) {
         my $width = $parent-box.css-width($css);
         my $height = $parent-box.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = Content.new( :image($_) )
-                with PDF::Content::Image.open($image);
-            die "unable to determine image width" unless image.width;
-            die "unable to determine image height" unless image.height;
+            my \image = Content.new( :image($xobject) );
+            my \img-width = image.width
+                || die "unable to determine image width";
+            my \img-height = image.height
+                || die "unable to determine image height";
+
+            with $css.min-width {
+                $width = $_ if !$width.defined || $width < $_;
+            }
+
+            with $css.min-height {
+                $height = $_ if !$height.defined || $height < $_;
+            }
+
             if $width {
-                image.x-scale = $width / image.width;
+                image.x-scale = $width / img-width;
                 image.y-scale = $height
-                    ?? $height / image.height
+                    ?? $height / img-height
                     !! image.x-scale;
             }
             elsif $height {
-                image.y-scale = $height / image.height;
+                image.y-scale = $height / img-height;
                 image.x-scale = image.y-scale;
             }
             image => image;

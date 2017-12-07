@@ -23,47 +23,51 @@ my $image = "t/images/snoopy-happy-dance.jpg";
 
 for [
       { },
-      { :background-color<rgba(255,0,0,.2)>, :width<200pt> },
+      { :background-color<rgba(255,0,0,.2)>, :width(210pt) },
       { :background-color<rgba(255,0,0,.2)>, :border-bottom-style<dashed>, :width<160pt> },
       { :min-width<240pt>, :opacity<.3>, :border("1px solid black") },
       ] {
 
-    test($vp, $css, $_, :$image);
+    test($vp, $css, $_, :$image,);
 }
+
+my $xobject = $page.gfx.load-image($image);
+
+test($vp, $css, {}, :$xobject, :caption('testing of xobject element'));
 
 lives-ok {$pdf.save-as: "t/images.pdf"};
 
 @Html.append: $vp.html-end, '</body>', '</html>', '';
 "t/images.html".IO.spurt: @Html.join: "\n";
 
-sub test($vp, $css, $settings = {}, |c) {
-    my $base-css = $css.clone;
+sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
+    my $css = $base-css.clone;
     $css.set-properties(|$settings);
     my $elem = $vp.element( :$css, |c );
     @Html.push: $elem.html;
     $elem.render($page);
 
-    my $caption-css = $css.clone(
-        :border("1pt solid black"),
-        :background-color("rgba(200,200,200,.5)"),
-    );
-    $caption-css.left ➕= 8pt;
-    $caption-css.width = ($elem.width - 12)pt;
-    $caption-css.top = $css.top ➕ 8pt;
-    $caption-css.delete('height');
-    my $text = ~ CSS::Declarations.new: |$settings;
-    if $text {
-        my $caption-box = $vp.element( :css($caption-css), :$text );
+    $caption //= ~ CSS::Declarations.new: |$settings;
+    if $caption {
+        my $caption-css = $base-css.clone(
+            :border("1pt solid black"),
+            :background-color("rgba(200,200,200,.5)"),
+           );
+        $caption-css.left ➕= 8pt;
+        $caption-css.width = ($elem.width - 12)pt;
+        $caption-css.top = $css.top ➕ 8pt;
+        $caption-css.delete('height');
+        my $caption-box = $vp.element( :css($caption-css), :text($caption) );
         @Html.push: $caption-box.html;
         $caption-box.render($page);
     }
 
     if ++$n %% 2 {
-        $css.top ➕= 300pt;
-        $css.left = 20pt;
+        $base-css.top ➕= 280pt;
+        $base-css.left = 20pt;
     }
     else {
-        $css.left ➕= 270pt;
+        $base-css.left ➕= 260pt;
     }
 }
 
