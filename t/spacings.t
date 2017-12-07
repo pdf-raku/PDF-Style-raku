@@ -46,6 +46,8 @@ for [ { :line-height<9pt> },
       { :letter-spacing<-1pt> },
       { :word-spacing<5pt> },
       { :word-spacing<15pt> },
+      { :font-stretch<ultra-condensed> },
+      { :font-stretch<ultra-expanded> },
       ] {
 
     test($vp, $css, $_);

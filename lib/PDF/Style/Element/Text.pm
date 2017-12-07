@@ -1,7 +1,6 @@
 use v6;
 
 use PDF::Style::Element;
-use PDF::Style::Font;
 
 class PDF::Style::Element::Text
     is PDF::Style::Element {
@@ -11,14 +10,7 @@ class PDF::Style::Element::Text
     use PDF::Content::Text::Block;
     has PDF::Content::Text::Block $.text;
 
-    #| create a child element. Positioning is relative to this object. CSS styles
-    #| are inherited from this object.
-    method place-element( Str:D :$text!,
-                    CSS::Declarations :$css!,
-                    :$parent-box!,
-        ) {
-
-        my $font = $parent-box.font.setup($css);
+    method !text-block-options( :$font!, :$css! ) {
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $font.em <= 32
         );
@@ -26,7 +18,7 @@ class PDF::Style::Element::Text
         my $align = $css.text-align;
         my $font-size = $font.em;
         my $leading = $font.line-height / $font-size;
-        my $face = $font.face;
+        my $face = $font.font-obj;
 
         # support a vertical-align subset
         my $valign = do given $css.vertical-align {
@@ -34,7 +26,7 @@ class PDF::Style::Element::Text
             when 'top'|'bottom' { $_ }
             default { 'top' };
         }
-        my %opt = :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
+        my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
 
         %opt<CharSpacing> = do given $css.letter-spacing {
             when .type eq 'num'     { $_ * $font-size }
@@ -45,9 +37,21 @@ class PDF::Style::Element::Text
 
         %opt<WordSpacing> = do given $css.word-spacing {
             when 'normal' { 0.0 }
-            default       { $font.length($_) - $font.face.stringwidth(' ', $font-size) }
+            default       { $font.length($_) - $face.stringwidth(' ', $font-size) }
         }
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, :baseline<top>, |%opt, |c) };
+        %opt;
+    }
+
+    #| create a child element. Positioning is relative to this object. CSS styles
+    #| are inherited from this object.
+    method place-element( Str:D :$text!,
+                    CSS::Declarations :$css!,
+                    :$parent-box!,
+        ) {
+
+        my $font = $parent-box.font.setup($css);
+        my %opt = self!text-block-options( :$font, :$css);
+        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
         self.place-child-box($css, &content-builder, :$parent-box);
     }
 
@@ -64,13 +68,13 @@ class PDF::Style::Element::Text
     }
 
     method render-element($gfx) {
+        my $ret;
         with $!text -> \text {
             my $top = $.top - $.bottom;
             self!set-font-color($gfx);
-            $gfx.BeginText;
-            $gfx.print(text, :position[ :left(0), :$top]);
-            $gfx.EndText;
+            $ret := $gfx.print(text, :position[ :left(0), :$top]);
         }
+        $ret;
     }
 
     method html {

@@ -8,21 +8,22 @@ class PDF::Style::Element::Image
     use HTML::Entity;
     use CSS::Declarations;
     use CSS::Declarations::Units :Scale;
+    use PDF::Content::XObject;
 
-    my class ImageContent {
-        has PDF::DAO::Stream $.image handles <width height data-uri>;
+    our class Content {
+        has PDF::Content::XObject $.image handles <width height data-uri>;
         has Numeric  $.x-scale is rw = Scale::px;
         has Numeric  $.y-scale is rw = Scale::px;
         method content-width  { self.width * self.x-scale }
         method content-height { self.height * self.y-scale }
     }
-    has ImageContent $.image;
+    has Content $.image;
 
     method place-element( Str:D :$image!, CSS::Declarations :$css!, :$parent-box!) {
         my $width = $parent-box.css-width($css);
         my $height = $parent-box.css-height($css);
         my &content-builder = sub (|c) {
-            my \image = ImageContent.new( :image($_) )
+            my \image = Content.new( :image($_) )
                 with PDF::Content::Image.open($image);
             die "unable to determine image width" unless image.width;
             die "unable to determine image height" unless image.height;
@@ -43,10 +44,10 @@ class PDF::Style::Element::Image
 
     method render-element($gfx) {
         with $!image {
-            my $image = .image;
-            my $width = .content-width;
+            my $image  = .image;
+            my $width  = .content-width;
             my $height = .content-height;
-            
+
             $gfx.do($image, :$width, :$height);
         }
     }
