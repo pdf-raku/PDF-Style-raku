@@ -1,13 +1,14 @@
 use v6;
-use CSS::Declarations:ver(v0.3.1 .. *);
 
 class PDF::Style::Element {
-    use PDF::Style::Font:ver(v0.0.1 .. *);
+    use PDF::Style::Font;
     use PDF::Content:ver(v0.0.5 .. *);
+    use PDF::Content::Graphics;
     use PDF::Content::Image;
     use PDF::Content::Matrix :transform;
     use PDF::DAO::Stream;
     use Color;
+    use CSS::Declarations:ver(v0.3.1 .. *);
     use CSS::Declarations::Units :Scale, :pt;
 
     use CSS::Declarations::Box :Edges;
@@ -210,34 +211,60 @@ class PDF::Style::Element {
         $x, $y;
     }
 
-    method render($page, :$comment) {
-        my $ret;
+    method !bbox {
+        my Numeric @b[4] = self.box.border.list;
+        [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
+    }
+
+    method !xobject(:$comment) {
+        # apply opacity to an image group as a whole
+        my @BBox = self!bbox;
+        my \image = PDF::Content::Graphics.xobject-form: :@BBox;
+        image.graphics: -> $gfx {
+            $gfx.add-comment($_) with $comment;
+            self!style-box($gfx);
+            self.render-element($gfx);
+        }
+        image.finish;
+        image;
+    }
+
+    method xobject(|c) {
+        my $opacity = $.css.opacity.Num;
+
+        if $opacity =~= 1 {
+            self!xobject();
+        }
+        else {
+           # need to wrap it, to apply transparency.
+           my @BBox = self!bbox;
+           my $outer = PDF::Content::Graphics.xobject-form: :@BBox;
+           my $inner = self!xobject(|c);
+           $outer.graphics: {
+               .FillAlpha = .StrokeAlpha = $opacity;
+               .do($inner, 0, 0);
+           }
+           $outer;
+        }
+    }
+
+    method render(PDF::Content::Graphics $parent, :$comment) {
         my $opacity = $.css.opacity.Num;
         if $opacity =~= 1 {
-            $page.graphics: -> $gfx {
+            $parent.graphics: -> $gfx {
 		$gfx.add-comment($_) with $comment;
                 $gfx.transform: :translate[ $.left, $.bottom ];
                 self!style-box($gfx);
-                $ret := self.render-element($gfx);
+                self.render-element($gfx);
             }
         }
         elsif $opacity !=~= 0 {
-            # apply opacity to an image group as a whole
-            my Numeric @b[4] = self.box.border.list;
-            my @BBox = [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
-            my \image = $page.xobject-form: :@BBox;
-            image.graphics: -> $gfx {
-		$gfx.add-comment($_) with $comment;
-                self!style-box($gfx);
-                $ret := self.render-element($gfx);
-            }
-            image.finish;
-            $page.graphics: -> $gfx {
+            $parent.graphics: -> $gfx {
+                my \image = self!xobject(:$comment);
                 $gfx.FillAlpha = $gfx.StrokeAlpha = $opacity;
                 $gfx.do(image, $.left, $.bottom);
             }
         }
-        $ret;
     }
 
     #| create and position a child box

@@ -68,13 +68,11 @@ class PDF::Style::Element::Text
     }
 
     method render-element($gfx) {
-        my $ret;
         with $!text -> \text {
             my $top = $.top - $.bottom;
             self!set-font-color($gfx);
-            $ret := $gfx.print(text, :position[ :left(0), :$top]);
+            $gfx.print(text, :position[ :left(0), :$top]);
         }
-        $ret;
     }
 
     method html {
