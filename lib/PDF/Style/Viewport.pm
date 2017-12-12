@@ -22,7 +22,7 @@ class PDF::Style::Viewport
         @box;
     }
 
-    method !setup-size {
+    method !setup-size(:$gfx) {
         # todo: see https://www.w3.org/TR/css3-page/
         # @top-left-corner etc
         # page-break-before, page-break-after etc
@@ -40,6 +40,8 @@ class PDF::Style::Viewport
                 $orientation = $_;
             }
             when 'auto' {
+                @length = .width, .height
+                    with $gfx;
             }
             when PageSizes.enums{.uc}:exists {
                 my Array $size = PageSizes.enums{.uc};
@@ -63,8 +65,8 @@ class PDF::Style::Viewport
         $box.Array = self!padding-box(0, 0, $page-width, $page-height);
     }
 
-    method TWEAK {
-        self!setup-size;
+    method TWEAK(:$gfx) {
+        self!setup-size(:$gfx)
     }
 
     method !setup-page($page) {

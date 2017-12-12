@@ -14,8 +14,8 @@ constant DefaultBorders = 4; # 'medium' := 2px each side
 
 is $vp.width, 420 - LeftMargin - Borders, 'width - standard';
 is $vp.height, 595 - Borders, 'height - standard';
-is $vp.width('margin'), 420, 'margin width - standard';
-is $vp.height('margin'), 595, 'margin height - standard';
+is $vp.width('margin'), 420, 'margin width';
+is $vp.height('margin'), 595, 'margin height';
 my $pdf = PDF::Lite.new;
 $vp.add-page($pdf);
 $pdf.save-as: "t/viewport.pdf";
@@ -23,15 +23,21 @@ $pdf.save-as: "t/viewport.pdf";
 my $vp2 = PDF::Style::Viewport.new: :style("size: 200pt 300pt");
 is $vp2.width, 200 - DefaultBorders, 'width - width + height';
 is $vp2.height, 300 - DefaultBorders, 'height - width + height';
-is $vp2.width('margin'), 200, 'margin width - width + height';
-is $vp2.height('margin'), 300, 'margin height - width + height';
+is $vp2.width('margin'), 200, 'margin width';
+is $vp2.height('margin'), 300, 'margin height';
 
 $vp2 = PDF::Style::Viewport.new: :style("size: 300px");
-is $vp2.width('margin'), 300,'margin width - width only';
-is $vp2.height('margin'), 300, 'margin height - width only';
+is $vp2.width('margin'), 300,'margin width';
+is $vp2.height('margin'), 300, 'margin height';
 
-$vp2 = PDF::Style::Viewport.new: :style("size: a5 landscape");
-is $vp2.width('margin'), 595,'margin width - width only';
-is $vp2.height('margin'), 420, 'margin height - width only';
+my $gfx = $pdf.add-page.gfx;
+
+$vp2 = PDF::Style::Viewport.new: :$gfx, :style("size: a5 landscape");
+is $vp2.width('margin'), 595,'margin width';
+is $vp2.height('margin'), 420, 'margin height';
+
+$vp2 = PDF::Style::Viewport.new: :$gfx;
+is $vp2.width('margin'), $gfx.width,'margin width';
+is $vp2.height('margin'),$gfx.height, 'margin height';
 
 done-testing;
