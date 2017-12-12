@@ -9,7 +9,7 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my $vp = PDF::Style::Viewport.new;
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my $pdf = PDF::Lite.new;
@@ -17,7 +17,8 @@ my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $css, $settings = {}, Bool :$feed = True) {
+sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+    my $css = $base-css.clone(|$settings);
     $css."{.key}"() = .value
         for $settings.pairs;
 
@@ -28,17 +29,17 @@ sub test($vp, $css, $settings = {}, Bool :$feed = True) {
     $elem.render($page);
 
     if ++$n %% 2 {
-        $css.top ➕= 100pt;
-        $css.left = 20pt;
+        $base-css.top ➕= 100pt;
+        $base-css.left = 20pt;
     }
     else {
-        $css.left ➕= 270pt;
+        $base-css.left ➕= 270pt;
     }
 }
 
-for [ { :background-color<rgba(255,0,0,.2)> },
-      { :background-color<rgba(255,0,0,.2)>, :border-bottom-style<dashed>, },
-      { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, :width<593pt>, },
+for [ { :background-color<rgba(255,0,0,.2)>, :width<250pt> },
+      { :background-color<rgba(255,0,0,.2)>, :border-bottom-style<dashed>, :width<250pt>},
+      { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, },
       ] {
 
     test($vp, $css, $_);

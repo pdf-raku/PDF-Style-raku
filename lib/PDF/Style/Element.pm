@@ -231,21 +231,19 @@ class PDF::Style::Element {
 
     method xobject(|c) {
         my $opacity = $.css.opacity.Num;
+        my $xobject = self!xobject();
 
-        if $opacity =~= 1 {
-            self!xobject();
-        }
-        else {
+        unless $opacity =~= 1 {
            # need to wrap it, to apply transparency.
            my @BBox = self!bbox;
            my $outer = PDF::Content::Graphics.xobject-form: :@BBox;
-           my $inner = self!xobject(|c);
            $outer.graphics: {
                .FillAlpha = .StrokeAlpha = $opacity;
-               .do($inner, 0, 0);
+               .do($xobject, 0, 0);
            }
-           $outer;
+           $xobject = $outer;
         }
+        $xobject;
     }
 
     method render(PDF::Content::Graphics $parent, :$comment) {
@@ -279,10 +277,7 @@ class PDF::Style::Element {
         my $width = $parent-box.css-width($css);
         my $height = $parent-box.css-height($css);
 
-        my \height-max = do with $height {
-            $_
-        }
-        else {
+        my \height-max = $height // do {
             my $max = $parent-box.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
                 $max -= $_ with length($css."$_"());
