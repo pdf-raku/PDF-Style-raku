@@ -2,17 +2,17 @@ PDF-Style-p6
 ============
 This module implements simple CSS styling and placement of PDF image form, or text elements.
 
-**To-do lightweight styling without a viewport** something like:
 
 ```
 use v6;
 use PDF::Lite;
-use PDF::Style::Element;
+use PDF::Style::Viewport;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
 my $gfx = $pdf.add-page.gfx;
+my $vp = PDF::Style::Viewport.new: :$gfx, :style("background-color: blue; opacity: 0.2;");
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt");
 
@@ -21,9 +21,16 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my $text-xo = PDF::Style.xobject( :$text, :$css );
-$gfx.do($text-xo, 10, 20);
+# manual positioning
+$css.bottom = 10pt;
+$css.left = 20pt;
+# create a PDF XObject Image of the styled text block
+my $text-xo = $vp.element( :$text, :$css ).xobject;
+# display it on the page
+$gfx.do($text-xo, $css.bottom, $css.left);
 ```
+
+Elements may also be positioned via CSS properties `top`, `right, `bottom`, `left`, `width` abd `height`.
 
 ```
 use v6;
@@ -47,9 +54,9 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 my PDF::Style::Element $elem = $vp.element( :$text, :$css );
 $elem.render($page);
 
+# position an image below the text block
 # make some styling adjustments
 $css.border-color = 'red';
-# todo: padding adjustments
 $css.top ➕= ($elem.height('padding') + 5)pt;
 $css.delete('height');
 
@@ -58,8 +65,6 @@ $vp.element(:$image, :$css).render($page);
 
 $pdf.save-as: "t/example.pdf";
 ```
-
-This will be more familiar to those from an HTML background and may form a useful basis for HTML rendering.
 
 ## CSS Property todo list:
 Group|Property|Notes|To-do

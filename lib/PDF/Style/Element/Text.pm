@@ -51,7 +51,7 @@ class PDF::Style::Element::Text
 
         my $font = $parent-box.font.setup($css);
         my %opt = self!text-block-options( :$font, :$css);
-        my &content-builder = sub (|c) { text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        my &content-builder = sub (|c) {text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
         self.place-child-box($css, &content-builder, :$parent-box);
     }
 

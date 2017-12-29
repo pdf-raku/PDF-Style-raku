@@ -1,20 +1,37 @@
 {
-    "name"        : "PDF::Style",
-    "perl"        : "6.c",
-    "version"     : "0.0.1",
-    "tags"        : ["pdf", "css"],
-    "description" : "Liteweight PDF Styling",
-    "depends"     : [ "PDF::Lite", "PDF::Content", "PDF", "PDF::Font", "HTML::Parser::XML", "CSS::Declarations", "HTML::Entity", "Color" ],
-    "source-url"  : "git://github.com/p6-pdf/PDF-Style-p6.git",
-    "provides"    : {
-        "PDF::Style"           : "lib/PDF/Style.pm",
-        "PDF::Style::Font"     : "lib/PDF/Style/Font.pm",
-        "PDF::Style::Element"  : "lib/PDF/Style/Element.pm",
-        "PDF::Style::Element::Canvas"  : "lib/PDF/Style/Element/Canvas.pm",
-        "PDF::Style::Element::Image"  : "lib/PDF/Style/Element/Image.pm",
-        "PDF::Style::Element::Text"  : "lib/PDF/Style/Element/Text.pm",
-        "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
-     }
+  "authors" : [
+    "David Warring"
+  ],
+  "build-depends" : [ ],
+  "depends" : [
+    "PDF::Lite",
+    "PDF::Content",
+    "PDF",
+    "PDF::Font",
+    "HTML::Parser::XML",
+    "CSS::Declarations",
+    "HTML::Entity",
+    "Color"
+  ],
+  "description" : "Liteweight PDF Styling",
+  "license" : "Artistic-2.0",
+  "name" : "PDF::Style",
+  "perl" : "6.c",
+  "provides" : {
+    "PDF::Style" : "lib/PDF/Style.pm",
+    "PDF::Style::Element" : "lib/PDF/Style/Element.pm",
+    "PDF::Style::Element::Canvas" : "lib/PDF/Style/Element/Canvas.pm",
+    "PDF::Style::Element::Image" : "lib/PDF/Style/Element/Image.pm",
+    "PDF::Style::Element::Text" : "lib/PDF/Style/Element/Text.pm",
+    "PDF::Style::Font" : "lib/PDF/Style/Font.pm",
+    "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
+  },
+  "resources" : [ ],
+  "source-url" : "git://github.com/p6-pdf/PDF-Style-p6.git",
+  "tags" : [
+    "pdf",
+    "css"
+  ],
+  "test-depends" : [ ],
+  "version" : "0.0.1"
 }
-
- 
