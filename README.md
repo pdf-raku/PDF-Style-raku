@@ -24,13 +24,15 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 # manual positioning
 $css.bottom = 10pt;
 $css.left = 20pt;
-# create a PDF XObject Image of the styled text block
-my $text-xo = $vp.element( :$text, :$css ).xobject;
+# create a styled text block
+my $text-elem = $vp.element( :$text, :$css );
 # display it on the page
-$gfx.do($text-xo, $css.bottom, $css.left);
+$gfx.do( .xobject, .bottom, .left) with $text-elem;
 ```
 
-Elements may also be positioned via CSS properties `top`, `right, `bottom`, `left`, `width` abd `height`.
+Elements are positioned and sized via CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
+
+The `render` method places an element directly on a parent page, xobject or pattern, positioning it at the element's `top`, `left` coordinates.
 
 ```
 use v6;
@@ -51,13 +53,13 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my PDF::Style::Element $elem = $vp.element( :$text, :$css );
-$elem.render($page);
+my PDF::Style::Element $text-box = $vp.element( :$text, :$css );
+$text-box.render($page);
 
 # position an image below the text block
 # make some styling adjustments
 $css.border-color = 'red';
-$css.top ➕= ($elem.height('padding') + 5)pt;
+$css.top ➕= ($text-box.height('padding') + 5)pt;
 $css.delete('height');
 
 my Str $image = "t/images/snoopy-happy-dance.jpg";

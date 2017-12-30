@@ -122,7 +122,7 @@ class PDF::Style::Viewport
         self.Array = [$top + $height + $bottom,
                       $left + $width + $right,
                       0, 0];
-         my \pdf-top = self.height - $top;
+        my \pdf-top = self.height - $top;
         my \elem = PDF::Style::Element::Image.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$image;
 
         elem;

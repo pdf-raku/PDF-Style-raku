@@ -23,21 +23,18 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 $css.left = '50pt';
 $css.bottom = '700pt';
 
-$page.graphics: {
+$page.graphics: -> $gfx {
 
     my $text-elem = $vp.element( :$text, :$css);
-    my $text-xo = $text-elem.xobject;
-    does-ok $text-xo, PDF::Content::XObject;
-    .do($text-xo, $css.left, $css.bottom);
+    does-ok $text-elem.xobject, PDF::Content::XObject;
+    $gfx.do(.xobject, .left, .bottom) with $text-elem;;
 
     my Str $image = "t/images/snoopy-happy-dance.jpg";
     $css.opacity = .5;
     $css.delete("height");
-    my $image-xo = $vp.element(:$image, :$css).xobject;
-    warn $css.bottom;
-    $css.bottom ➖= ($image-xo.height)pt;
-    warn $css.bottom;
-    .do($image-xo, $css.left, $css.bottom);
+    my $image-elem = $vp.element(:$image, :$css);
+    $gfx.do(.xobject, .left, .bottom - $image-elem.height('padding'))
+        with $image-elem;
 }
 
 $pdf.save-as: "t/xobject.pdf";

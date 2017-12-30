@@ -13,7 +13,7 @@
     "HTML::Entity",
     "Color"
   ],
-  "description" : "Liteweight PDF Styling",
+  "description" : "CSS driven PDF Composition and Layout",
   "license" : "Artistic-2.0",
   "name" : "PDF::Style",
   "perl" : "6.c",
