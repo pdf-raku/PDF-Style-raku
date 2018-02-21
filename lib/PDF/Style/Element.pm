@@ -264,20 +264,20 @@ class PDF::Style::Element {
         }
     }
 
-    #| create and position a child box
-    method place-child-box(CSS::Declarations $css,
-                           &build-content,
-                           CSS::Declarations::Box :$parent-box!) {
-        sub length($v) { $parent-box.font.length($v) }
+    #| create and position content within a containing box
+    method place-element(CSS::Declarations :$css!,
+                         :&build-content = sub (|c) {},
+                         CSS::Declarations::Box :$container!) {
+        sub length($v) { $container.font.length($v) }
         my $top = length($css.top);
         my $bottom = length($css.bottom);
         my $left = length($css.left);
         my $right = length($css.right);
-        my $width = $parent-box.css-width($css);
-        my $height = $parent-box.css-height($css);
+        my $width = $container.css-width($css);
+        my $height = $container.css-height($css);
 
         my \height-max = $height // do {
-            my $max = $parent-box.height - ($top//0) - ($bottom//0);
+            my $max = $container.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
                 $max -= $_ with length($css."$_"());
             }
@@ -285,7 +285,7 @@ class PDF::Style::Element {
         }
 
         my \width-max = $width // do {
-            my $max = $parent-box.width - ($left//0) - ($right//0);
+            my $max = $container.width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
                 $max -= $_ with length($css."$_"());
             }
@@ -310,21 +310,21 @@ class PDF::Style::Element {
         my Bool \from-left = $left.defined;
         unless from-left {
             $left = $right.defined
-                ?? $parent-box.width - $right - $width
+                ?? $container.width - $right - $width
                 !! 0;
         }
 
         my Bool \from-top = $top.defined;
         unless from-top {
             $top = $bottom.defined
-                ?? $parent-box.height - $bottom - $height
+                ?? $container.height - $bottom - $height
                 !! 0;
         }
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
-        my \pdf-top = $parent-box.height - $top;
-        my $em = $parent-box.font.em;
-        my $ex = $parent-box.font.ex;
+        my \pdf-top = $container.height - $top;
+        my $em = $container.font.em;
+        my $ex = $container.font.ex;
         my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
         my \box = elem.box;
 
@@ -340,10 +340,6 @@ class PDF::Style::Element {
 
         box.translate(dx, dy);
         elem;
-    }
-
-    method place-element( :$css!, :$parent-box! ) {
-        self.place-child-box($css, sub (|c) {}, :$parent-box);
     }
 
 }

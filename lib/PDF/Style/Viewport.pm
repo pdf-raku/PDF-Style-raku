@@ -105,15 +105,15 @@ class PDF::Style::Viewport
     #| resize to accomodate content
     method !auto-fit(PDF::Content::XObject $xobject) {
         my $css = self.css;
-        my $parent-box = self.box;
-        sub length($v) { $parent-box.font.length($v) }
+        my $container = self.box;
+        sub length($v) { $container.font.length($v) }
         my $top = length($css.top) // 0;
         my $bottom = length($css.bottom) // 0;
         my $left   = length($css.left) // 0;
         my $right  = length($css.right) // 0;
 
-        my $em = $parent-box.font.em;
-        my $ex = $parent-box.font.ex;
+        my $em = $container.font.em;
+        my $ex = $container.font.ex;
         my $content-width = $xobject.width;
         my $content-height = $xobject.height;
         my $image = self!make-image($xobject);
@@ -141,24 +141,24 @@ class PDF::Style::Viewport
 
     multi method element( :$canvas!, |c) {
         use PDF::Style::Element::Canvas;
-        PDF::Style::Element::Canvas.place-element( :$canvas, :parent-box(self.box), |c);
+        PDF::Style::Element::Canvas.place-element( :$canvas, :container(self.box), |c);
     }
 
     multi method element( :$image!, |c) {
-        PDF::Style::Element::Image.place-element( :$image, :parent-box(self.box), |c);
+        PDF::Style::Element::Image.place-element( :$image, :container(self.box), |c);
     }
 
     multi method element( :$xobject!, |c) {
-        PDF::Style::Element::Image.place-element( :$xobject, :parent-box(self.box), |c);
+        PDF::Style::Element::Image.place-element( :$xobject, :container(self.box), |c);
     }
 
     multi method element( :$text!, |c) {
         use PDF::Style::Element::Text;
-        PDF::Style::Element::Text.place-element( :$text, :parent-box(self.box), |c);
+        PDF::Style::Element::Text.place-element( :$text, :container(self.box), |c);
     }
 
     multi method element( |c) is default {
-        PDF::Style::Element.place-element( :parent-box(self.box), |c);
+        PDF::Style::Element.place-element( :container(self.box), |c);
     }
 
     method render-element($) { }

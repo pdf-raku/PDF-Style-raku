@@ -7,9 +7,9 @@ class PDF::Style::Element::Canvas
     use PDF::Style::Font;
     has $.canvas is required;
 
-    method place-element( :$canvas!, :$css!, :$parent-box!) {
-        my &content-builder = sub (|c) { :$canvas };
-        self.place-child-box($css, &content-builder, :$parent-box);
+    method place-element( :$canvas!, :$css!, :$container!) {
+        my &build-content = sub (|c) { :$canvas };
+        nextwith(:$css, :&build-content, :$container);
     }
 
     method render-element($gfx) {

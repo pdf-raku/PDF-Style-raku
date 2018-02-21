@@ -20,14 +20,14 @@ class PDF::Style::Element::Image
     }
     has Content $.image;
 
-    multi method place-element( Str:D :$image!, |c) {
-        my $xobject = PDF::Content::Image.open($image);
-        self.place-element( :$xobject, |c);
-    }
-    multi method place-element( PDF::Content::XObject :$xobject!, CSS::Declarations :$css!, :$parent-box!) {
-        my $width = $parent-box.css-width($css);
-        my $height = $parent-box.css-height($css);
-        my &content-builder = sub (|c) {
+    method place-element(
+        Str :$image,
+        PDF::Content::XObject :$xobject = PDF::Content::Image.open($image),
+        CSS::Declarations :$css!,
+        :$container!) {
+        my $width = $container.css-width($css);
+        my $height = $container.css-height($css);
+        my &build-content = sub (|c) {
             my \image = Content.new( :image($xobject) );
             my \img-width = image.width
                 || die "unable to determine image width";
@@ -54,7 +54,7 @@ class PDF::Style::Element::Image
             }
             image => image;
         }
-        self.place-child-box($css, &content-builder, :$parent-box);
+        nextwith(:$css, :&build-content, :$container);
     }
 
     method render-element($gfx) {

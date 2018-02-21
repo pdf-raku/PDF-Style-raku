@@ -46,13 +46,13 @@ class PDF::Style::Element::Text
     #| are inherited from this object.
     method place-element( Str:D :$text!,
                     CSS::Declarations :$css!,
-                    :$parent-box!,
+                    :$container!,
         ) {
 
-        my $font = $parent-box.font.setup($css);
+        my $font = $container.font.setup($css);
         my %opt = self!text-block-options( :$font, :$css);
-        my &content-builder = sub (|c) {text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
-        self.place-child-box($css, &content-builder, :$parent-box);
+        my &build-content = sub (|c) {text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        nextwith(:$css, :&build-content, :$container);
     }
 
     method !set-font-color($gfx) {
