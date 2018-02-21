@@ -12,11 +12,11 @@ unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
 }
 # also dump to HTML, for comparision
 
-my $vp = PDF::Style::Viewport.new;
-my $css = CSS::Declarations.new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
+my PDF::Style::Viewport $vp .= new;
+my CSS::Declarations $css .= new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
 my @Html = '<html>', '<body>', $vp.html-start;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;

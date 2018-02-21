@@ -8,10 +8,10 @@ use PDF::Lite;
 
 # also dump to HTML, for comparision
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red");
-my $vp = PDF::Style::Viewport.new;
+my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red");
+my PDF::Style::Viewport $vp .= new;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, ($vp.width)pt, ($vp.height)pt ];

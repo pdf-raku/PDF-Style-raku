@@ -11,10 +11,10 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt; top: 30pt; border: 1pt solid red";
-my $css = CSS::Declarations.new( :$style );
-my $vp = PDF::Style::Viewport.new;
+my CSS::Declarations $css .= new( :$style );
+my PDF::Style::Viewport $vp .= new;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $Page = $vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $vp.html-start;

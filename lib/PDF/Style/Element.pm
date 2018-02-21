@@ -2,13 +2,12 @@ use v6;
 
 class PDF::Style::Element {
     use PDF::Style::Font;
-    use PDF::Content:ver(v0.0.5 .. *);
     use PDF::Content::Graphics;
     use PDF::Content::Image;
     use PDF::Content::Matrix :transform;
     use PDF::DAO::Stream;
     use Color;
-    use CSS::Declarations:ver(v0.3.1 .. *);
+    use CSS::Declarations;
     use CSS::Declarations::Units :Scale, :pt;
 
     use CSS::Declarations::Box :Edges;

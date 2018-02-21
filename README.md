@@ -1,7 +1,6 @@
 PDF-Style-p6
 ============
-This module implements simple CSS styling and placement of PDF image form, or text elements.
-
+This module implements simple CSS styling and placement of PDF images, forms or plain text blocks.
 
 ```
 use v6;

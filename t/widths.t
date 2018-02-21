@@ -10,10 +10,10 @@ use CSS::Declarations::Units :pt, :ops;
 
 # also dump to HTML, for comparision
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
-my $vp = PDF::Style::Viewport.new;
+my CSS::Declarations $css .= new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
+my PDF::Style::Viewport $vp .= new;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my @html = '<html>', '<body>', $vp.html-start;

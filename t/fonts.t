@@ -10,10 +10,10 @@ use PDF::Lite;
 
 # also dump to HTML, for comparision
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; height:30pt; width:110pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red;");
-my $Vp = PDF::Style::Viewport.new;
+my CSS::Declarations $css .= new: :style("font-family:Helvetica; height:30pt; width:110pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red;");
+my PDF::Style::Viewport $Vp .= new;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $Page = $Vp.add-page($pdf);
 $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $Vp.html-start;

@@ -7,13 +7,13 @@ use PDF::Lite;
 use CSS::Declarations;
 use CSS::Declarations::Units :ops, :pt;
 
-my $vp = PDF::Style::Viewport.new;
+my PDF::Style::Viewport $vp .= new;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 
-my $css = CSS::Declarations.new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
+my CSS::Declarations $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt

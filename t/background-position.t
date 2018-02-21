@@ -9,7 +9,7 @@ use PDF::Content::Image;
 
 # also dump to HTML, for comparision
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my @Html = '<html>', '<body>';
 my ($page, $n); # closure variables
 
@@ -35,8 +35,8 @@ my $png = PDF::Content::Image.open("t/images/tiny.png");
 
 for <no-repeat repeat> -> $background-repeat {
 
-    my $vp = PDF::Style::Viewport.new;
-    my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
+    my PDF::Style::Viewport $vp .= new;
+    my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
     @Html.push: $vp.html-start;
 
     $page = $vp.add-page($pdf);

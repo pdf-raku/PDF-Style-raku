@@ -4,10 +4,10 @@
   ],
   "build-depends" : [ ],
   "depends" : [
+    "PDF",
     "PDF::Lite",
     "PDF::Content",
-    "PDF",
-    "PDF::Font",
+    "PDF::Font::Loader",
     "HTML::Parser::XML",
     "CSS::Declarations",
     "HTML::Entity",

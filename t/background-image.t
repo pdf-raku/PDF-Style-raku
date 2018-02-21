@@ -9,11 +9,11 @@ use PDF::Content::Image;
 
 # also dump to HTML, for comparision
 
-my $vp = PDF::Style::Viewport.new;
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
+my PDF::Style::Viewport $vp .= new;
+my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
 my @Html = '<html>', '<body>', $vp.html-start;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my $page = $vp.add-page($pdf);
 $page.gfx.comment-ops = True;
 my $n;
