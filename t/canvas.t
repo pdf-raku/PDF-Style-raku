@@ -17,7 +17,7 @@ my CSS::Declarations $css .= new: :style("width:250pt; height:80pt; position:abs
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.add-page($pdf);
+my $page = $vp.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 

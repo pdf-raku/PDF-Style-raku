@@ -8,6 +8,7 @@ class PDF::Style::Viewport
     use HTML::Entity;
     use PDF::Style::Element::Image;
     use CSS::Declarations::Box :Edges;
+    use PDF::Content::Graphics;
 
     method !padding-box($right, $bottom, $left, $top) {
         my $box = self.box;
@@ -31,6 +32,7 @@ class PDF::Style::Viewport
         my @length;
         my $orientation = 'portrait';
         my $box := self.box;
+        my Bool $auto = False;
 
         for $box.css.size.list {
             when Numeric {
@@ -40,8 +42,9 @@ class PDF::Style::Viewport
                 $orientation = $_;
             }
             when 'auto' {
+                $auto = True;
                 @length = .width, .height
-                    with $gfx;
+                    given $gfx // self;
             }
             when PageSizes.enums{.uc}:exists {
                 my Array $size = PageSizes.enums{.uc};
@@ -56,11 +59,12 @@ class PDF::Style::Viewport
             @length[1] //= @length[0];
             @length;
         } else {
+            $auto = True;
             (self.width, self.height);
         }
 
         ($page-height, $page-width) = ($page-width, $page-height)
-            if $orientation eq 'landscape';
+            if $orientation eq 'landscape' && !$auto;
 
         $box.Array = self!padding-box(0, 0, $page-width, $page-height);
     }
@@ -69,16 +73,12 @@ class PDF::Style::Viewport
         self!setup-size(:$gfx)
     }
 
-    method !setup-page($page) {
-        $page.media-box = [0, 0, self.width("margin"), self.height("margin") ];
+    #| decorate the background of a PDF page, xobject, or pattern that's acting as a viewport
+    method decorate(PDF::Content::Graphics $_, :$resize) {
+        self!setup-size(:gfx(.gfx)) if $resize;
+        (.can('BBox') ?? .BBox !! .media-box) = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
-        self.render($page);
-    }
-
-    method add-page($pdf) {
-        my \page = $pdf.add-page;
-        self!setup-page(page);
-        page;
+        self.render($_);
     }
 
     method !make-image(PDF::Content::XObject $xobject!) {
@@ -140,7 +140,7 @@ class PDF::Style::Viewport
     }
 
     multi method element( :$canvas!, |c) {
-        use PDF::Style::Element::Canvas;
+        require PDF::Style::Element::Canvas;
         PDF::Style::Element::Canvas.place-element( :$canvas, :container(self.box), |c);
     }
 
@@ -153,7 +153,7 @@ class PDF::Style::Viewport
     }
 
     multi method element( :$text!, |c) {
-        use PDF::Style::Element::Text;
+        require PDF::Style::Element::Text;
         PDF::Style::Element::Text.place-element( :$text, :container(self.box), |c);
     }
 

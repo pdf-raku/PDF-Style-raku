@@ -10,7 +10,7 @@ use CSS::Declarations::Units :ops, :pt;
 my PDF::Style::Viewport $vp .= new;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.add-page($pdf);
+my $page = $vp.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 
 my CSS::Declarations $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");

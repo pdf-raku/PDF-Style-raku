@@ -17,7 +17,10 @@ is $vp.height, 595 - Borders, 'height - standard';
 is $vp.width('margin'), 420, 'margin width';
 is $vp.height('margin'), 595, 'margin height';
 my PDF::Lite $pdf .= new;
-$vp.add-page($pdf);
+my $page = $vp.decorate($pdf.add-page);
+is $page.width, 420, 'decorated page width';
+is $page.height, 595, 'decorated page height';
+
 $pdf.save-as: "t/viewport.pdf";
 
 my PDF::Style::Viewport $vp2 .= new: :style("size: 200pt 300pt");

@@ -15,7 +15,7 @@ my CSS::Declarations $css .= new( :$style );
 my PDF::Style::Viewport $vp .= new;
 
 my PDF::Lite $pdf .= new;
-my $Page = $vp.add-page($pdf);
+my $Page = $vp.decorate: $pdf.add-page;
 $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $vp.html-start;
 

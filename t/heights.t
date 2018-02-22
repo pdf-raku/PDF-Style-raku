@@ -12,7 +12,7 @@ my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; po
 my PDF::Style::Viewport $vp .= new;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.add-page($pdf);
+my $page = $vp.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 $page.media-box = [0, 0, ($vp.width)pt, ($vp.height)pt ];
 my @html = '<html>', '<body>', $vp.html-start;

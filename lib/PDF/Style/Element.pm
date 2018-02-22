@@ -262,6 +262,7 @@ class PDF::Style::Element {
                 $gfx.do(image, $.left, $.bottom);
             }
         }
+        $parent;
     }
 
     #| create and position content within a containing box

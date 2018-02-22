@@ -14,7 +14,7 @@ my CSS::Declarations $css .= new: :style("font-family:Helvetica; height:30pt; wi
 my PDF::Style::Viewport $Vp .= new;
 
 my PDF::Lite $pdf .= new;
-my $Page = $Vp.add-page($pdf);
+my $Page = $Vp.decorate: $pdf.add-page;
 $Page.gfx.comment-ops = True;
 my @Html = '<html>', '<body>', $Vp.html-start;
 my $N;

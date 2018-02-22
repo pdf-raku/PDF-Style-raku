@@ -1,35 +1,53 @@
 PDF-Style-p6
 ============
-This module implements simple CSS styling and placement of PDF images, forms or plain text blocks.
+__Experimental!__
+
+This is an extension module for `PDF::Lite` and `PDF::API6`, etc. It implements some basic CSS styling rules for simple PDF components, such as forms, images, or plain text blocks.
+
+## Supported Properties
+
+Type | Properties
+---  | ---
+Borders | border-color, border-style ('dotted', 'dashed', 'solid' only),  border-width, padding, margin
+Backgrounds | background-color, background-image (url encoded only), background-position, background-repeat
+Sizing  | height, max-height, min-height, width, max-width, min-width
+Text | font-family, font-style, font-size, font-kerning, font-stretch, font-weight, color, letter-spacing, line-height, text-align vertical-align ('top', 'center', 'bottom' only), word-spacing 
+Positioning  | bottom, top, left, right
+Viewport | size, (also border and background properties: padding, border, margin, background-color, etc)
+Other | opacity
+
+## Simple Styling
 
 ```
 use v6;
 use PDF::Lite;
-use PDF::Style::Viewport;
+use PDF::Style;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
-my $gfx = $pdf.add-page.gfx;
-my $vp = PDF::Style::Viewport.new: :$gfx, :style("background-color: blue; opacity: 0.2;");
+my $page = $pdf.add-page;
+$page.media-box = 0, 0, 120, 150;
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt");
+# create and output a styled text-block
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt; word-spacing:3pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-# manual positioning
-$css.bottom = 10pt;
-$css.left = 20pt;
-# create a styled text block
-my $text-elem = $vp.element( :$text, :$css );
+my $text-elem = PDF::Style.element( :$text, :$css );
+
 # display it on the page
-$gfx.do( .xobject, .bottom, .left) with $text-elem;
+my $bottom = 10pt;
+my $left = 20pt;
+$page.gfx.do( .xobject, $bottom, $left) with $text-elem;
 ```
 
-Elements are positioned and sized via CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
+## View-Port Positioning
+
+Elements positions and sizes on a viewport are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
 The `render` method places an element directly on a parent page, xobject or pattern, positioning it at the element's `top`, `left` coordinates.
 
@@ -43,7 +61,7 @@ use CSS::Declarations::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
 my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595pt), :style("background-color: blue; opacity: 0.2;");
-my $page = $vp.add-page($pdf);
+my $page = $vp.decorate: $pdf.add-page;
 
 my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
 
@@ -55,8 +73,8 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 my PDF::Style::Element $text-box = $vp.element( :$text, :$css );
 $text-box.render($page);
 
-# position an image below the text block
-# make some styling adjustments
+# position an image below the text block,
+# after some styling adjustments
 $css.border-color = 'red';
 $css.top ➕= ($text-box.height('padding') + 5)pt;
 $css.delete('height');
@@ -67,41 +85,15 @@ $vp.element(:$image, :$css).render($page);
 $pdf.save-as: "t/example.pdf";
 ```
 
-## CSS Property todo list:
-Group|Property|Notes|To-do
----|---|---|---
-background||
-  |background-color||
-  |background-image||
-  |background-repeat||
-  |background-position||
-border (boxed)|
-  |border-color||
-  |border-style|'dotted', 'dashed'|Other styles. Play better with border-width
-  |border-width
-Edges|
-  |margin
-  |padding
-Position|
-  |bottom, top, left, right
-  |height, max-height, min-height
-  |width, max-width, min-width
-  |font-family
-  |font-style
-  |font-size
-  |font-kerning
-  |font-stretch
-  |font-weight||
-  |color||
-  |letter-spacing||
-  |line-height||
-  |opacity||
-  |text-align||
-  |text-decoration||NYI
-  |text-indent||NYI
-  |text-transform||NYI
-  |vertical-align||'top', 'center', 'bottom' only
-  |word-spacing||
+## CSS Property todo lists:
+
+Property|Notes|To-do
+---|---|---
+border-style|'dotted', 'dashed', 'solid'|Other styles.
+text-decoration||NYI
+text-indent||NYI
+text-transform||NYI
+vertical-align|'top', 'center', 'bottom' only|Other modes
   
 ### CSS Property Shortlist
 - content
@@ -112,7 +104,6 @@ Position|
 - float
 - list-style, list-style-image, list-style-position, list-style-type
 - outline, outline-width, outline-style, outline-color
-- page-break-before, page-break-after, page-break-inside
 - overflow
 - unicode-bidi
 - table-layout
@@ -120,17 +111,16 @@ Position|
 - white-spacing
 
 ### Nice to have:
+
 Fonts:
 - font-synthesis
 - @font-face
+
+Viewport
+- @top-left-corner, etc
+- page-break-before, page-break-after, page-break-inside
 
 CSS Transforms http://dev.w3.org/csswg/css-transforms/#transform
 - transform
 - transform-origin
 
-Tagged PDF!
-
-## Restrictions
-
-- basic image rendering and placement (PNG, GIF and JPEG)
-- support for a modest subset of available css 2.1 properties

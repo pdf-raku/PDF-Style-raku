@@ -39,7 +39,7 @@ for <no-repeat repeat> -> $background-repeat {
     my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
     @Html.push: $vp.html-start;
 
-    $page = $vp.add-page($pdf);
+    $page = $vp.decorate: $pdf.add-page;
     $page.gfx.comment-ops = True;
     $n = 0;
 
