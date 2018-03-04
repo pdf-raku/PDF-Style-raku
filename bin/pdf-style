@@ -1,0 +1,33 @@
+use v6;
+use PDF::Style::Viewport;
+use CSS::Declarations;
+use PDF::Lite;
+
+sub MAIN(Str  $infile,             #| input PDF
+         Str  :$style = '',        #| Styling rules
+	 Str  :$password = '',     #| password for the input PDF, if encrypted
+	 Str  :$save-as = $infile, #| output PDF
+	 Bool :$count,             #| show the number of revision
+    ) {
+
+    my $input = $infile eq q{-}
+        ?? $*IN
+	!! $infile;
+
+    my CSS::Declarations $css .= new: :$style;
+    my PDF::Lite $pdf-in  .= open( $input, :$password);
+    my PDF::Lite $pdf-out .= new();
+    my UInt $pages = $pdf-in.page-count;
+
+    for 1 .. $pages -> UInt $page-num {
+        my $page-in = $pdf-in.page($page-num);
+        my $width  = $page-in.width;
+        my $height = $page-in.height;
+        my PDF::Style::Viewport $vp .= new: :$css;
+        $vp.Array = [$height, $width, 0, 0]
+            if $css.size eq 'auto';
+        my $page-out = $vp.import-page($page-in, $pdf-out);
+    }
+
+    $pdf-out.save-as($save-as);
+}

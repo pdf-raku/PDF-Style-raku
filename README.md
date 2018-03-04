@@ -58,32 +58,57 @@ use PDF::Style::Viewport;
 use PDF::Style::Element;
 use CSS::Declarations;
 use CSS::Declarations::Units :pt, :ops;
+use PDF::Content::Image;
+use PDF::Content::XObject;
 
 my $pdf = PDF::Lite.new;
-my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595pt), :style("background-color: blue; opacity: 0.2;");
+my PDF::Content::XObject $background-image = PDF::Content::Image.open("t/images/tiny.png");
+my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595pt), :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25;");
+# Create and resize a page to fit the viewport.
+# Also style the page, adding any borders or background for the viewport
 my $page = $vp.decorate: $pdf.add-page;
+# create and lay up some styled elements
+my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
 
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt dashed green; padding: 2pt");
-
-my $text = q:to"--ENOUGH!!--".lines.join: ' ';
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-    ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
+my $text = qq:to"--ENOUGH!!--".lines.join: ' ';
+    Text, styled as $css
     --ENOUGH!!--
 
-my PDF::Style::Element $text-box = $vp.element( :$text, :$css );
-$text-box.render($page);
+my PDF::Style::Element $text-elem = $vp.element( :$text, :$css );
 
-# position an image below the text block,
+note "text top-left is {.top}pt {.left}pt from page bottom, left corner"
+    given $text-elem;
+
+# output the element on the page.
+$text-elem.render($page);
+
+# now position an image below the text block,
 # after some styling adjustments
 $css.border-color = 'red';
-$css.top ➕= ($text-box.height('padding') + 5)pt;
+$css.border-style = 'dashed';
+$css.top ➕= ($text-elem.height('padding') + 5)pt;
 $css.delete('height');
 
 my Str $image = "t/images/snoopy-happy-dance.jpg";
-$vp.element(:$image, :$css).render($page);
+my PDF::Style::Element $image-elem = $vp.element(:$image, :$css);
+note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner"
+    given $image-elem;
+$image-elem.render($page);
+
+# positon from bottom right
+$css.delete: <left top>;
+$css.bottom = 5pt;
+$css.right = 5pt;
+$css.width = 120pt;
+$css.text-align = 'right';
+$css.color = 'blue';
+warn $css;
+.render($page)
+    given $vp.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "t/example.pdf";
 ```
+![example.pdf](t/.previews/example-001.png)
 
 ## CSS Property todo lists:
 
