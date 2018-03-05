@@ -7,7 +7,7 @@ class PDF::Style::Element {
     use PDF::Content::Matrix :transform;
     use PDF::DAO::Stream;
     use Color;
-    use CSS::Declarations;
+    use CSS::Declarations :measure;
     use CSS::Declarations::Units :Scale, :pt;
 
     use CSS::Declarations::Box :Edges;
@@ -269,7 +269,11 @@ class PDF::Style::Element {
     method place-element(CSS::Declarations :$css!,
                          :&build-content = sub (|c) {},
                          CSS::Declarations::Box :$container!) {
-        sub length($v) { $container.font.length($v) }
+        my $em = $container.font.em;
+        my $ex = $container.font.ex;
+        my $vh = $container.height / 100;
+        my $vw = $container.width / 100;
+        sub length($v) { measure($v, :$em, :$ex, :$vw, :$vh) }
         my $top = length($css.top);
         my $bottom = length($css.bottom);
         my $left = length($css.left);
@@ -324,8 +328,6 @@ class PDF::Style::Element {
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = $container.height - $top;
-        my $em = $container.font.em;
-        my $ex = $container.font.ex;
         my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
         my \box = elem.box;
 
