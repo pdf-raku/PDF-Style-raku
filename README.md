@@ -45,11 +45,12 @@ my $left = 20pt;
 $page.gfx.do( .xobject, $bottom, $left) with $text-elem;
 ```
 
-## View-Port Positioning
+## ViewPort Positioning
 
 Elements positions and sizes on a viewport are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
 The `render` method places an element directly on a parent page, xobject or pattern, positioning it at the element's `top`, `left` coordinates.
+
 
 ```
 use v6;
@@ -63,7 +64,7 @@ use PDF::Content::XObject;
 
 my $pdf = PDF::Lite.new;
 my PDF::Content::XObject $background-image = PDF::Content::Image.open("t/images/tiny.png");
-my $vp = PDF::Style::Viewport.new: :width(420pt), :height(595pt), :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25;");
+my $vp = PDF::Style::Viewport.new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
 # Create and resize a page to fit the viewport.
 # Also style the page, adding any borders or background for the viewport
 my $page = $vp.decorate: $pdf.add-page;
@@ -96,17 +97,13 @@ note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner"
 $image-elem.render($page);
 
 # positon from bottom right
-$css.delete: <left top>;
-$css.bottom = 5pt;
-$css.right = 5pt;
-$css.width = 120pt;
-$css.text-align = 'right';
-$css.color = 'blue';
-warn $css;
+$css = CSS::Declarations.new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
 .render($page)
     given $vp.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "t/example.pdf";
+# also save as HTML
+"t/example.html".IO.spurt: $vp.html;
 ```
 ![example.pdf](t/.previews/example-001.png)
 

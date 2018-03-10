@@ -9,6 +9,7 @@ class PDF::Style::Viewport
     use PDF::Style::Element::Image;
     use CSS::Declarations::Box :Edges;
     use PDF::Content::Graphics;
+    has PDF::Style::Element @.elements;
 
     method !padding-box($right, $bottom, $left, $top) {
         my $box = self.box;
@@ -139,6 +140,11 @@ class PDF::Style::Viewport
         $body.render(page);
     }
 
+    proto method element(|c) {
+        @!elements.push: {*};
+        @!elements.tail;
+    }
+
     multi method element( :$canvas!, |c) {
         require PDF::Style::Element::Canvas;
         PDF::Style::Element::Canvas.place-element( :$canvas, :container(self.box), |c);
@@ -172,4 +178,8 @@ class PDF::Style::Viewport
     }
 
     method html-end { '</div>' }
+
+    method html {
+        [~] flat $.html-start, @!elements.map(*.html), $.html-end;
+    }
 }
