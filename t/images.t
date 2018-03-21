@@ -45,7 +45,7 @@ sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
     $css.set-properties(|$settings);
     my $elem = $vp.element( :$css, |c );
     @Html.push: $elem.html;
-    $elem.render($page);
+    $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
     $caption //= ~ CSS::Declarations.new: |$settings;
     if $caption {
@@ -59,7 +59,7 @@ sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
         $caption-css.delete('height');
         my $caption-box = $vp.element( :css($caption-css), :text($caption) );
         @Html.push: $caption-box.html;
-        $caption-box.render($page);
+        $page.gfx.do(.xobject, .left, .bottom) with $caption-box;
     }
 
     if ++$n %% 2 {

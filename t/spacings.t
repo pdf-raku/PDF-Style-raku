@@ -23,7 +23,7 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
     warn {:$text}.perl;
     my $elem = $vp.element( :$text, :$css );
     @Html.push: $elem.html;
-    $elem.render($page);
+    $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
     if ($feed) {
         if ++$n %% 2 {

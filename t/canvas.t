@@ -27,7 +27,7 @@ sub test($vp, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
     my $elem = $vp.element( :$canvas, :$css );
 
     @Html.push: $elem.html;
-    $elem.render($page);
+    $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
     if ($feed) {
         if ++$n %% 2 {

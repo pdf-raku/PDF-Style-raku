@@ -47,7 +47,7 @@ for [ '_=_' => '=',
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
     my $elem = $vp.element( :$text, :$css );
     @html.push: $elem.html;
-    $elem.render($page);
+    $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
     my $elem-width = $elem.right - $elem.left;
     my $expected-width = $test-width eq 'long'

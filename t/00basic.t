@@ -21,7 +21,7 @@ my @Html = '<html>', '<body>', $vp.html-start;
 
 sub show-text($text, :$css!) {
     my $elem = $vp.element( :$text, :$css);
-    $elem.render($Page);
+    $Page.gfx.do(.xobject, .left, .bottom) with $elem;
     @Html.push: $elem.html;
     $elem;
 }

@@ -40,12 +40,8 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 my $text-elem = PDF::Style.element( :$text, :$css );
 
 # display it on the page
-my $bottom = 10pt;
-my $left = 20pt;
-$page.gfx.do( .xobject, $bottom, $left) with $text-elem;
+$page.gfx.do( .xobject, .bottom, .left) with $text-elem;
 ```
-
-## ViewPort Positioning
 
 Elements positions and sizes on a viewport are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
@@ -81,7 +77,7 @@ note "text top-left is {.top}pt {.left}pt from page bottom, left corner"
     given $text-elem;
 
 # output the element on the page.
-$text-elem.render($page);
+$page.gfx.do(.xobject, .left, .bottom) with $text-elem;
 
 # now position an image below the text block,
 # after some styling adjustments
@@ -94,11 +90,11 @@ my Str $image = "t/images/snoopy-happy-dance.jpg";
 my PDF::Style::Element $image-elem = $vp.element(:$image, :$css);
 note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner"
     given $image-elem;
-$image-elem.render($page);
+$page.gfx.do(.xobject, .left, .bottom) with $image-elem;
 
 # positon from bottom right
 $css = CSS::Declarations.new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
-.render($page)
+$page.gfx.do(.xobject, .left, .bottom)
     given $vp.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "t/example.pdf";

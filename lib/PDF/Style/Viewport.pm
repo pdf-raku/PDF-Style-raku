@@ -76,10 +76,12 @@ class PDF::Style::Viewport
 
     #| decorate the background of a PDF page, xobject, or pattern that's acting as a viewport
     method decorate(PDF::Content::Graphics $_, :$resize) {
-        self!setup-size(:gfx(.gfx)) if $resize;
+        my $gfx = .gfx;
+        self!setup-size(:$gfx) if $resize;
         (.can('BBox') ?? .BBox !! .media-box) = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
-        self.render($_);
+        $gfx.do(.xobject, .left, .bottom) with self;
+        $_;
     }
 
     method !make-image(PDF::Content::XObject $xobject!) {

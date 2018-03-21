@@ -5,7 +5,7 @@ class PDF::Style::Element {
     use PDF::Content::Graphics;
     use PDF::Content::Image;
     use PDF::Content::Matrix :transform;
-    use PDF::DAO::Stream;
+    use PDF::COS::Stream;
     use Color;
     use CSS::Declarations :measure;
     use CSS::Declarations::Units :Scale, :pt;
@@ -45,7 +45,7 @@ class PDF::Style::Element {
             my $bg-image = $.css.background-image;
             unless $bg-image ~~ 'none' {
                 $bg-image = PDF::Content::Image.open($bg-image)
-                    unless $bg-image ~~ PDF::DAO::Stream;
+                    unless $bg-image ~~ PDF::COS::Stream;
                 self!render-background-image($gfx, $bg-image);
             }
 
@@ -73,7 +73,7 @@ class PDF::Style::Element {
                     my $width = @width[0];
                     $gfx.LineWidth = $width;
                     $gfx.StrokeAlpha = color.a / 255;
-                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: */255 ];
                     $gfx.DashPattern = self!dash-pattern( %border<border-style>[0], :$width );
 
                     my \w = @stroke[Right] - @stroke[Left];
@@ -90,10 +90,10 @@ class PDF::Style::Element {
                 with @width[edge] -> $width {
                     my $border-style = %border<border-style>[edge];
                     with %border<border-color>[edge] -> Color \color {
-                        if $width && $border-style ne 'none' && color.a != 0 {
+                        if $width && $border-style ne 'none' && color.a !=~= 0 {
                             $gfx.LineWidth = $width;
                             $gfx.StrokeAlpha = color.a / 255;
-                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: ( */255 ) ];
+                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: */255 ];
                             my Numeric \pos = @stroke[edge];
                             if edge == Top|Bottom {
                                 $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Left] - @stroke[Right]) );
@@ -105,8 +105,8 @@ class PDF::Style::Element {
                                 $gfx.MoveTo( pos, @stroke[Top] );
                                 $gfx.LineTo( pos, @stroke[Bottom] );
                             }
+                            $gfx.Stroke;
                         }
-                        $gfx.Stroke;
                     }
                 }
             }
@@ -115,7 +115,7 @@ class PDF::Style::Element {
 
     method !render-background-color($gfx, @border, Color $_) {
         unless .a == 0 {
-            $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+            $gfx.FillColor = :DeviceRGB[ .rgb.map: */255 ];
             $gfx.FillAlpha = .a / 255;
             my \w = @border[Right] - @border[Left];
             my \h = @border[Top] - @border[Bottom];
@@ -123,8 +123,6 @@ class PDF::Style::Element {
             $gfx.Fill;
         }
     }
-
-    method pdf-class {require PDF::Lite:ver(v0.0.1..*)}
 
     has %!pattern-cache{Any};
     method !render-background-image($gfx, $bg-image) {
@@ -175,9 +173,7 @@ class PDF::Style::Element {
                 if $x || $y;
             my $pattern = $gfx.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
-            $pattern.graphics: {
-                .do($bg-image, 0, 0, :$width, :$height );
-            }
+            $pattern.gfx.do($bg-image, 0, 0, :$width, :$height );
             $pattern.finish;
 
             $gfx.FillColor = :Pattern($gfx.resource-key($pattern));
@@ -243,26 +239,6 @@ class PDF::Style::Element {
            $xobject = $outer;
         }
         $xobject;
-    }
-
-    method render(PDF::Content::Graphics $parent, :$comment) {
-        my $opacity = $.css.opacity.Num;
-        if $opacity =~= 1 {
-            $parent.graphics: -> $gfx {
-		$gfx.add-comment($_) with $comment;
-                $gfx.transform: :translate[ $.left, $.bottom ];
-                self!style-box($gfx);
-                self.render-element($gfx);
-            }
-        }
-        elsif $opacity !=~= 0 {
-            $parent.graphics: -> $gfx {
-                my \image = self!xobject(:$comment);
-                $gfx.FillAlpha = $gfx.StrokeAlpha = $opacity;
-                $gfx.do(image, $.left, $.bottom);
-            }
-        }
-        $parent;
     }
 
     #| create and position content within a containing box
