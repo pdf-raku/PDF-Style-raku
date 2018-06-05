@@ -8,7 +8,6 @@ class PDF::Style::Element::Image
     use HTML::Entity;
     use CSS::Properties;
     use CSS::Properties::Units :Scale;
-    use PDF::Content::Image;
     use PDF::Content::XObject;
 
     our class Content {
@@ -22,7 +21,7 @@ class PDF::Style::Element::Image
 
     method place-element(
         Str :$image,
-        PDF::Content::XObject :$xobject = PDF::Content::Image.open($image),
+        PDF::Content::XObject :$xobject = PDF::Content::XObject.open($image),
         CSS::Properties :$css!,
         :$container!) {
         my $width = $container.css-width($css);
