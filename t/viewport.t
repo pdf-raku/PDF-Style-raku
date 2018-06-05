@@ -3,8 +3,9 @@ use Test;
 use PDF::Style::Viewport;
 use CSS::Properties;
 use PDF::Lite;
+use PDF::Content::XObject;
 
-my $bg-image = PDF::Content::Image.open("t/images/semitransparent.gif");
+my $bg-image = PDF::Content::XObject.open("t/images/semitransparent.gif");
 my CSS::Properties $css .= new: :style("size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 1pt solid red");
 
 my PDF::Style::Viewport $vp .= new: :$css;

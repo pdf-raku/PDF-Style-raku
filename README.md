@@ -54,11 +54,10 @@ use PDF::Style::Viewport;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
-use PDF::Content::Image;
 use PDF::Content::XObject;
 
 my $pdf = PDF::Lite.new;
-my PDF::Content::XObject $background-image = PDF::Content::Image.open("t/images/tiny.png");
+my PDF::Content::XObject $background-image = PDF::Content::XObject.open("t/images/tiny.png");
 my $vp = PDF::Style::Viewport.new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
 # Create and resize a page to fit the viewport.
 # Also style the page, adding any borders or background for the viewport

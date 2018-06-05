@@ -3,7 +3,7 @@ use v6;
 class PDF::Style::Element {
     use PDF::Style::Font;
     use PDF::Content::Graphics;
-    use PDF::Content::Image;
+    use PDF::Content::XObject;
     use PDF::Content::Matrix :transform;
     use PDF::COS::Stream;
     use Color;
@@ -44,7 +44,7 @@ class PDF::Style::Element {
 
             my $bg-image = $.css.background-image;
             unless $bg-image ~~ 'none' {
-                $bg-image = PDF::Content::Image.open($bg-image)
+                $bg-image = PDF::Content::XObject.open($bg-image)
                     unless $bg-image ~~ PDF::COS::Stream;
                 self!render-background-image($gfx, $bg-image);
             }

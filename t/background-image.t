@@ -5,7 +5,7 @@ use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
-use PDF::Content::Image;
+use PDF::Content::XObject;
 
 # also dump to HTML, for comparision
 
@@ -35,9 +35,9 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
     }
 }
 
-my $jpg = PDF::Content::Image.open("t/images/snoopy-happy-dance.jpg");
-my $gif = PDF::Content::Image.open("t/images/semitransparent.gif");
-my $png = PDF::Content::Image.open("t/images/tiny.png");
+my $jpg = PDF::Content::XObject.open("t/images/snoopy-happy-dance.jpg");
+my $gif = PDF::Content::XObject.open("t/images/semitransparent.gif");
+my $png = PDF::Content::XObject.open("t/images/tiny.png");
 
 for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, },
         { :background-image(:url($jpg) ), :background-repeat<no-repeat>, :background-color<red> },
