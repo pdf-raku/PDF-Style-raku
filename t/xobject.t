@@ -4,8 +4,8 @@ plan 1;
 
 use PDF::Style::Viewport;
 use PDF::Lite;
-use CSS::Declarations;
-use CSS::Declarations::Units :ops, :pt;
+use CSS::Properties;
+use CSS::Properties::Units :ops, :pt;
 
 my PDF::Style::Viewport $vp .= new;
 
@@ -13,7 +13,7 @@ my PDF::Lite $pdf .= new;
 my $page = $vp.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 
-my CSS::Declarations $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
+my CSS::Properties $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt

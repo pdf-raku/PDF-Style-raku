@@ -6,7 +6,7 @@ class PDF::Style::Element::Text
     is PDF::Style::Element {
 
     use HTML::Entity;
-    use CSS::Declarations;
+    use CSS::Properties;
     use PDF::Content::Text::Block;
     has PDF::Content::Text::Block $.text;
 
@@ -45,7 +45,7 @@ class PDF::Style::Element::Text
     #| create a child element. Positioning is relative to this object. CSS styles
     #| are inherited from this object.
     method place-element( Str:D :$text!,
-                    CSS::Declarations :$css!,
+                    CSS::Properties :$css!,
                     :$container!,
         ) {
 

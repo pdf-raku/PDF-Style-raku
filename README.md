@@ -22,15 +22,15 @@ Other | opacity
 use v6;
 use PDF::Lite;
 use PDF::Style;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 
 my $pdf = PDF::Lite.new;
 my $page = $pdf.add-page;
 $page.media-box = 0, 0, 120, 150;
 
 # create and output a styled text-block
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt; word-spacing:3pt");
+my $css = CSS::Properties.new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt; word-spacing:3pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -43,18 +43,17 @@ my $text-elem = PDF::Style.element( :$text, :$css );
 $page.gfx.do( .xobject, .bottom, .left) with $text-elem;
 ```
 
+## ViewPorts [PDF::Style::ViewPort]
+
 Elements positions and sizes on a viewport are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
-
-The `render` method places an element directly on a parent page, xobject or pattern, positioning it at the element's `top`, `left` coordinates.
-
 
 ```
 use v6;
 use PDF::Lite;
 use PDF::Style::Viewport;
 use PDF::Style::Element;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 use PDF::Content::Image;
 use PDF::Content::XObject;
 
@@ -65,7 +64,7 @@ my $vp = PDF::Style::Viewport.new: :style("background-color: rgb(180,180,250); b
 # Also style the page, adding any borders or background for the viewport
 my $page = $vp.decorate: $pdf.add-page;
 # create and lay up some styled elements
-my $css = CSS::Declarations.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
+my $css = CSS::Properties.new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
 
 my $text = qq:to"--ENOUGH!!--".lines.join: ' ';
     Text, styled as $css
@@ -93,7 +92,7 @@ note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner"
 $page.gfx.do(.xobject, .left, .bottom) with $image-elem;
 
 # positon from bottom right
-$css = CSS::Declarations.new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
+$css = CSS::Properties.new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
 $page.gfx.do(.xobject, .left, .bottom)
     given $vp.element( :text("Text styled as $css"), :$css );
 

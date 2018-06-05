@@ -9,7 +9,7 @@
     "PDF::Content",
     "PDF::Font::Loader",
     "HTML::Parser::XML",
-    "CSS::Declarations",
+    "CSS::Properties",
     "HTML::Entity",
     "Color"
   ],

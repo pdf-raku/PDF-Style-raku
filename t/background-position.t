@@ -2,8 +2,8 @@ use v6;
 use Test;
 use PDF::Style::Viewport;
 use PDF::Style::Element;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
 use PDF::Content::Image;
 
@@ -36,7 +36,7 @@ my $png = PDF::Content::Image.open("t/images/tiny.png");
 for <no-repeat repeat> -> $background-repeat {
 
     my PDF::Style::Viewport $vp .= new;
-    my CSS::Declarations $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
+    my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
     @Html.push: $vp.html-start;
 
     $page = $vp.decorate: $pdf.add-page;

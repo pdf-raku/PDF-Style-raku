@@ -7,11 +7,11 @@ class PDF::Style::Element {
     use PDF::Content::Matrix :transform;
     use PDF::COS::Stream;
     use Color;
-    use CSS::Declarations :measure;
-    use CSS::Declarations::Units :Scale, :pt;
+    use CSS::Properties :measure;
+    use CSS::Properties::Units :Scale, :pt;
 
-    use CSS::Declarations::Box :Edges;
-    has CSS::Declarations::Box $.box handles<Array left top bottom right width height css>;
+    use CSS::Properties::Box :Edges;
+    has CSS::Properties::Box $.box handles<Array left top bottom right width height css>;
 
     submethod TWEAK(
         Numeric :$em = 12pt,
@@ -19,7 +19,7 @@ class PDF::Style::Element {
         |c
     ) {
         my $font = PDF::Style::Font.new: :$em, :$ex;
-        $!box //= CSS::Declarations::Box.new( :$font, |c);
+        $!box //= CSS::Properties::Box.new( :$font, |c);
     }
 
     my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';
@@ -242,9 +242,9 @@ class PDF::Style::Element {
     }
 
     #| create and position content within a containing box
-    method place-element(CSS::Declarations :$css!,
+    method place-element(CSS::Properties :$css!,
                          :&build-content = sub (|c) {},
-                         CSS::Declarations::Box :$container!) {
+                         CSS::Properties::Box :$container!) {
         my $em = $container.font.em;
         my $ex = $container.font.ex;
         my $vh = $container.height / 100;

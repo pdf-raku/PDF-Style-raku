@@ -4,14 +4,14 @@ plan 1;
 
 use PDF::Style::Viewport;
 use PDF::Style::Element;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
 
 my PDF::Style::Viewport $vp .= new;
-my CSS::Declarations $css .= new: :style("font-family:Helvetica; height:250pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
+my CSS::Properties $css .= new: :style("font-family:Helvetica; height:250pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my PDF::Lite $pdf .= new;
@@ -47,7 +47,7 @@ sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
-    $caption //= ~ CSS::Declarations.new: |$settings;
+    $caption //= ~ CSS::Properties.new: |$settings;
     if $caption {
         my $caption-css = $base-css.clone(
             :border("1pt solid black"),

@@ -5,12 +5,12 @@ plan 11;
 use PDF::Style::Viewport;
 use PDF::Style::Element;
 use PDF::Lite;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 
 # also dump to HTML, for comparision
 
-my CSS::Declarations $css .= new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
+my CSS::Properties $css .= new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
 my PDF::Style::Viewport $vp .= new;
 
 my PDF::Lite $pdf .= new;

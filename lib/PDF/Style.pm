@@ -1,7 +1,7 @@
 use v6;
 
 class PDF::Style {
-    use CSS::Declarations::Units;
+    use CSS::Properties::Units;
 
     method element(|c) {
         require PDF::Style::Viewport;

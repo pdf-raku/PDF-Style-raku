@@ -4,14 +4,14 @@ plan 7;
 
 use PDF::Style::Viewport;
 use PDF::Style::Element;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
 
 my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt; top: 30pt; border: 1pt solid red";
-my CSS::Declarations $css .= new( :$style );
+my CSS::Properties $css .= new( :$style );
 my PDF::Style::Viewport $vp .= new;
 
 my PDF::Lite $pdf .= new;

@@ -6,8 +6,8 @@ class PDF::Style::Element::Image
     is PDF::Style::Element {
 
     use HTML::Entity;
-    use CSS::Declarations;
-    use CSS::Declarations::Units :Scale;
+    use CSS::Properties;
+    use CSS::Properties::Units :Scale;
     use PDF::Content::Image;
     use PDF::Content::XObject;
 
@@ -23,7 +23,7 @@ class PDF::Style::Element::Image
     method place-element(
         Str :$image,
         PDF::Content::XObject :$xobject = PDF::Content::Image.open($image),
-        CSS::Declarations :$css!,
+        CSS::Properties :$css!,
         :$container!) {
         my $width = $container.css-width($css);
         my $height = $container.css-height($css);

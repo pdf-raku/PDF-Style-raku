@@ -1,11 +1,11 @@
 use v6;
 use Test;
 use PDF::Style::Viewport;
-use CSS::Declarations;
+use CSS::Properties;
 use PDF::Lite;
 
 my $bg-image = PDF::Content::Image.open("t/images/semitransparent.gif");
-my CSS::Declarations $css .= new: :style("size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 1pt solid red");
+my CSS::Properties $css .= new: :style("size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 1pt solid red");
 
 my PDF::Style::Viewport $vp .= new: :$css;
 constant LeftMargin = 3;

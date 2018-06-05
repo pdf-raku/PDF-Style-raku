@@ -3,8 +3,8 @@ use Test;
 plan 2;
 
 use PDF::Style::Viewport;
-use CSS::Declarations;
-use CSS::Declarations::Units :pt, :ops;
+use CSS::Properties;
+use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
 unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
     skip-rest 'HTML::Canvas[::To::PDF] required to run canvas tests';
@@ -13,7 +13,7 @@ unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
 # also dump to HTML, for comparision
 
 my PDF::Style::Viewport $vp .= new;
-my CSS::Declarations $css .= new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
+my CSS::Properties $css .= new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
 my @Html = '<html>', '<body>', $vp.html-start;
 
 my PDF::Lite $pdf .= new;

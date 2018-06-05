@@ -7,7 +7,7 @@ class PDF::Style::Viewport
 
     use HTML::Entity;
     use PDF::Style::Element::Image;
-    use CSS::Declarations::Box :Edges;
+    use CSS::Properties::Box :Edges;
     use PDF::Content::Graphics;
     has PDF::Style::Element @.elements;
 
@@ -29,7 +29,7 @@ class PDF::Style::Viewport
         # @top-left-corner etc
         # page-break-before, page-break-after etc
         use PDF::Content::Page :PageSizes;
-        use CSS::Declarations::Units;
+        use CSS::Properties::Units;
         my @length;
         my $orientation = 'portrait';
         my $box := self.box;
