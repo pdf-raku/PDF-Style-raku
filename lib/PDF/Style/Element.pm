@@ -1,11 +1,13 @@
 use v6;
 
-class PDF::Style::Element {
+use PDF::Style;
+
+class PDF::Style::Element
+    is PDF::Style {
     use PDF::Style::Font;
     use PDF::Content::Graphics;
     use PDF::Content::XObject;
     use PDF::Content::Matrix :transform;
-    use PDF::COS::Stream;
     use Color;
     use CSS::Properties :measure;
     use CSS::Properties::Units :Scale, :pt;
@@ -18,7 +20,7 @@ class PDF::Style::Element {
         Numeric :$ex = 0.75 * $em,
         |c
     ) {
-        my $font = PDF::Style::Font.new: :$em, :$ex;
+        my PDF::Style::Font $font .= new: :$em, :$ex;
         $!box //= CSS::Properties::Box.new( :$font, |c);
     }
 
@@ -34,7 +36,7 @@ class PDF::Style::Element {
 
     #| Do basic styling, common to all box types (image, text, canvas)
     method !style-box($_) {
-        my Numeric @border[4] = self.box.border.list;
+        my Numeric @border[4] = $!box.border.list;
         @border[$_] -= $.left for Left, Right;
         @border[$_] -= $.bottom for Top, Bottom;
 
@@ -45,7 +47,7 @@ class PDF::Style::Element {
             my $bg-image = $.css.background-image;
             unless $bg-image ~~ 'none' {
                 $bg-image = PDF::Content::XObject.open($bg-image)
-                    unless $bg-image ~~ PDF::COS::Stream;
+                    unless $bg-image ~~ PDF::Content::XObject;
                 self!render-background-image($gfx, $bg-image);
             }
 
@@ -55,7 +57,7 @@ class PDF::Style::Element {
 
     method !render-border($gfx, @border) {
         my %border = $.css.border;
-        my Numeric @width[4] = self.box.widths(%border<border-width>);
+        my Numeric @width[4] = $!box.widths(%border<border-width>);
         my @stroke = [
             @border[Top] - @width[Top]/2,
             @border[Right] - @width[Right]/2,
@@ -95,7 +97,7 @@ class PDF::Style::Element {
                             $gfx.StrokeAlpha = color.a / 255;
                             $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: */255 ];
                             my Numeric \pos = @stroke[edge];
-                            if edge == Top|Bottom {
+                            if edge ~~ Top|Bottom {
                                 $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Left] - @stroke[Right]) );
                                 $gfx.MoveTo( @stroke[Left], pos);
                                 $gfx.LineTo( @stroke[Right], pos);
@@ -126,51 +128,50 @@ class PDF::Style::Element {
 
     has %!pattern-cache{Any};
     method !render-background-image($gfx, $bg-image) {
-        my $repeat-x = True;
-        my $repeat-y = True;
-        given $.css.background-repeat {
-            when 'repeat-y' { $repeat-x = False }
-            when 'repeat-x' { $repeat-y = False }
-            when 'no-repeat' { $repeat-x = $repeat-y = False }
-        }
-        my Array \padding = self.box.padding;
-        my Array \border = self.box.border;
+        my Bool (\repeat-x, \repeat-y) = do given $.css.background-repeat {
+            when 'repeat-x' { True, False }
+            when 'repeat-y' { False, True }
+            default         { False, False }
+        };
+        my List \padding = $!box.padding;
+        my List \border = $!box.border;
         my \bg-width = border[Right] - border[Left];
         my \bg-height = border[Top] - border[Bottom];
-        $gfx.Save;
-        $gfx.transform: :translate[ padding[Left] - $.left, padding[Top] - $.bottom];
-
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
         my $width = $bg-image.width * Scale::px;
         my $height = $bg-image.height * Scale::px;
         my \x-float = padding[Right] - padding[Left] - $width;
         my \y-float = padding[Top] - padding[Bottom] - $height;
-        my ($x, $y) = self!align-background-image(x-float, y-float);
+        my (\x, \y) = self!align-background-image(x-float, y-float);
+
+        $gfx.Save;
+        $gfx.transform: :translate[ padding[Left] - $.left, padding[Top] - $.bottom];
+
         if ($width >= bg-width && $height >= bg-height)
-        || (!$repeat-x && !$repeat-y) {
+        || (!repeat-x && !repeat-y) {
             # doesn't repeat no tiling pattern required
             $gfx.Rectangle(|@bg-region);
             $gfx.Clip;
             $gfx.EndPath;
-            $gfx.do($bg-image, $x, -$y, :$width, :$height, :valign<top>);
+            $gfx.do($bg-image, x, -y, :$width, :$height, :valign<top>);
         }
         else {
-            my @Matrix = $gfx.CTM.list;
-            my $XStep = $width;
-            my $YStep = $height;
+            my @Matrix[6] = $gfx.CTM.list;
+            my Numeric $XStep = $width;
+            my Numeric $YStep = $height;
 
-            unless $repeat-x {
+            unless repeat-x {
                 # step outside box in X direction
                 $XStep += bg-width;
             }
-            unless $repeat-y {
+            unless repeat-y {
                 # step outside box in Y direction
                 $YStep += bg-height;
                 @Matrix = transform( :matrix(@Matrix), :translate[0, bg-height] );
             }
 
-            @Matrix = transform( :matrix(@Matrix), :translate[$x, -$y] )
-                if $x || $y;
+            @Matrix = transform( :matrix(@Matrix), :translate[x, -y] )
+                if x || y;
             my $pattern = $gfx.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.gfx.do($bg-image, 0, 0, :$width, :$height );
@@ -195,19 +196,19 @@ class PDF::Style::Element {
     }
 
     method !align-background-image($x-float, $y-float) {
-        enum <x y>;
+        enum <X Y>;
         my @pos = $.css.background-position.list;
         @pos.push('center') while @pos < 2;
         @pos = @pos.reverse
-            if @pos[x] eq 'top'|'bottom' || @pos[y] eq 'left'|'right';
+            if @pos[X] eq 'top'|'bottom' || @pos[Y] eq 'left'|'right';
 
-        my $x = bg-pos(@pos[x], $x-float, :keyw{ :left(0.0), :center(0.5), :right(1.0) });
-        my $y = bg-pos(@pos[y], $y-float, :keyw{ :top(0.0), :center(0.5), :bottom(1.0) });
-        $x, $y;
+        my \x = bg-pos(@pos[X], $x-float, :keyw{ :left(0.0), :center(0.5), :right(1.0) });
+        my \y = bg-pos(@pos[Y], $y-float, :keyw{ :top(0.0), :center(0.5), :bottom(1.0) });
+        x, y;
     }
 
     method !bbox {
-        my Numeric @b[4] = self.box.border.list;
+        my Numeric @b[4] = $!box.border.list;
         [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
     }
 
@@ -245,16 +246,17 @@ class PDF::Style::Element {
     method place-element(CSS::Properties :$css!,
                          :&build-content = sub (|c) {},
                          CSS::Properties::Box :$container!) {
+
         my $em = $container.font.em;
         my $ex = $container.font.ex;
-        my $vh = $container.height / 100;
-        my $vw = $container.width / 100;
-        sub length($v) { measure($v, :$em, :$ex, :$vw, :$vh) }
-        my $top = length($css.top);
+        sub length($v) {
+            state $vh = $container.height / 100;
+            state $vw = $container.width / 100;
+            measure($v, :$em, :$ex, :$vw, :$vh)
+        }
+
+        my $top    = length($css.top);
         my $bottom = length($css.bottom);
-        my $left = length($css.left);
-        my $right = length($css.right);
-        my $width = $container.css-width($css);
         my $height = $container.css-height($css);
 
         my \height-max = $height // do {
@@ -264,6 +266,10 @@ class PDF::Style::Element {
             }
             $max;
         }
+
+        my $left  = length($css.left);
+        my $right = length($css.right);
+        my $width = $container.css-width($css);
 
         my \width-max = $width // do {
             my $max = $container.width - ($left//0) - ($right//0);

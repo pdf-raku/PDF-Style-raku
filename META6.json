@@ -8,7 +8,6 @@
     "PDF::Lite",
     "PDF::Content",
     "PDF::Font::Loader",
-    "HTML::Parser::XML",
     "CSS::Properties",
     "HTML::Entity",
     "Color"
