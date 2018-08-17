@@ -70,7 +70,7 @@ class PDF::Style::Element::Image
         my $style = $.css.write;
 
         my $style-att = $style
-            ?? encode-entities($style).fmt: ' style="%s"'
+            ?? HTML::Entity::encode($style).fmt: ' style="%s"'
             !! '';
 
         with $!image {

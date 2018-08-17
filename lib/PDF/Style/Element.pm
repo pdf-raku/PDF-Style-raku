@@ -69,7 +69,7 @@ class PDF::Style::Element
         && %border<border-color>.map({($_//'').Str}).unique == 1
         && %border<border-style>.unique == 1 {
             # all 4 edges are the same. draw a simple rectangle
-            with %border<border-color>[0] -> \color {
+            given %border<border-color>[0] -> \color {
                 my \border-style = %border<border-style>[0];
                 if @width[0] && border-style ne 'none' && color.a != 0 {
                     my $width = @width[0];
@@ -89,9 +89,9 @@ class PDF::Style::Element
         else {
             # edges differ. draw them separately
             for (Top, Right, Bottom, Left) -> \edge {
-                with @width[edge] -> $width {
+                given @width[edge] -> $width {
                     my $border-style = %border<border-style>[edge];
-                    with %border<border-color>[edge] -> Color \color {
+                    given %border<border-color>[edge] -> Color \color {
                         if $width && $border-style ne 'none' && color.a !=~= 0 {
                             $gfx.LineWidth = $width;
                             $gfx.StrokeAlpha = color.a / 255;
@@ -129,6 +129,7 @@ class PDF::Style::Element
     has %!pattern-cache{Any};
     method !render-background-image($gfx, $bg-image) {
         my Bool (\repeat-x, \repeat-y) = do given $.css.background-repeat {
+            when 'repeat'   { True, True }
             when 'repeat-x' { True, False }
             when 'repeat-y' { False, True }
             default         { False, False }

@@ -67,9 +67,7 @@ my $page = $vp.decorate: $pdf.add-page;
 # create and lay up some styled elements
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
 
-my $text = qq:to"--ENOUGH!!--".lines.join: ' ';
-    Text, styled as $css
-    --ENOUGH!!--
+my $text = "Text, styled as $css";
 
 my PDF::Style::Element $text-elem = $vp.element( :$text, :$css );
 

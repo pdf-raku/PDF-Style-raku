@@ -81,7 +81,7 @@ class PDF::Style::Element::Text
         my $style = $css.write;
 
         my $text = do with $!text {
-            encode-entities(.text);
+            HTML::Entity::encode(.text);
         }
         else {
             ''
@@ -94,7 +94,7 @@ class PDF::Style::Element::Text
         }
 
         my $style-att = $style
-            ?? encode-entities($style).fmt: ' style="%s"'
+            ?? HTML::Entity::encode($style).fmt: ' style="%s"'
             !! '';
         '<div%s>%s</div>'.sprintf($style-att, $text);
     }

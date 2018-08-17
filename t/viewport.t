@@ -9,6 +9,8 @@ my $bg-image = PDF::Content::XObject.open("t/images/semitransparent.gif");
 my CSS::Properties $css .= new: :style("size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 1pt solid red");
 
 my PDF::Style::Viewport $vp .= new: :$css;
+my @html = '<html>', '<body>', $vp.html-start;
+
 constant LeftMargin = 3;
 constant Borders = 2; # 1px each side
 constant DefaultBorders = 4; # 'medium' := 2px each side
@@ -23,6 +25,8 @@ is $page.width, 420, 'decorated page width';
 is $page.height, 595, 'decorated page height';
 
 $pdf.save-as: "t/viewport.pdf";
+@html.append: $vp.html-end, '</body>', '</html>', '';
+"t/viewport.html".IO.spurt: @html.join: "\n";
 
 my PDF::Style::Viewport $vp2 .= new: :style("size: 200pt 300pt");
 is $vp2.width, 200 - DefaultBorders, 'width - width + height';
