@@ -38,11 +38,11 @@ for <left center right justify> -> $alignment {
     $css.font-weight = 'bold';
 
     show-text($header, :$css);
-    $css.top  ➕= 15pt;
+    $css.top  +css= 15pt;
 
     $css.font-weight = 'normal';
     show-text($body ~ ' ' ~ $css.write, :$css);
-    $css.top  ➕= 120pt;
+    $css.top  +css= 120pt;
 }
 
 $css.delete("text-align");
@@ -61,14 +61,14 @@ for <top middle bottom> -> $valign {
     $css.font-weight = 'bold';
     show-text($header, :$css);
 
-    $css.top  ➕= 15pt;
+    $css.top  +css= 15pt;
     $css.font-weight = 'normal';
     $css.height = 130pt;
     $css.vertical-align = $valign;
     my $text = $body ~ $style;
     show-text($text, :$css);
 
-    $css.top  ➕= 165pt;
+    $css.top  +css= 165pt;
 }
 
 note "% **** position right *** ";
@@ -76,7 +76,7 @@ note "% **** position right *** ";
 $css.delete('left', 'vertical-align');
 $css.right = 25pt;
 $css.height = 100pt;
-$css.top  ➕= 12pt;
+$css.top  +css= 12pt;
 
 my $elem = show-text( $css.write, :$css );
 is $elem.height, 100, 'content height';

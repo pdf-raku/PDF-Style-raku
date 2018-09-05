@@ -26,11 +26,11 @@ sub show-text($text, :$css!) {
 
     $Page.gfx.do(.xobject, .left, .bottom) with $elem;
     if ++$N %% 5 {
-        $css.top ➕= 35pt;
+        $css.top +css= 35pt;
         $css.left = 10pt;
     }
     else {
-        $css.left ➕= 115pt;
+        $css.left +css= 115pt;
     }
 }
 

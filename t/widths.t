@@ -57,11 +57,11 @@ for [ '_=_' => '=',
     is-approx $elem-width, $expected-width, 'box width';
 
 ##    if ++$n %% 2 {
-        $css.top ➕= 75pt;
+        $css.top +css= 75pt;
 ##        $css.left = 20pt;
 ##    }
 ##    else {
-##        $css.left ➕= 270pt;
+##        $css.left +css= 270pt;
 ##    }
 }
 

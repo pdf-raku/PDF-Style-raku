@@ -77,7 +77,7 @@ class PDF::Style::Element::Text
 
     method html {
         my $css = $.css.clone;
-        $css.delete('vertical-align'); # we'll deal with this later
+        $css.vertical-align = Nil; # we'll deal with this later
         my $style = $css.write;
 
         my $text = do with $!text {

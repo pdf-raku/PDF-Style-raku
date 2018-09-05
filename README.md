@@ -20,7 +20,7 @@ my $page = $pdf.add-page;
 $page.media-box = 0, 0, 120, 150;
 
 # create and output a styled text-block
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; border: 1pt dashed green; padding: 2pt; word-spacing:3pt");
+my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; border:1pt dashed green; padding: 2pt; word-spacing:3pt");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -58,7 +58,7 @@ use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
 use PDF::Content::XObject;
 
-my $pdf = PDF::Lite.new;
+my PDF::Lite $pdf .= new;
 my PDF::Content::XObject $background-image .= open("t/images/tiny.png");
 my PDF::Style::Viewport $vp .= new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
 # Create and resize a page to fit the viewport.
@@ -71,24 +71,25 @@ my $text = "Text, styled as $css";
 
 my PDF::Style::Element $text-elem = $vp.element( :$text, :$css );
 
-note "text top-left is {.top}pt {.left}pt from page bottom, left corner"
-    given $text-elem;
+given $text-elem {
+    note "text top-left is {.top}pt {.left}pt from page bottom, left corner";
 
-# output the element on the page.
-$page.gfx.do(.xobject, .left, .bottom) with $text-elem;
+    # output the element on the page.
+    $page.gfx.do(.xobject, .left, .bottom);
+}
 
 # now position an image below the text block,
 # after some styling adjustments
 $css.border-color = 'red';
 $css.border-style = 'dashed';
-$css.top ➕= ($text-elem.height('padding') + 5)pt;
-$css.delete('height');
+$css.top +css= ($text-elem.height('padding') + 5)pt;
+$css.height = Nil;
 
 my Str $image = "t/images/snoopy-happy-dance.jpg";
-my PDF::Style::Element $image-elem = $vp.element(:$image, :$css);
-note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner"
-    given $image-elem;
-$page.gfx.do(.xobject, .left, .bottom) with $image-elem;
+given $vp.element(:$image, :$css) {
+    note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner";
+    $page.gfx.do(.xobject, .left, .bottom);
+}
 
 # positon from bottom right
 $css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
@@ -97,7 +98,9 @@ $page.gfx.do(.xobject, .left, .bottom)
 
 $pdf.save-as: "t/example.pdf";
 # also save as HTML
-"t/example.html".IO.spurt: $vp.html;
+warn "todo: Cannot invoke this object (REPR: Null; VMNull)";
+
+##"t/example.html".IO.spurt: $vp.html;
 ```
 ![example.pdf](t/.previews/example-001.png)
 

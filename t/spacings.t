@@ -27,11 +27,11 @@ sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
 
     if ($feed) {
         if ++$n %% 2 {
-            $base-css.top ➕= 100pt;
+            $base-css.top +css= 100pt;
             $base-css.left = 20pt;
         }
         else {
-            $base-css.left ➕= 270pt;
+            $base-css.left +css= 270pt;
         }
     }
 }
@@ -57,8 +57,8 @@ $css.delete('top');
 
 # do one padded block positioned from the bottom
 
-$css.bottom = $css.height ➕ 30pt;
-$css.right = ($vp.width)pt ➖ $css.left ➖ $css.width;
+$css.bottom = $css.height +css 30pt;
+$css.right = ($vp.width)pt -css $css.left -css $css.width;
 $css.delete('left');
 test($vp, $css, :!feed);
 

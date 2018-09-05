@@ -53,9 +53,9 @@ sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
             :border("1pt solid black"),
             :background-color("rgba(200,200,200,.5)"),
            );
-        $caption-css.left ➕= 8pt;
+        $caption-css.left +css= 8pt;
         $caption-css.width = ($elem.width - 12)pt;
-        $caption-css.top = $css.top ➕ 8pt;
+        $caption-css.top = $css.top +css 8pt;
         $caption-css.delete('height');
         my $caption-box = $vp.element( :css($caption-css), :text($caption) );
         @Html.push: $caption-box.html;
@@ -63,11 +63,11 @@ sub test($vp, $base-css, $settings = {}, Str :$caption is copy, |c) {
     }
 
     if ++$n %% 2 {
-        $base-css.top ➕= 280pt;
+        $base-css.top +css= 280pt;
         $base-css.left = 20pt;
     }
     else {
-        $base-css.left ➕= 260pt;
+        $base-css.left +css= 260pt;
     }
 }
 

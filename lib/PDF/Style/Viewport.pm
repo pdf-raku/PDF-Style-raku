@@ -182,6 +182,6 @@ class PDF::Style::Viewport
     method html-end { '</div>' }
 
     method html {
-        [~] flat $.html-start, @!elements.map(*.html), $.html-end;
+        [~] flat $.html-start, @!elements.map({warn .perl; .html}), $.html-end;
     }
 }

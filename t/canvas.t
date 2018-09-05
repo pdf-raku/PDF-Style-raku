@@ -31,11 +31,11 @@ sub test($vp, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
 
     if ($feed) {
         if ++$n %% 2 {
-            $css.top ➕= 100pt;
+            $css.top +css= 100pt;
             $css.left = 20pt;
         }
         else {
-            $css.left ➕= 270pt;
+            $css.left +css= 270pt;
         }
     }
 }

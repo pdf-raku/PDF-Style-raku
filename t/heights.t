@@ -56,11 +56,11 @@ for [ '_=_' => '=',
     is-approx $elem-height, $expected-height, 'box height';
 
     if $n %% 2 {
-        $css.top ➕= 120pt;
+        $css.top +css= 120pt;
         $css.left = 20pt;
     }
     else {
-        $css.left ➕= 270pt;
+        $css.left +css= 270pt;
     }
 }
 
