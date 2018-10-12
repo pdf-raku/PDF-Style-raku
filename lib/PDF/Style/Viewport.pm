@@ -5,7 +5,6 @@ use PDF::Style::Element;
 class PDF::Style::Viewport
     is PDF::Style::Element {
 
-    use HTML::Entity;
     use PDF::Style::Element::Image;
     use CSS::Properties::Box :Edges;
     use PDF::Content::Graphics;
@@ -174,7 +173,7 @@ class PDF::Style::Viewport
     method html-start {
         my $style = $.css.write;
         my $style-att = $style
-            ?? HTML::Entity::encode($style).fmt: ' style="%s"'
+            ?? $.html-escape($style).fmt: ' style="%s"'
             !! '';
         '<div%s>'.sprintf($style-att);
     }

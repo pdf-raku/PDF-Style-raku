@@ -5,7 +5,6 @@ use PDF::Style::Element;
 class PDF::Style::Element::Text
     is PDF::Style::Element {
 
-    use HTML::Entity;
     use CSS::Properties;
     use PDF::Content::Text::Block;
     has PDF::Content::Text::Block $.text;
@@ -81,7 +80,7 @@ class PDF::Style::Element::Text
         my $style = $css.write;
 
         my $text = do with $!text {
-            HTML::Entity::encode(.text);
+            $.html-escape(.text);
         }
         else {
             ''
@@ -94,7 +93,7 @@ class PDF::Style::Element::Text
         }
 
         my $style-att = $style
-            ?? HTML::Entity::encode($style).fmt: ' style="%s"'
+            ?? $.html-escape($style).fmt: ' style="%s"'
             !! '';
         '<div%s>%s</div>'.sprintf($style-att, $text);
     }

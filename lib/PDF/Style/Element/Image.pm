@@ -5,7 +5,6 @@ use PDF::Style::Element;
 class PDF::Style::Element::Image
     is PDF::Style::Element {
 
-    use HTML::Entity;
     use CSS::Properties;
     use CSS::Properties::Units :Scale;
     use PDF::Content;
@@ -72,7 +71,7 @@ class PDF::Style::Element::Image
         my $style = $.css.write;
 
         my $style-att = $style
-            ?? HTML::Entity::encode($style).fmt: ' style="%s"'
+            ?? $.html-escape($style).fmt: ' style="%s"'
             !! '';
 
         given $!image {
