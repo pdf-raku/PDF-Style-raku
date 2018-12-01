@@ -22,7 +22,7 @@
     "PDF::Style::Element::Image" : "lib/PDF/Style/Element/Image.pm",
     "PDF::Style::Element::Text" : "lib/PDF/Style/Element/Text.pm",
     "PDF::Style::Font" : "lib/PDF/Style/Font.pm",
-    "PDF::Style::Viewport" : "lib/PDF/Style/Viewport.pm"
+    "PDF::Style::Body" : "lib/PDF/Style/Body.pm"
   },
   "resources" : [ ],
   "source-url" : "git://github.com/p6-pdf/PDF-Style-p6.git",

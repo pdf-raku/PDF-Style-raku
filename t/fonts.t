@@ -2,7 +2,7 @@ use v6;
 use Test;
 plan 1;
 
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -11,17 +11,17 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my CSS::Properties $css .= new: :style("font-family:Helvetica; height:30pt; width:110pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red;");
-my PDF::Style::Viewport $Vp .= new;
+my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
-my $Page = $Vp.decorate: $pdf.add-page;
+my $Page = $body.decorate: $pdf.add-page;
 $Page.gfx.comment-ops = True;
-my @Html = '<html>', '<body>', $Vp.html-start;
+my @Html = '<html>', $body.html-start;
 my $N;
 
 sub show-text($text, :$css!) {
     note "$text = {~$css}";
-    my $elem = $Vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
 
     $Page.gfx.do(.xobject, .left, .bottom) with $elem;
@@ -35,7 +35,7 @@ sub show-text($text, :$css!) {
 }
 
 sub scoped( &codez ) {
-    $Vp.box.save;
+    $body.box.save;
     my $saved-css = $css;
     $css = $css.clone;
 
@@ -44,7 +44,7 @@ sub scoped( &codez ) {
     $saved-css.top = $css.top;
     $saved-css.left = $css.left;
     $css = $saved-css;
-    $Vp.box.restore;
+    $body.box.restore;
 }
 
 scoped({
@@ -97,7 +97,7 @@ scoped({
 
 lives-ok {$pdf.save-as: "t/fonts.pdf"};
 
-@Html.append: $Vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/fonts.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

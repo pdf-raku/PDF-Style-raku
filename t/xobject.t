@@ -2,15 +2,15 @@ use v6;
 use Test;
 plan 1;
 
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Lite;
 use CSS::Properties;
 use CSS::Properties::Units :ops, :pt;
 
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 
 my CSS::Properties $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
@@ -25,14 +25,14 @@ $css.bottom = '700pt';
 
 $page.graphics: -> $gfx {
 
-    my $text-elem = $vp.element( :$text, :$css);
+    my $text-elem = $body.element( :$text, :$css);
     does-ok $text-elem.xobject, PDF::Content::XObject;
     $gfx.do(.xobject, .left, .bottom) with $text-elem;;
 
     my Str $image = "t/images/snoopy-happy-dance.jpg";
     $css.opacity = .5;
     $css.delete("height");
-    my $image-elem = $vp.element(:$image, :$css);
+    my $image-elem = $body.element(:$image, :$css);
     $gfx.do(.xobject, .left, .bottom - $image-elem.height('padding'))
         with $image-elem;
 }

@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -9,13 +9,13 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red");
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
-$page.media-box = [0, 0, ($vp.width)pt, ($vp.height)pt ];
-my @html = '<html>', '<body>', $vp.html-start;
+$page.media-box = [0, 0, ($body.width)pt, ($body.height)pt ];
+my @html = '<html>', $body.html-start;
 my $n;
 
 constant %Height = %('_' => Mu, '-' => 50pt, '=' => 75pt, '+' => 100pt);
@@ -44,7 +44,7 @@ for [ '_=_' => '=',
 
     my $style = $css.write;
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -66,7 +66,7 @@ for [ '_=_' => '=',
 
 lives-ok {$pdf.save-as: "t/heights.pdf"};
 
-@html.append: $vp.html-end, '</body>', '</html>', '';
+@html.append: $body.html-end, '</html>', '';
 "t/heights.html".IO.spurt: @html.join: "\n";
 
 done-testing;

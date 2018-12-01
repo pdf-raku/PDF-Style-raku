@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -8,23 +8,23 @@ use PDF::Lite;
 
 # also dump to HTML, for comparision
 
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 my CSS::Properties $css .= new: :style("font-family:Helvetica; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
-my @Html = '<html>', '<body>', $vp.html-start;
+my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone(|$settings);
     $css."{.key}"() = .value
         for $settings.pairs;
 
     my $text = $css.write;
     warn {:$text}.perl;
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -42,12 +42,12 @@ for [ { :background-color<rgba(255,0,0,.2)>, :width<250pt> },
       { :background-color<rgba(255,0,0,.2)>, :left<0pt>, :border-width<1pt>, },
       ] {
 
-    test($vp, $css, $_);
+    test($body, $css, $_);
 }
 
 lives-ok {$pdf.save-as: "t/background.pdf"};
 
-@Html.append: $vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/background.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

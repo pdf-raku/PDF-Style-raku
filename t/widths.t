@@ -2,7 +2,7 @@ use v6;
 use Test;
 plan 11;
 
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use PDF::Lite;
 use CSS::Properties;
@@ -11,12 +11,12 @@ use CSS::Properties::Units :pt, :ops;
 # also dump to HTML, for comparision
 
 my CSS::Properties $css .= new: :style("font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red");
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
-my @html = '<html>', '<body>', $vp.html-start;
+my @html = '<html>', $body.html-start;
 my $n;
 
 constant %Width = %('_' => Mu, '-' => 200pt, '=' => 250pt, '+' => 300pt);
@@ -45,13 +45,13 @@ for [ '_=_' => '=',
 
     my $style = $css.write;
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
     my $elem-width = $elem.right - $elem.left;
     my $expected-width = $test-width eq 'long'
-        ?? $vp.width - $css.left - $css.right - $css.border-left-width - $css.border-right-width
+        ?? $body.width - $css.left - $css.right - $css.border-left-width - $css.border-right-width
         !! %Width{$test-width};
 
     is-approx $elem-width, $expected-width, 'box width';
@@ -67,7 +67,7 @@ for [ '_=_' => '=',
 
 lives-ok {$pdf.save-as: "t/widths.pdf"};
 
-@html.append: $vp.html-end, '</body>', '</html>', '';
+@html.append: $body.html-end, '</html>', '';
 "t/widths.html".IO.spurt: @html.join: "\n";
 
 done-testing;

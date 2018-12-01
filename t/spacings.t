@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -9,19 +9,19 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid green");
-my PDF::Style::Viewport $vp .= new;
-my @Html = '<html>', '<body>', $vp.html-start;
+my PDF::Style::Body $body .= new;
+my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone: |$settings;
     my $text = $css.write;
     warn {:$text}.perl;
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -50,7 +50,7 @@ for [ { :line-height<9pt> },
       { :font-stretch<ultra-expanded> },
       ] {
 
-    test($vp, $css, $_);
+    test($body, $css, $_);
 }
 
 $css.delete('top');
@@ -58,13 +58,13 @@ $css.delete('top');
 # do one padded block positioned from the bottom
 
 $css.bottom = $css.height +css 30pt;
-$css.right = ($vp.width)pt -css $css.left -css $css.width;
+$css.right = ($body.width)pt -css $css.left -css $css.width;
 $css.delete('left');
-test($vp, $css, :!feed);
+test($body, $css, :!feed);
 
 lives-ok {$pdf.save-as: "t/spacings.pdf"};
 
-@Html.append: $vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/spacings.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

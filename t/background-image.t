@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -9,20 +9,20 @@ use PDF::Content::XObject;
 
 # also dump to HTML, for comparision
 
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
-my @Html = '<html>', '<body>', $vp.html-start;
+my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone(|$settings);
     my $text = $css.clone(background-image => :url<...>).write;
     warn {:$text}.perl;
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -52,12 +52,12 @@ for [   { :background-image(:url($jpg) ), :background-repeat<no-repeat>, },
         { :background-image(:url($png) ), :background-repeat<repeat-y>, :background-color<rgb(20,220,220)>, :color<white> },
       ] {
 
-    test($vp, $css, $_);
+    test($body, $css, $_);
 }
 
 lives-ok {$pdf.save-as: "t/background-image.pdf"};
 
-@Html.append: $vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/background-image.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

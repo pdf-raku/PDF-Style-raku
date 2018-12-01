@@ -2,7 +2,7 @@ use v6;
 use Test;
 plan 1;
 
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :px, :ops;
@@ -11,21 +11,21 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt");
-my PDF::Style::Viewport $vp .= new;
-my @Html = '<html>', '<body>', $vp.html-start;
+my PDF::Style::Body $body .= new;
+my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $css, $settings = {}, Bool :$feed = True) {
+sub test($body, $css, $settings = {}, Bool :$feed = True) {
     $css."{.key}"() = .value
         for $settings.pairs;
 
     my $text = $css.write;
     warn {:$text}.perl;
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -51,7 +51,7 @@ for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
       { :padding(5pt), },
       ] {
 
-    test($vp, $css, $_);
+    test($body, $css, $_);
 }
 
 $css.delete('top');
@@ -59,13 +59,13 @@ $css.delete('top');
 # do one padded block positioned from the bottom
 
 $css.bottom = $css.height +css 30pt;
-$css.right = ((0pt -css $css.left) -css $css.width) +css ($vp.width)pt;
+$css.right = ((0pt -css $css.left) -css $css.width) +css ($body.width)pt;
 $css.delete('left');
-test($vp, $css, :!feed);
+test($body, $css, :!feed);
 
 lives-ok {$pdf.save-as: "t/border.pdf"};
 
-@Html.append: $vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/border.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

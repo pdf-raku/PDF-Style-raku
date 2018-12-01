@@ -2,7 +2,7 @@ use v6;
 
 use PDF::Style::Element;
 
-class PDF::Style::Viewport
+class PDF::Style::Body
     is PDF::Style::Element {
 
     use PDF::Style::Element::Image;
@@ -51,7 +51,7 @@ class PDF::Style::Viewport
                 @length = $size[2], $size[3];
             }
             default {
-                warn "unhandled viewport 'size' {.perl}";
+                warn "unhandled body 'size' {.perl}";
             }
         }
 
@@ -73,7 +73,7 @@ class PDF::Style::Viewport
         self!setup-size(:$gfx)
     }
 
-    #| decorate the background of a PDF page, xobject, or pattern that's acting as a viewport
+    #| decorate the background of a PDF page, xobject, or pattern that's acting as a body
     method decorate(PDF::Content::Graphics $_, :$resize) {
         my $gfx = .gfx;
         self!setup-size(:$gfx) if $resize;
@@ -175,10 +175,10 @@ class PDF::Style::Viewport
         my $style-att = $style
             ?? $.html-escape($style).fmt: ' style="%s"'
             !! '';
-        '<div%s>'.sprintf($style-att);
+        '<body%s>'.sprintf($style-att);
     }
 
-    method html-end { '</div>' }
+    method html-end { '</body>' }
 
     method html {
         [~] flat $.html-start, @!elements.map({warn .perl; .html}), $.html-end;

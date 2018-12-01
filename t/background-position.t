@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -10,14 +10,14 @@ use PDF::Content::XObject;
 # also dump to HTML, for comparision
 
 my PDF::Lite $pdf .= new;
-my @Html = '<html>', '<body>';
+my @Html = '<html>';
 my ($page, $n); # closure variables
 
-sub test($vp, $base-css, $settings = {}, Bool :$feed = True) {
+sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone(|$settings);
     my $text = $css.clone(background-image => :url<...>).write;
     warn {:$text}.perl;
-    my $elem = $vp.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
 
@@ -35,11 +35,11 @@ my $png = PDF::Content::XObject.open("t/images/tiny.png");
 
 for <no-repeat repeat> -> $background-repeat {
 
-    my PDF::Style::Viewport $vp .= new;
+    my PDF::Style::Body $body .= new;
     my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt");
-    @Html.push: $vp.html-start;
+    @Html.push: $body.html-start;
 
-    $page = $vp.decorate: $pdf.add-page;
+    $page = $body.decorate: $pdf.add-page;
     $page.gfx.comment-ops = True;
     $n = 0;
 
@@ -54,15 +54,15 @@ for <no-repeat repeat> -> $background-repeat {
         { :background-image(:url($gif) ), :$background-repeat, :background-position<10pt 15pt>},
     ] {
 
-        test($vp, $css, $_);
+        test($body, $css, $_);
     }
 
-    @Html.push: $vp.html-end;
+    @Html.push: $body.html-end;
 }
 
 lives-ok {$pdf.save-as: "t/background-position.pdf"};
 
-@Html.append: '</body>', '</html>', '';
+@Html.append: '</html>', '';
 "t/background-position.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

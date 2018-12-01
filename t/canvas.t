@@ -2,7 +2,7 @@ use v6;
 use Test;
 plan 2;
 
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
@@ -12,19 +12,19 @@ unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
 }
 # also dump to HTML, for comparision
 
-my PDF::Style::Viewport $vp .= new;
+my PDF::Style::Body $body .= new;
 my CSS::Properties $css .= new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
-my @Html = '<html>', '<body>', $vp.html-start;
+my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
-my $page = $vp.decorate: $pdf.add-page;
+my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment-ops = True;
 my $n;
 
-sub test($vp, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
+sub test($body, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
     $css.set-properties(|$properties);
 
-    my $elem = $vp.element( :$canvas, :$css );
+    my $elem = $body.element( :$canvas, :$css );
 
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
@@ -49,7 +49,7 @@ do {
         ctx.strokeRect(10, 30, 50, 25);
         ctx.fillText("Hello World", 10, 50);
     }
-    test($vp, $css, :$canvas, );
+    test($body, $css, :$canvas, );
 }
 
 do {
@@ -68,12 +68,12 @@ do {
             }
         }
     }
-    test($vp, $css, :$canvas, { :opacity(.5) });
+    test($body, $css, :$canvas, { :opacity(.5) });
 }
 
 lives-ok {$pdf.save-as: "t/canvas.pdf"};
 
-@Html.append: $vp.html-end, '</body>', '</html>', '';
+@Html.append: $body.html-end, '</html>', '';
 "t/canvas.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

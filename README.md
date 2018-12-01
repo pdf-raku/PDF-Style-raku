@@ -42,17 +42,17 @@ Backgrounds | background-color, background-image (url encoded only), background-
 Sizing  | height, max-height, min-height, width, max-width, min-width
 Text | font-family, font-style, font-size, font-kerning, font-stretch, font-weight, color, letter-spacing, line-height, text-align vertical-align ('top', 'center', 'bottom' only), word-spacing 
 Positioning  | bottom, top, left, right
-Viewport | size, (also border and background properties: padding, border, margin, background-color, etc)
+Body | size, (also border and background properties: padding, border, margin, background-color, etc)
 Other | opacity
 
-## ViewPorts [PDF::Style::ViewPort]
+## Bodys [PDF::Style::Body]
 
-Elements positions and sizes on a viewport are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
+Elements positions and sizes on a body are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
 ```
 use v6;
 use PDF::Lite;
-use PDF::Style::Viewport;
+use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
@@ -60,16 +60,16 @@ use PDF::Content::XObject;
 
 my PDF::Lite $pdf .= new;
 my PDF::Content::XObject $background-image .= open("t/images/tiny.png");
-my PDF::Style::Viewport $vp .= new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
-# Create and resize a page to fit the viewport.
-# Also style the page, adding any borders or background for the viewport
-my $page = $vp.decorate: $pdf.add-page;
+my PDF::Style::Body $body .= new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
+# Create and resize a page to fit the body.
+# Also style the page, adding any borders or background for the body
+my $page = $body.decorate: $pdf.add-page;
 # create and lay up some styled elements
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
 
 my $text = "Text, styled as $css";
 
-my PDF::Style::Element $text-elem = $vp.element( :$text, :$css );
+my PDF::Style::Element $text-elem = $body.element( :$text, :$css );
 
 given $text-elem {
     note "text top-left is {.top}pt {.left}pt from page bottom, left corner";
@@ -86,7 +86,7 @@ $css.top +css= ($text-elem.height('padding') + 5)pt;
 $css.height = Nil;
 
 my Str $image = "t/images/snoopy-happy-dance.jpg";
-given $vp.element(:$image, :$css) {
+given $body.element(:$image, :$css) {
     note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner";
     $page.gfx.do(.xobject, .left, .bottom);
 }
@@ -94,13 +94,13 @@ given $vp.element(:$image, :$css) {
 # positon from bottom right
 $css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
 $page.gfx.do(.xobject, .left, .bottom)
-    given $vp.element( :text("Text styled as $css"), :$css );
+    given $body.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "t/example.pdf";
 # also save as HTML
 warn "todo: Cannot invoke this object (REPR: Null; VMNull)";
 
-##"t/example.html".IO.spurt: $vp.html;
+##"t/example.html".IO.spurt: $body.html;
 ```
 ![example.pdf](t/.previews/example-001.png)
 
@@ -135,7 +135,7 @@ Fonts:
 - font-synthesis
 - @font-face
 
-Viewport
+Body
 - @top-left-corner, etc
 - page-break-before, page-break-after, page-break-inside
 
