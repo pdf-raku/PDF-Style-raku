@@ -45,7 +45,7 @@ Positioning  | bottom, top, left, right
 Body | size, (also border and background properties: padding, border, margin, background-color, etc)
 Other | opacity
 
-## Bodys [PDF::Style::Body]
+## Bodies [PDF::Style::Body]
 
 Elements positions and sizes on a body are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
@@ -58,12 +58,14 @@ use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
 use PDF::Content::XObject;
 
-my PDF::Lite $pdf .= new;
 my PDF::Content::XObject $background-image .= open("t/images/tiny.png");
 my PDF::Style::Body $body .= new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
-# Create and resize a page to fit the body.
-# Also style the page, adding any borders or background for the body
+
+my PDF::Lite $pdf .= new;
+
+# Create a page, sized and decorated from the body element
 my $page = $body.decorate: $pdf.add-page;
+
 # create and lay up some styled elements
 my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
 
@@ -73,7 +75,6 @@ my PDF::Style::Element $text-elem = $body.element( :$text, :$css );
 
 given $text-elem {
     note "text top-left is {.top}pt {.left}pt from page bottom, left corner";
-
     # output the element on the page.
     $page.gfx.do(.xobject, .left, .bottom);
 }
@@ -91,16 +92,15 @@ given $body.element(:$image, :$css) {
     $page.gfx.do(.xobject, .left, .bottom);
 }
 
-# positon from bottom right
+# posit on from bottom right
 $css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
 $page.gfx.do(.xobject, .left, .bottom)
     given $body.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "t/example.pdf";
 # also save as HTML
-warn "todo: Cannot invoke this object (REPR: Null; VMNull)";
 
-##"t/example.html".IO.spurt: $body.html;
+"t/example.html".IO.spurt: $body.html;
 ```
 ![example.pdf](t/.previews/example-001.png)
 

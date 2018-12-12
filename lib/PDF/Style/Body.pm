@@ -181,6 +181,6 @@ class PDF::Style::Body
     method html-end { '</body>' }
 
     method html {
-        [~] flat $.html-start, @!elements.map({warn .perl; .html}), $.html-end;
+        [~] flat $.html-start, @!elements.map({ .html }), $.html-end;
     }
 }
