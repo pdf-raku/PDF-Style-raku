@@ -92,7 +92,7 @@ given $body.element(:$image, :$css) {
     $page.gfx.do(.xobject, .left, .bottom);
 }
 
-# posit on from bottom right
+# position from bottom right
 $css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
 $page.gfx.do(.xobject, .left, .bottom)
     given $body.element( :text("Text styled as $css"), :$css );

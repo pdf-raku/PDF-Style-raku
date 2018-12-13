@@ -6,7 +6,10 @@ use PDF::Style::Body;
 use CSS::Properties;
 use CSS::Properties::Units :pt, :ops;
 use PDF::Lite;
-unless try {require HTML::Canvas; require HTML::Canvas::To::PDF; True} {
+my $canvas-class;
+unless try {
+    $canvas-class = (require HTML::Canvas);
+    require HTML::Canvas::To::PDF; True} {
     skip-rest 'HTML::Canvas[::To::PDF] required to run canvas tests';
     exit;
 }
@@ -41,7 +44,7 @@ sub test($body, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
 }
 
 do {
-    my $canvas = ::('HTML::Canvas').new;
+    my $canvas = $canvas-class.new;
     $canvas.context: -> \ctx {
         ctx.beginPath();
         ctx.arc(95, 50, 40, 0, 2 * pi);
@@ -53,7 +56,7 @@ do {
 }
 
 do {
-    my $canvas = ::('HTML::Canvas').new;
+    my $canvas = $canvas-class.new;
     my $n;
     $canvas.context: -> \ctx {
         ctx.fillStyle = 'red';
