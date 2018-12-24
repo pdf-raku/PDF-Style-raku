@@ -13,7 +13,7 @@ class PDF::Style::Element
     use CSS::Properties::Units :Scale, :pt;
 
     use CSS::Properties::Box :Edges;
-    has CSS::Properties::Box $.box handles<Array left top bottom right width height css>;
+    has CSS::Properties::Box $.box handles<Array left top bottom right width height css> is rw;
 
     submethod TWEAK(
         Numeric :$em = 12pt,

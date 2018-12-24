@@ -9,74 +9,25 @@ class PDF::Style::Body
     use CSS::Properties::Box :Edges;
     use PDF::Content::Graphics;
     has PDF::Style::Element @.elements;
+    use CSS::Properties::PageBox;
+    use CSS::Properties::Units :pt;
 
-    method !padding-box($right, $bottom, $left, $top) {
-        my $box = self.box;
-        my @padding = $box.widths($box.css.padding);
-        my @border  = $box.widths($box.css.border-width);
-        my @margin  = $box.widths($box.css.margin);
-        my @box = $top, $left, $bottom, $right;
-        @box[$_] -= @padding[$_] + @border[$_] + @margin[$_]
-            for Top, Right;
-        @box[$_] += @padding[$_] + @border[$_] + @margin[$_]
-            for Bottom, Left;
-        @box;
-    }
-
-    method !setup-size(:$gfx) {
-        # todo: see https://www.w3.org/TR/css3-page/
-        # @top-left-corner etc
-        # page-break-before, page-break-after etc
-        use PDF::Content::Page :PageSizes;
-        use CSS::Properties::Units;
-        my @length;
-        my $orientation = 'portrait';
-        my $box := self.box;
-        my Bool $auto = False;
-
-        for $box.css.size.list {
-            when Numeric {
-                @length.push: $_;
-            }
-            when 'portrait' | 'landscape' {
-                $orientation = $_;
-            }
-            when 'auto' {
-                $auto = True;
-                @length = .width, .height
-                    given $gfx // self;
-            }
-            when PageSizes.enums{.uc}:exists {
-                my Array $size = PageSizes.enums{.uc};
-                @length = $size[2], $size[3];
-            }
-            default {
-                warn "unhandled body 'size' {.perl}";
-            }
+    submethod TWEAK(:$gfx) {
+        my %opt;
+        with $gfx {
+            %opt<width>  = 0pt + .width;
+            %opt<height> = 0pt + .height;
         }
-
-        my ($page-width, $page-height) = do if @length {
-            @length[1] //= @length[0];
-            @length;
-        } else {
-            $auto = True;
-            (self.width, self.height);
-        }
-
-        ($page-height, $page-width) = ($page-width, $page-height)
-            if $orientation eq 'landscape' && !$auto;
-
-        $box.Array = self!padding-box(0, 0, $page-width, $page-height);
-    }
-
-    method TWEAK(:$gfx) {
-        self!setup-size(:$gfx)
+        # replace regular box with a page box.
+        my $css = self.box.css;
+        my $font = self.box.font;
+        self.box = CSS::Properties::PageBox.new: :$css, :$font, |%opt;
     }
 
     #| decorate the background of a PDF page, xobject, or pattern that's acting as a body
     method decorate(PDF::Content::Graphics $_, :$resize) {
         my $gfx = .gfx;
-        self!setup-size(:$gfx) if $resize;
+        self.TWEAK(:$gfx) if $resize;
         (.can('BBox') ?? .BBox !! .media-box) = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
         $gfx.do(.xobject, .left, .bottom) with self;
