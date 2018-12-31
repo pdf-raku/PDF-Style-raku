@@ -9,7 +9,7 @@ class PDF::Style::Element
     use PDF::Content::XObject;
     use PDF::Content::Matrix :transform;
     use Color;
-    use CSS::Properties :measure;
+    use CSS::Properties;
     use CSS::Properties::Units :Scale, :pt;
 
     use CSS::Properties::Box :Edges;
@@ -18,6 +18,7 @@ class PDF::Style::Element
     submethod TWEAK(
         Numeric :$em = 12pt,
         Numeric :$ex = 0.75 * $em,
+        :gfx($),
         |c
     ) {
         my PDF::Style::Font $font .= new: :$em, :$ex;
@@ -57,7 +58,7 @@ class PDF::Style::Element
 
     method !render-border($gfx, @border) {
         my %border = $.css.border;
-        my Numeric @width[4] = $!box.widths(%border<border-width>);
+        my Numeric @width[4] = $!box.measurements(%border<border-width>);
         my @stroke = [
             @border[Top] - @width[Top]/2,
             @border[Right] - @width[Right]/2,
@@ -248,34 +249,26 @@ class PDF::Style::Element
                          :&build-content = sub (|c) {},
                          CSS::Properties::Box :$container!) {
 
-        my $em = $container.font.em;
-        my $ex = $container.font.ex;
-        sub length($v) {
-            state $vh = $container.height / 100;
-            state $vw = $container.width / 100;
-            measure($v, :$em, :$ex, :$vw, :$vh)
-        }
-
-        my $top    = length($css.top);
-        my $bottom = length($css.bottom);
+        my $top    = $container.measure($css.top);
+        my $bottom = $container.measure($css.bottom);
         my $height = $container.css-height($css);
 
         my \height-max = $height // do {
             my $max = $container.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
-                $max -= $_ with length($css."$_"());
+                $max -= $_ with $container.measure($css."$_"());
             }
             $max;
         }
 
-        my $left  = length($css.left);
-        my $right = length($css.right);
+        my $left  = $container.measure($css.left);
+        my $right = $container.measure($css.right);
         my $width = $container.css-width($css);
 
         my \width-max = $width // do {
             my $max = $container.width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
-                $max -= $_ with length($css."$_"());
+                $max -= $_ with $container.measure($css."$_"());
             }
             $max;
         }
@@ -286,12 +279,12 @@ class PDF::Style::Element
 
         $width //= width-max if $left.defined && $right.defined;
         $width //= .content-width with $content;
-        with length($css.min-width) -> \min {
+        with $container.measure($css.min-width) -> \min {
             $width = min if min > $width
         }
 
         $height //= .content-height with $content;
-        with length($css.min-height) -> \min {
+        with $container.measure($css.min-height) -> \min {
             $height = min if min > $height
         }
 
@@ -311,7 +304,11 @@ class PDF::Style::Element
 
         #| adjust from PDF coordinates. Shift origin from top-left to bottom-left;
         my \pdf-top = $container.height - $top;
-        my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, |($type => $content);
+        my $em = $container.em;
+        my $ex = $container.ex;
+        my $vw = $container.viewport-width;
+        my $vh = $container.viewport-height;
+        my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$vw, :$vh, |($type => $content);
         my \box = elem.box;
 
         # reposition to outside of border

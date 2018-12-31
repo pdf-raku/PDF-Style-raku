@@ -12,11 +12,11 @@ class PDF::Style::Body
     use CSS::Properties::PageBox;
     use CSS::Properties::Units :pt;
 
-    submethod TWEAK(:$gfx) {
+    submethod TWEAK(:$gfx, |c) {
         my %opt;
         with $gfx {
-            %opt<width>  = 0pt + .width;
-            %opt<height> = 0pt + .height;
+            %opt<width>  = %opt<viewport-width>  = 0pt + .width;
+            %opt<height> = %opt<viewport-height> = 0pt + .height;
         }
         # replace regular box with a page box.
         my $css = self.box.css;
@@ -67,6 +67,8 @@ class PDF::Style::Body
 
         my $em = $container.font.em;
         my $ex = $container.font.ex;
+        my $vw = $container.viewport-width;
+        my $vh = $container.viewport-heigth;
         my $content-width = $xobject.width;
         my $content-height = $xobject.height;
         my $image = self!make-image($xobject);
@@ -76,7 +78,7 @@ class PDF::Style::Body
                       $left + $width + $right,
                       0, 0];
         my \pdf-top = self.height - $top;
-        my \elem = PDF::Style::Element::Image.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$image;
+        my \elem = PDF::Style::Element::Image.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$image, :$vw, :$vh;
 
         elem;
     }

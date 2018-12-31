@@ -25,8 +25,8 @@ is mm($body.width('margin')), 148mm, 'margin width';
 is mm($body.height('margin')), 210mm, 'margin height';
 my PDF::Lite $pdf .= new;
 my $page = $body.decorate($pdf.add-page);
-is $page.width, 148mm, 'decorated page width';
-is $page.height, 210mm, 'decorated page height';
+is $page.width, pt(148mm), 'decorated page width';
+is $page.height, pt(210mm), 'decorated page height';
 
 $pdf.save-as: "t/body.pdf";
 @html.append: $body.html-end, '</html>', '';
@@ -39,14 +39,14 @@ is $body2.width('margin'), 200pt, 'margin width';
 is $body2.height('margin'), 300pt, 'margin height';
 
 $body2 = PDF::Style::Body.new: :style("size: 300px");
-is $body2.width('margin'), 300pt,'margin width';
-is $body2.height('margin'), 300pt, 'margin height';
+is $body2.width('margin'), pt(300px),'margin width';
+is $body2.height('margin'), pt(300px), 'margin height';
 
 my $gfx = $pdf.add-page.gfx;
 
 $body2 = PDF::Style::Body.new: :$gfx, :style("size: a5 landscape");
-is $body2.width('margin'), 210mm,'margin width';
-is $body2.height('margin'), 148mm, 'margin height';
+is $body2.width('margin'), pt(210mm),'margin width';
+is $body2.height('margin'), pt(148mm), 'margin height';
 
 $body2 = PDF::Style::Body.new: :$gfx;
 is $body2.width('margin'), $gfx.width,'margin width';

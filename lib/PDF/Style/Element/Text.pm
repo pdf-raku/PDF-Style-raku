@@ -31,12 +31,12 @@ class PDF::Style::Element::Text
             when .type eq 'num'     { $_ * $font-size }
             when .type eq 'percent' { $_ * $font-size / 100 }
             when 'normal' { 0.0 }
-            default       { $font.length($_) }
+            default       { $font.measure($_) }
         }
 
         %opt<WordSpacing> = do given $css.word-spacing {
             when 'normal' { 0.0 }
-            default       { $font.length($_) - $face.stringwidth(' ', $font-size) }
+            default       { $font.measure($_) - $face.stringwidth(' ', $font-size) }
         }
         %opt;
     }

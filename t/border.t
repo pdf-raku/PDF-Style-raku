@@ -5,7 +5,7 @@ plan 1;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :px, :ops;
+use CSS::Properties::Units :pt, :px, :in, :mm, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -40,7 +40,10 @@ sub test($body, $css, $settings = {}, Bool :$feed = True) {
     }
 }
 
-for [ { :border-width(2px), :border-style<solid>, :border-color<red> },
+for [
+      { :border-width(2px), :border-style<solid>, :border-color<red> },
+      # equivalent thickness in different units
+      { :border-top-width(3px), :border-right-width(0.03125in), :border-bottom-width(0.7937mm), :border-left-width(2.25pt), :border-style<solid>, :border-color<red> },
       { :border-width<thick>, :border-style<dashed>, :border-color<green> },
       { :border-width<thin>, :border-style<dashed>, :border-color<purple> },
       { :border-width<medium>, :border-style<dotted solid double dashed>, :border-color<blue> },
