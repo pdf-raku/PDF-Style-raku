@@ -10,7 +10,7 @@ class PDF::Style::Element
     use PDF::Content::Matrix :transform;
     use Color;
     use CSS::Properties;
-    use CSS::Properties::Units :Scale, :pt;
+    use CSS::Properties::Units :Lengths, :pt;
 
     use CSS::Properties::Box :Edges;
     has CSS::Properties::Box $.box handles<Array left top bottom right width height css> is rw;
@@ -140,8 +140,8 @@ class PDF::Style::Element
         my \bg-width = border[Right] - border[Left];
         my \bg-height = border[Top] - border[Bottom];
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
-        my $width = $bg-image.width * Scale::px;
-        my $height = $bg-image.height * Scale::px;
+        my $width = $bg-image.width * Lengths::px;
+        my $height = $bg-image.height * Lengths::px;
         my \x-float = padding[Right] - padding[Left] - $width;
         my \y-float = padding[Top] - padding[Bottom] - $height;
         my (\x, \y) = self!align-background-image(x-float, y-float);

@@ -6,14 +6,14 @@ class PDF::Style::Element::Image
     is PDF::Style::Element {
 
     use CSS::Properties;
-    use CSS::Properties::Units :Scale;
+    use CSS::Properties::Units :Lengths;
     use PDF::Content;
     use PDF::Content::XObject;
 
     our class ScaledImage {
         has PDF::Content::XObject $.xobject is required handles <width height data-uri>;
-        has Numeric  $.x-scale is rw = Scale::px;
-        has Numeric  $.y-scale is rw = Scale::px;
+        has Numeric  $.x-scale is rw = Lengths::px;
+        has Numeric  $.y-scale is rw = Lengths::px;
         method content-width  { self.width * self.x-scale }
         method content-height { self.height * self.y-scale }
 
