@@ -4,7 +4,7 @@ use PDF::Style::Body;
 use CSS::Properties;
 use PDF::Lite;
 use PDF::Content::XObject;
-use CSS::Properties::Units :mm, :pt, :px, :ops;
+use CSS::Units :mm, :pt, :px, :ops;
 
 sub mm($_) { (0mm +css $_) }
 sub pt($_) { (0pt +css $_) }

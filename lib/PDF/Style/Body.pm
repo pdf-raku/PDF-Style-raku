@@ -6,11 +6,11 @@ class PDF::Style::Body
     is PDF::Style::Element {
 
     use PDF::Style::Element::Image;
-    use CSS::Properties::Box :Edges;
+    use CSS::Box :Edges;
     use PDF::Content::Graphics;
     has PDF::Style::Element @.elements;
-    use CSS::Properties::PageBox;
-    use CSS::Properties::Units :pt;
+    use CSS::PageBox;
+    use CSS::Units :pt;
 
     submethod TWEAK(:$gfx, |c) {
         my %opt;
@@ -21,7 +21,7 @@ class PDF::Style::Body
         # replace regular box with a page box.
         my $css = self.box.css;
         my $font = self.box.font;
-        self.box = CSS::Properties::PageBox.new: :$css, :$font, |%opt;
+        self.box = CSS::PageBox.new: :$css, :$font, |%opt;
     }
 
     #| decorate the background of a PDF page, xobject, or pattern that's acting as a body

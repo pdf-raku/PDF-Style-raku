@@ -5,13 +5,13 @@ plan 1;
 use PDF::Style::Body;
 use PDF::Lite;
 use CSS::Properties;
-use CSS::Properties::Units :ops, :pt;
+use CSS::Units :ops, :pt;
 
 my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
-$page.gfx.comment-ops = True;
+$page.gfx.comment = True;
 
 my CSS::Properties $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
 

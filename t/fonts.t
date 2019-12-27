@@ -5,7 +5,7 @@ plan 1;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -15,7 +15,7 @@ my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
 my $Page = $body.decorate: $pdf.add-page;
-$Page.gfx.comment-ops = True;
+$Page.gfx.comment = True;
 my @Html = '<html>', $body.html-start;
 my $N;
 

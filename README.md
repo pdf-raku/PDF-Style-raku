@@ -13,7 +13,7 @@ use v6;
 use PDF::Lite;
 use PDF::Style;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
@@ -55,7 +55,7 @@ use PDF::Lite;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 use PDF::Content::XObject;
 
 my PDF::Content::XObject $background-image .= open("t/images/tiny.png");

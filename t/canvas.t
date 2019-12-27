@@ -4,7 +4,7 @@ plan 2;
 
 use PDF::Style::Body;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 use PDF::Lite;
 my $canvas-class;
 unless try {
@@ -21,7 +21,7 @@ my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
-$page.gfx.comment-ops = True;
+$page.gfx.comment = True;
 my $n;
 
 sub test($body, $css, $properties = {}, :$canvas!, Bool :$feed = True) {

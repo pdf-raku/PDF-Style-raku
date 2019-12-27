@@ -3,7 +3,7 @@ use Test;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 use PDF::Lite;
 
 # also dump to HTML, for comparision
@@ -14,7 +14,7 @@ my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
-$page.gfx.comment-ops = True;
+$page.gfx.comment = True;
 my $n;
 
 sub test($body, $base-css, $settings = {}, Bool :$feed = True) {

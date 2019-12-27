@@ -3,7 +3,7 @@ use Test;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
-use CSS::Properties::Units :pt, :ops;
+use CSS::Units :pt, :ops;
 use PDF::Lite;
 use PDF::Content::XObject;
 
@@ -40,7 +40,7 @@ for <no-repeat repeat> -> $background-repeat {
     @Html.push: $body.html-start;
 
     $page = $body.decorate: $pdf.add-page;
-    $page.gfx.comment-ops = True;
+    $page.gfx.comment = True;
     $n = 0;
 
     for [

@@ -6,7 +6,7 @@ class PDF::Style::Element::Image
     is PDF::Style::Element {
 
     use CSS::Properties;
-    use CSS::Properties::Units :Lengths;
+    use CSS::Units :Lengths;
     use PDF::Content;
     use PDF::Content::XObject;
 
