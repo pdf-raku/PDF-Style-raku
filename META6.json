@@ -1,9 +1,10 @@
 {
-  "authors" : [
+  "authors": [
     "David Warring"
   ],
-  "build-depends" : [ ],
-  "depends" : [
+  "build-depends": [
+  ],
+  "depends": [
     "PDF",
     "PDF::Lite",
     "PDF::Content",
@@ -11,25 +12,27 @@
     "CSS::Properties",
     "Color"
   ],
-  "description" : "CSS driven PDF Composition and Layout",
-  "license" : "Artistic-2.0",
-  "name" : "PDF::Style",
-  "perl" : "6.c",
-  "provides" : {
-    "PDF::Style" : "lib/PDF/Style.pm",
-    "PDF::Style::Element" : "lib/PDF/Style/Element.pm",
-    "PDF::Style::Element::Canvas" : "lib/PDF/Style/Element/Canvas.pm",
-    "PDF::Style::Element::Image" : "lib/PDF/Style/Element/Image.pm",
-    "PDF::Style::Element::Text" : "lib/PDF/Style/Element/Text.pm",
-    "PDF::Style::Font" : "lib/PDF/Style/Font.pm",
-    "PDF::Style::Body" : "lib/PDF/Style/Body.pm"
+  "description": "CSS driven PDF Composition and Layout",
+  "license": "Artistic-2.0",
+  "name": "PDF::Style",
+  "perl": "6.c",
+  "provides": {
+    "PDF::Style": "lib/PDF/Style.rakumod",
+    "PDF::Style::Body": "lib/PDF/Style/Body.rakumod",
+    "PDF::Style::Element": "lib/PDF/Style/Element.rakumod",
+    "PDF::Style::Element::Canvas": "lib/PDF/Style/Element/Canvas.rakumod",
+    "PDF::Style::Element::Image": "lib/PDF/Style/Element/Image.rakumod",
+    "PDF::Style::Element::Text": "lib/PDF/Style/Element/Text.rakumod",
+    "PDF::Style::Font": "lib/PDF/Style/Font.rakumod"
   },
-  "resources" : [ ],
-  "source-url" : "git://github.com/p6-pdf/PDF-Style-p6.git",
-  "tags" : [
+  "resources": [
+  ],
+  "source-url": "git://github.com/p6-pdf/PDF-Style-p6.git",
+  "tags": [
     "pdf",
     "css"
   ],
-  "test-depends" : [ ],
-  "version" : "0.0.1"
+  "test-depends": [
+  ],
+  "version": "0.0.1"
 }
