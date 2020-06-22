@@ -60,7 +60,7 @@ class PDF::Style::Element::Image
         :$container!) {
         my $width = $container.css-width($css);
         my $height = $container.css-height($css);
-        my &build-content = sub (|c) {
+        my &build-content = sub (|) {
             my ScaledImage $image .= new( :$xobject, :$css, :$width, :$height );
             :$image;
         }

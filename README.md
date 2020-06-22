@@ -27,7 +27,7 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
-my PDF::Style $text-elem .= element( :$text, :$css );
+my PDF::Style $text-elem .= element: :$text, :$css;
 
 # display it on the page
 $page.gfx.do( .xobject, .bottom, .left) with $text-elem;
@@ -58,8 +58,9 @@ use CSS::Properties;
 use CSS::Units :pt, :ops;
 use PDF::Content::XObject;
 
-my PDF::Content::XObject $background-image .= open("t/images/tiny.png");
-my PDF::Style::Body $body .= new: :style("background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt");
+my PDF::Content::XObject $background-image .= open:"t/images/tiny.png";
+my $style = "background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt";
+my PDF::Style::Body $body .= new: :$style;
 
 my PDF::Lite $pdf .= new;
 

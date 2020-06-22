@@ -6,6 +6,7 @@ class PDF::Style::Element::Text
     is PDF::Style::Element {
 
     use CSS::Properties;
+    use PDF::Content::Color :&color, :&gray;
     use PDF::Content::Text::Block;
     has PDF::Content::Text::Block $.text;
 
@@ -56,11 +57,11 @@ class PDF::Style::Element::Text
 
     method !set-font-color($gfx) {
         with $.css.color {
-            $gfx.FillColor = :DeviceRGB[ .rgb.map: ( */255 ) ];
+            $gfx.FillColor = color $_;
             $gfx.FillAlpha = .a / 255;
         }
         else {
-            $gfx.FillColor = :DeviceGray[0.0];
+            $gfx.FillColor = gray(0.0);
             $gfx.FillAlpha = 1.0;
         }
         $gfx.StrokeAlpha = 1.0;
@@ -86,7 +87,8 @@ class PDF::Style::Element::Text
             ''
         }
         with $.css.vertical-align -> $valign {
-            unless $valign eq 'baseline' {
+            when 'baseline' { }
+            default {
                 # wrap content in a table cell for valign to take affect
                 $text = '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>'.sprintf($valign, $text);
             }

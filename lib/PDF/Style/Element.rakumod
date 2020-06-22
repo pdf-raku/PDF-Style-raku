@@ -5,6 +5,7 @@ use PDF::Style;
 class PDF::Style::Element
     is PDF::Style {
     use PDF::Style::Font;
+    use PDF::Content::Color :color;
     use PDF::Content::Graphics;
     use PDF::Content::XObject;
     use PDF::Content::Matrix :transform;
@@ -70,13 +71,13 @@ class PDF::Style::Element
         && %border<border-color>.map({($_//'').Str}).unique == 1
         && %border<border-style>.unique == 1 {
             # all 4 edges are the same. draw a simple rectangle
-            given %border<border-color>[0] -> \color {
+            with %border<border-color>[0] -> Color $_ {
                 my \border-style = %border<border-style>[0];
-                if @width[0] && border-style ne 'none' && color.a != 0 {
+                if @width[0] && border-style ne 'none' && .a != 0 {
                     my $width = @width[0];
                     $gfx.LineWidth = $width;
-                    $gfx.StrokeAlpha = color.a / 255;
-                    $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: */255 ];
+                    $gfx.StrokeAlpha = .a / 255;
+                    $gfx.StrokeColor = color $_;
                     $gfx.DashPattern = self!dash-pattern( %border<border-style>[0], :$width );
 
                     my \w = @stroke[Right] - @stroke[Left];
@@ -92,11 +93,11 @@ class PDF::Style::Element
             for (Top, Right, Bottom, Left) -> \edge {
                 given @width[edge] -> $width {
                     my $border-style = %border<border-style>[edge];
-                    given %border<border-color>[edge] -> Color \color {
-                        if $width && $border-style ne 'none' && color.a !=~= 0 {
+                    given %border<border-color>[edge] -> Color $_ {
+                        if $width && $border-style ne 'none' && .a !=~= 0 {
                             $gfx.LineWidth = $width;
-                            $gfx.StrokeAlpha = color.a / 255;
-                            $gfx.StrokeColor = :DeviceRGB[ color.rgb.map: */255 ];
+                            $gfx.StrokeAlpha = .a / 255;
+                            $gfx.StrokeColor = color $_;
                             my Numeric \pos = @stroke[edge];
                             if edge ~~ Top|Bottom {
                                 $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Left] - @stroke[Right]) );

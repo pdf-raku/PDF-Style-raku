@@ -4,11 +4,11 @@ use PDF::Style::Element;
 
 class PDF::Style::Element::Canvas
     is PDF::Style::Element {
-    use PDF::Style::Font;
+
     has $.canvas is required;
 
     method place-element( :$canvas!, :$css!, :$container!) {
-        my &build-content = sub (|c) { :$canvas };
+        my &build-content = sub (|) { :$canvas };
         nextwith(:$css, :&build-content, :$container);
     }
 
