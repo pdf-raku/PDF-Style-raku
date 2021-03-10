@@ -7,8 +7,8 @@ class PDF::Style::Element::Text
 
     use CSS::Properties;
     use PDF::Content::Color :&color, :&gray;
-    use PDF::Content::Text::Block;
-    has PDF::Content::Text::Block $.text;
+    use PDF::Content::Text::Box;
+    has PDF::Content::Text::Box $.text;
 
     method !text-block-options( :$font!, :$css! ) {
         my $kern = $css.font-kerning eq 'normal' || (
@@ -17,7 +17,7 @@ class PDF::Style::Element::Text
 
         my $align = $css.text-align;
         my $font-size = $font.em;
-        my $leading = $font.line-height / $font-size;
+        my $leading = $font.measure($font.line-height, :font) / $font-size;
         my $face = $font.font-obj;
 
         # support a vertical-align subset
@@ -51,7 +51,9 @@ class PDF::Style::Element::Text
 
         my $font = $container.font.setup($css);
         my %opt = self!text-block-options( :$font, :$css);
-        my &build-content = sub (|c) {text => PDF::Content::Text::Block.new( :$text, |%opt, |c) };
+        my &build-content = sub (|c) {
+            text => PDF::Content::Text::Box.new( :$text, |%opt, |c);
+        };
         nextwith(:$css, :&build-content, :$container);
     }
 

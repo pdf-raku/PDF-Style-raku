@@ -92,8 +92,8 @@ class PDF::Style::Element
             # edges differ. draw them separately
             for (Top, Right, Bottom, Left) -> \edge {
                 given @width[edge] -> $width {
-                    my $border-style = %border<border-style>[edge];
-                    given %border<border-color>[edge] -> Color $_ {
+                    with %border<border-color>[edge] -> Color $_ {
+                        my $border-style = %border<border-style>[edge];
                         if $width && $border-style ne 'none' && .a !=~= 0 {
                             $gfx.LineWidth = $width;
                             $gfx.StrokeAlpha = .a / 255;
