@@ -2,9 +2,9 @@ PDF-Style-p6
 ============
 __Experimental and under construction!__
 
-This is a styling module designed to work with the Perl6 PDF Tool-chain, including  `PDF::Lite` and `PDF::API6`, etc.
+This is a styling module designed to work with the Raku PDF Tool-chain, including  `PDF::Lite` and `PDF::API6`, etc.
 
-It implements some basic CSS driven finishing and styling of PDF components, including pages, forms, images, or text blocks.
+It implements some basic CSS styling of PDF components, including pages, forms, images, or text blocks.
 
 ## Simple Styling
 
@@ -17,21 +17,26 @@ use CSS::Units :pt, :ops;
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
-$page.media-box = 0, 0, 120, 150;
+$page.media-box = 0, 0, 350, 140;
 
 # create and output a styled text-block
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; border:1pt dashed green; padding: 2pt; word-spacing:3pt");
+my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; border:1pt dashed green; padding: 5pt; word-spacing:10pt;");
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
     ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
     --ENOUGH!!--
 
+$css.bottom = 20pt;
+$css.left = 20pt;
 my PDF::Style $text-elem .= element: :$text, :$css;
 
 # display it on the page
+warn [.bottom, .left] with $text-elem;
 $page.gfx.do( .xobject, .bottom, .left) with $text-elem;
+$pdf.save-as: "examples/styled-text.pdf";
 ```
+![example.pdf](examples/.previews/styled-text-001.png)
 
 ## Supported Properties
 
@@ -50,7 +55,6 @@ Other | opacity
 Elements positions and sizes on a body are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
 ```
-use v6;
 use PDF::Lite;
 use PDF::Style::Body;
 use PDF::Style::Element;
@@ -98,12 +102,12 @@ $css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-famil
 $page.gfx.do(.xobject, .left, .bottom)
     given $body.element( :text("Text styled as $css"), :$css );
 
-$pdf.save-as: "t/example.pdf";
+$pdf.save-as: "examples/styling.pdf";
 # also save as HTML
 
 "t/example.html".IO.spurt: $body.html;
 ```
-![example.pdf](t/.previews/example-001.png)
+![example.pdf](t/.previews/styling-001.png)
 
 ## CSS Property todo lists:
 

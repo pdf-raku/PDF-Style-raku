@@ -250,26 +250,27 @@ class PDF::Style::Element
                          :&build-content = sub (|c) {},
                          CSS::Box :$container!) {
 
-        my $top    = $container.measure($css.top);
-        my $bottom = $container.measure($css.bottom);
-        my $height = $container.css-height($css);
+        my $ref    = $container.width;
+        my $top    = $container.measure($css.top, :$ref);
+        my $bottom = $container.measure($css.bottom, :$ref);
+        my $height = $container.css-height($css, :$ref);
 
         my \height-max = $height // do {
             my $max = $container.height - ($top//0) - ($bottom//0);
             for <padding-top padding-bottom border-top-width border-bottom-width> {
-                $max -= $_ with $container.measure($css."$_"());
+                $max -= $_ with $container.measure($css."$_"(), :$ref);
             }
             $max;
         }
 
-        my $left  = $container.measure($css.left);
-        my $right = $container.measure($css.right);
-        my $width = $container.css-width($css);
+        my $left  = $container.measure($css.left, :$ref);
+        my $right = $container.measure($css.right, :$ref);
+        my $width = $container.css-width($css, :$ref);
 
         my \width-max = $width // do {
             my $max = $container.width - ($left//0) - ($right//0);
             for <padding-left padding-right border-left-width border-right-width> {
-                $max -= $_ with $container.measure($css."$_"());
+                $max -= $_ with $container.measure($css."$_"(), :$ref);
             }
             $max;
         }
@@ -280,12 +281,12 @@ class PDF::Style::Element
 
         $width //= width-max if $left.defined && $right.defined;
         $width //= .content-width with $content;
-        with $container.measure($css.min-width) -> \min {
+        with $container.measure($css.min-width, :$ref) -> \min {
             $width = min if min > $width
         }
 
         $height //= .content-height with $content;
-        with $container.measure($css.min-height) -> \min {
+        with $container.measure($css.min-height, :$ref) -> \min {
             $height = min if min > $height
         }
 
@@ -309,6 +310,7 @@ class PDF::Style::Element
         my $ex = $container.ex;
         my $vw = $container.viewport-width;
         my $vh = $container.viewport-height;
+        $css.reference-width = $ref;
         my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$vw, :$vh, |($type => $content);
         my \box = elem.box;
 

@@ -10,14 +10,14 @@ class PDF::Style::Element::Text
     use PDF::Content::Text::Box;
     has PDF::Content::Text::Box $.text;
 
-    method !text-block-options( :$font!, :$css! ) {
+    method !text-box-options( :$font!, :$css! ) {
         my $kern = $css.font-kerning eq 'normal' || (
-            $css.font-kerning eq 'auto' && $font.em <= 32
+            $css.font-kerning eq 'auto' && $css.em <= 32
         );
 
         my $align = $css.text-align;
-        my $font-size = $font.em;
-        my $leading = $font.measure($font.line-height, :font) / $font-size;
+        my $font-size = $css.em;
+        my $leading = $css.measure(:line-height) / $font-size;
         my $face = $font.font-obj;
 
         # support a vertical-align subset
@@ -28,17 +28,16 @@ class PDF::Style::Element::Text
         }
         my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
 
-        %opt<CharSpacing> = do given $css.letter-spacing {
-            when .type eq 'num'     { $_ * $font-size }
-            when .type eq 'percent' { $_ * $font-size / 100 }
-            when 'normal' { 0.0 }
-            default       { $font.measure($_) }
+        given $css.letter-spacing {
+            %opt<CharSpacing> = $css.measure($_)
+                unless $_ eq 'normal';
         }
 
-        %opt<WordSpacing> = do given $css.word-spacing {
-            when 'normal' { 0.0 }
-            default       { $font.measure($_) - $face.stringwidth(' ', $font-size) }
+        given $css.word-spacing {
+            %opt<WordSpacing> = $css.measure($_) - $face.stringwidth(' ', $font-size)
+                unless $_ eq 'normal';
         }
+
         %opt;
     }
 
@@ -50,7 +49,7 @@ class PDF::Style::Element::Text
         ) {
 
         my $font = $container.font.setup($css);
-        my %opt = self!text-block-options( :$font, :$css);
+        my %opt = self!text-box-options( :$font, :$css);
         my &build-content = sub (|c) {
             text => PDF::Content::Text::Box.new( :$text, |%opt, |c);
         };

@@ -15,7 +15,6 @@ my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
-$page.gfx.comment = True;
 my $n;
 
 sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
