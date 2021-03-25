@@ -245,15 +245,45 @@ class PDF::Style::Element
         $xobject;
     }
 
+    our sub measure(CSS::Properties $css, $v, |c) {
+        $v ~~ 'auto' ?? Numeric !! $css.measure($v, |c);
+    }
+
+    sub css-height(CSS::Box $_, CSS::Properties $css, :$ref = $css.reference-width) is export(:css-height) {
+        my $height = $_ with measure($css, $css.height, :$ref);
+        with .measure($css.max-height, :$ref) {
+            $height = $_
+                if $height.defined && $height > $_;
+        }
+        with .measure($css.min-height, :$ref) {
+            $height = $_
+                if $height.defined && $height < $_;
+        }
+
+        $height;
+    }
+
+    sub css-width(CSS::Box $_, CSS::Properties $css, :$ref = $css.reference-width) is export(:css-width) {
+        my $width = $_ with measure($css, $css.width, :$ref);
+        with .measure($css.max-width, :$ref) {
+            $width = $_
+                if !$width.defined || $width > $_;
+        }
+        with .measure($css.min-width, :$ref) {
+            $width = $_
+                if $width.defined && $width < $_;
+        }
+        $width;
+    }
+
     #| create and position content within a containing box
     method place-element(CSS::Properties :$css!,
                          :&build-content = sub (|c) {},
                          CSS::Box :$container!) {
-
         my $ref    = $container.width;
-        my $top    = $container.measure($css.top, :$ref);
-        my $bottom = $container.measure($css.bottom, :$ref);
-        my $height = $container.css-height($css, :$ref);
+        my $top    = measure($container.css, $css.top, :$ref);
+        my $bottom = measure($container.css, $css.bottom, :$ref);
+        my $height = css-height($container, $css, :$ref);
 
         my \height-max = $height // do {
             my $max = $container.height - ($top//0) - ($bottom//0);
@@ -263,9 +293,9 @@ class PDF::Style::Element
             $max;
         }
 
-        my $left  = $container.measure($css.left, :$ref);
-        my $right = $container.measure($css.right, :$ref);
-        my $width = $container.css-width($css, :$ref);
+        my $left  = measure($container.css, $css.left, :$ref);
+        my $right = measure($container.css, $css.right, :$ref);
+        my $width = css-width($container, $css, :$ref);
 
         my \width-max = $width // do {
             my $max = $container.width - ($left//0) - ($right//0);

@@ -5,9 +5,12 @@ use PDF::Style::Element;
 class PDF::Style::Element::Canvas
     is PDF::Style::Element {
 
+    use CSS::Box;
+    use CSS::Properties;
+
     has $.canvas is required;
 
-    method place-element( :$canvas!, :$css!, :$container!) {
+    method place-element( :$canvas!, CSS::Properties:$css!, CSS::Box :$container!) {
         my &build-content = sub (|) { :$canvas };
         nextwith(:$css, :&build-content, :$container);
     }

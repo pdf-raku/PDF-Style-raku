@@ -5,11 +5,11 @@
   "build-depends": [
   ],
   "depends": [
-    "CSS::Properties",
+    "CSS::Properties:ver<0.6.2+>",
     "Color",
     "PDF",
-    "PDF::Content:ver<0.4.11+>",
-    "PDF::Font::Loader",
+    "PDF::Content:ver<0.5.0+>",
+    "PDF::Font::Loader:ver<0.4.4+>",
     "PDF::Lite"
   ],
   "description": "CSS driven PDF Composition and Layout",

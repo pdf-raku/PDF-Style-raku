@@ -5,12 +5,16 @@ use PDF::Style::Element;
 class PDF::Style::Element::Text
     is PDF::Style::Element {
 
+    use CSS::Box;
     use CSS::Properties;
+    use PDF::Style::Font;
+
     use PDF::Content::Color :&color, :&gray;
     use PDF::Content::Text::Box;
+    use PDF::Content::FontObj;
     has PDF::Content::Text::Box $.text;
 
-    method !text-box-options( :$font!, :$css! ) {
+    method !text-box-options( :$font!, CSS::Properties :$css! ) {
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $css.em <= 32
         );
@@ -18,7 +22,7 @@ class PDF::Style::Element::Text
         my $align = $css.text-align;
         my $font-size = $css.em;
         my $leading = $css.measure(:line-height) / $font-size;
-        my $face = $font.font-obj;
+        my PDF::Content::FontObj $face = $font.font-obj;
 
         # support a vertical-align subset
         my $valign = do given $css.vertical-align {
@@ -45,10 +49,10 @@ class PDF::Style::Element::Text
     #| are inherited from this object.
     method place-element( Str:D :$text!,
                     CSS::Properties :$css!,
-                    :$container!,
+                    CSS::Box :$container!,
         ) {
 
-        my $font = $container.font.setup($css);
+        my PDF::Style::Font $font = $container.font.setup($css);
         my %opt = self!text-box-options( :$font, :$css);
         my &build-content = sub (|c) {
             text => PDF::Content::Text::Box.new( :$text, |%opt, |c);

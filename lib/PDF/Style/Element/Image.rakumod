@@ -1,10 +1,11 @@
 use v6;
 
-use PDF::Style::Element;
+use PDF::Style::Element :&css-width, :&css-height;
 
 class PDF::Style::Element::Image
     is PDF::Style::Element {
 
+    use CSS::Box;
     use CSS::Properties;
     use CSS::Units :Lengths;
     use PDF::Content;
@@ -57,9 +58,9 @@ class PDF::Style::Element::Image
         Str :$image,
         PDF::Content::XObject :$xobject = PDF::Content::XObject.open($image),
         CSS::Properties :$css!,
-        :$container!) {
-        my $width = $container.css-width($css);
-        my $height = $container.css-height($css);
+        CSS::Box :$container!) {
+        my $width = css-width($container, $css);
+        my $height = css-height($container, $css);
         my &build-content = sub (|) {
             my ScaledImage $image .= new( :$xobject, :$css, :$width, :$height );
             :$image;
