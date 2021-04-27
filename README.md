@@ -32,7 +32,6 @@ $css.left = 20pt;
 my PDF::Style $text-elem .= element: :$text, :$css;
 
 # display it on the page
-warn [.bottom, .left] with $text-elem;
 $page.gfx.do( .xobject, .bottom, .left) with $text-elem;
 $pdf.save-as: "examples/styled-text.pdf";
 ```
@@ -62,7 +61,7 @@ use CSS::Properties;
 use CSS::Units :pt, :ops;
 use PDF::Content::XObject;
 
-my PDF::Content::XObject $background-image .= open:"t/images/tiny.png";
+my PDF::Content::XObject $background-image .= open: "t/images/tiny.png";
 my $style = "background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt";
 my PDF::Style::Body $body .= new: :$style;
 
@@ -131,6 +130,7 @@ vertical-align|'top', 'center', 'bottom' only|Other modes
 - overflow
 - unicode-bidi
 - table-layout
+- text-decoration
 - visibility
 - white-spacing
 
