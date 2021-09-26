@@ -1,8 +1,8 @@
 use v6;
-use CSS::Properties::Font;
+use CSS::Font;
 
 class PDF::Style::Font
-    is CSS::Properties::Font {
+    is CSS::Font {
 
     use PDF::Font::Loader;
     use PDF::Content::FontObj;

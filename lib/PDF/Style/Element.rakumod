@@ -16,14 +16,11 @@ class PDF::Style::Element
     use CSS::Box :Edges;
     has CSS::Box $.box handles<Array left top bottom right width height css> is rw;
 
-    submethod TWEAK(
-        Numeric :$em = 12pt,
-        Numeric :$ex = 0.75 * $em,
-        :gfx($),
-        |c
-    ) {
-        my PDF::Style::Font $font .= new: :$em, :$ex;
-        $!box //= CSS::Box.new( :$font, |c);
+    submethod TWEAK(Numeric :$em = 12pt, :gfx($), |c) {
+        $!box //= do {
+            my PDF::Style::Font $font .= new: :$em;
+            CSS::Box.new: :$font, |c;
+        }
     }
 
     my subset LineStyle of Str where 'none'|'hidden'|'dotted'|'dashed'|'solid'|'double'|'groove'|'ridge'|'inset'|'outset';

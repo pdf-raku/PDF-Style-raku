@@ -134,6 +134,6 @@ class PDF::Style::Body
     method html-end { '</body>' }
 
     method html {
-        [~] flat $.html-start, @!elements.map({ .html }), $.html-end;
+        [~] $.html-start, @!elements>>.html.Slip, $.html-end;
     }
 }
