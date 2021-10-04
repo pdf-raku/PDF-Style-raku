@@ -21,10 +21,10 @@ my $N;
 
 sub show-text($text, :$css!) {
     note "$text = {~$css}";
-    my $elem = $body.element( :$text, :$css );
+    my $elem = $body.element( :$text, :$css);
     @Html.push: $elem.html;
 
-    $Page.gfx.do(.xobject, .left, .bottom) with $elem;
+    $elem.render: $Page.gfx;
     if ++$N %% 5 {
         $css.top +css= 35pt;
         $css.left = 10pt;

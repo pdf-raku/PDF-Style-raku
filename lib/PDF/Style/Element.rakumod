@@ -6,7 +6,7 @@ class PDF::Style::Element
     is PDF::Style {
     use PDF::Style::Font;
     use PDF::Content::Color :color;
-    use PDF::Content::Graphics;
+    use PDF::Content::Canvas;
     use PDF::Content::XObject;
     use PDF::Content::Matrix :transform;
     use Color;
@@ -14,7 +14,7 @@ class PDF::Style::Element
     use CSS::Units :Lengths, :pt;
 
     use CSS::Box :Edges;
-    has CSS::Box $.box handles<Array left top bottom right width height css> is rw;
+    has CSS::Box $.box handles<Array left top bottom right width height css translate border> is rw;
 
     submethod TWEAK(Numeric :$em = 12pt, :gfx($), |c) {
         $!box //= do {
@@ -212,27 +212,26 @@ class PDF::Style::Element
         [@b[Left] - $.left, @b[Bottom] - $.bottom, @b[Right] - $.left, @b[Top] - $.bottom];
     }
 
-    method !xobject(:$comment) {
-        # apply opacity to an image group as a whole
+    method !xobject(|c) {
         my @BBox = self!bbox;
-        my \image = PDF::Content::Graphics.xobject-form: :@BBox;
+        my \image = PDF::Content::Canvas.xobject-form: :@BBox;
         image.graphics: -> $gfx {
-            $gfx.add-comment($_) with $comment;
-            self!style-box($gfx);
-            self.render-element($gfx);
+            self!render($gfx, |c);
         }
         image.finish;
         image;
     }
 
+    # containerized rendering when xobjects are preferred
     method xobject(|c) {
+        # apply opacity to an image group as a whole
         my $opacity = $.css.opacity.Num;
-        my $xobject = self!xobject();
+        my $xobject = self!xobject(|c);
 
         unless $opacity =~= 1 {
-           # need to wrap it, to apply transparency.
+           # need to box it, to apply transparency.
            my @BBox = self!bbox;
-           my $outer = PDF::Content::Graphics.xobject-form: :@BBox;
+           my $outer = PDF::Content::Canvas.xobject-form: :@BBox;
            $outer.graphics: {
                .FillAlpha = .StrokeAlpha = $opacity;
                .do($xobject, 0, 0);
@@ -240,6 +239,37 @@ class PDF::Style::Element
            $xobject = $outer;
         }
         $xobject;
+    }
+
+    # non-containerized rendering.
+    method render($gfx, $x = $.left, $y = $.bottom, |c) {
+        my $opacity = $.css.opacity.Num;
+
+        if $opacity < 1 && || ! self.isa("PDF::Style::Element::Text") {
+           # need to box it, to apply transparency.
+            my @BBox = self!bbox;
+           my $xobject = PDF::Content::Canvas.xobject-form: :@BBox;
+           $xobject.graphics: {
+               .FillAlpha = .StrokeAlpha = $opacity;
+               self!render($_, |c);
+           }
+           $gfx.do: $xobject, $x, $y, :valign<bottom>;
+        }
+        else {
+            $gfx.Save;
+            .FillAlpha = .StrokeAlpha = $opacity
+                if $opacity < 1;
+
+            $gfx.transform: :translate[$x, $y];
+            self!render($gfx, |c);
+            $gfx.Restore;
+        }
+    }
+
+    method !render($gfx, :$comment) {
+        $gfx.add-comment($_) with $comment;
+        self!style-box($gfx);
+        self.render-element($gfx);
     }
 
     our sub measure(CSS::Properties $css, $v, |c) {
@@ -283,11 +313,10 @@ class PDF::Style::Element
         my $height = css-height($container, $css, :$ref);
 
         my \height-max = $height // do {
-            my $max = $container.height - ($top//0) - ($bottom//0);
-            for <padding-top padding-bottom border-top-width border-bottom-width> {
-                $max -= $_ with $container.measure($css."$_"(), :$ref);
+            my $margin = sum <padding-top padding-bottom border-top-width border-bottom-width>.map: {
+                $container.measure($css."$_"(), :$ref) // 0
             }
-            $max;
+            $container.height - ($top//0) - ($bottom//0) - $margin;
         }
 
         my $left  = measure($container.css, $css.left, :$ref);
@@ -295,11 +324,10 @@ class PDF::Style::Element
         my $width = css-width($container, $css, :$ref);
 
         my \width-max = $width // do {
-            my $max = $container.width - ($left//0) - ($right//0);
-            for <padding-left padding-right border-left-width border-right-width> {
-                $max -= $_ with $container.measure($css."$_"(), :$ref);
+            my $margin = sum <padding-left padding-right border-left-width border-right-width>.map: {
+                $container.measure($css."$_"(), :$ref) // 0
             }
-            $max;
+            $container.width - ($left//0) - ($right//0) - $margin;
         }
 
         my subset ContentType where 'canvas'|'image'|'text';
@@ -339,11 +367,10 @@ class PDF::Style::Element
         my $vh = $container.viewport-height;
         $css.reference-width = $ref;
         my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$vw, :$vh, |($type => $content);
-        my \box = elem.box;
 
         # reposition to outside of border
-        my Numeric @content-box[4] = box.Array.list;
-        my Numeric @border-box[4]  = box.border.list;
+        my Numeric @content-box[4] = elem.Array.list;
+        my Numeric @border-box[4]  = elem.border.list;
         my \dx = from-left
                ?? @content-box[Left]  - @border-box[Left]
                !! @content-box[Right] - @border-box[Right];
@@ -351,7 +378,7 @@ class PDF::Style::Element
                ?? @content-box[Top]    - @border-box[Top]
                !! @content-box[Bottom] - @border-box[Bottom];
 
-        box.translate(dx, dy);
+        elem.translate(dx, dy);
         elem;
     }
 

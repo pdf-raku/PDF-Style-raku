@@ -7,7 +7,7 @@ class PDF::Style::Body
 
     use PDF::Style::Element::Image;
     use CSS::Box :Edges;
-    use PDF::Content::Graphics;
+    use PDF::Content::Canvas;
     has PDF::Style::Element @.elements;
     use CSS::PageBox;
     use CSS::Units :pt;
@@ -25,7 +25,7 @@ class PDF::Style::Body
     }
 
     #| decorate the background of a PDF page, xobject, or pattern that's acting as a body
-    method decorate(PDF::Content::Graphics $_, :$resize) {
+    method decorate(PDF::Content::Canvas $_, :$resize) {
         my $gfx = .gfx;
         self.TWEAK(:$gfx) if $resize;
         (.can('BBox') ?? .BBox !! .media-box) = [0, 0, self.width("margin"), self.height("margin") ];
