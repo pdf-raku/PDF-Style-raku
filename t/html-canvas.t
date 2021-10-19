@@ -24,10 +24,10 @@ my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 my $n;
 
-sub test($body, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
+sub test($body, $css, $properties = {}, :$html-canvas!, Bool :$feed = True) {
     $css.set-properties(|$properties);
 
-    my $elem = $body.element( :$canvas, :$css );
+    my $elem = $body.element( :$html-canvas, :$css );
 
     @Html.push: $elem.html;
     $page.gfx.do(.xobject, .left, .bottom) with $elem;
@@ -44,25 +44,25 @@ sub test($body, $css, $properties = {}, :$canvas!, Bool :$feed = True) {
 }
 
 do {
-    my $canvas = $canvas-class.new;
-    $canvas.context: -> \ctx {
+    my $html-canvas = $canvas-class.new;
+    $html-canvas.context: -> \ctx {
         ctx.beginPath();
         ctx.arc(95, 50, 40, 0, 2 * pi);
         ctx.stroke();
         ctx.strokeRect(10, 30, 50, 25);
         ctx.fillText("Hello World", 10, 50);
     }
-    test($body, $css, :$canvas, );
+    test($body, $css, :$html-canvas, );
 }
 
 do {
-    my $canvas = $canvas-class.new;
+    my $html-canvas = $canvas-class.new;
     my $n;
-    $canvas.context: -> \ctx {
+    $html-canvas.context: -> \ctx {
         ctx.fillStyle = 'red';
         ctx.strokeStyle = 'green';
     }
-    $canvas.context: -> \ctx {
+    $html-canvas.context: -> \ctx {
         is ctx.strokeStyle, 'green', 'strokeStyle';
         for 1, 239 -> \x {
             for 1, 64 -> \y {
@@ -71,12 +71,12 @@ do {
             }
         }
     }
-    test($body, $css, :$canvas, { :opacity(.5) });
+    test($body, $css, :$html-canvas, { :opacity(.5) });
 }
 
-lives-ok {$pdf.save-as: "t/canvas.pdf"};
+lives-ok {$pdf.save-as: "t/html-canvas.pdf"};
 
 @Html.append: $body.html-end, '</html>', '';
-"t/canvas.html".IO.spurt: @Html.join: "\n";
+"t/html-canvas.html".IO.spurt: @Html.join: "\n";
 
 done-testing;

@@ -25,18 +25,18 @@ $css.bottom = '700pt';
 
 $page.graphics: -> $gfx {
     my $text-elem = $body.element( :$text, :$css);
-    $text-elem.render($gfx);
+    note $text-elem.render($gfx);
 
     my Str $image = "t/images/snoopy-happy-dance.jpg";
     $css.delete("height");
     $css.opacity = .5;
     my $image-elem = $body.element(:$image, :$css);
     $image-elem.translate: 0, -$image-elem.height('padding');
-    .render($gfx, .left, .bottom)
+    note .render($gfx, .left, .bottom)
         with $image-elem;
     $image-elem.css.opacity = 1;
      $image-elem.translate: 30, -30;
-    .render($gfx, .left, .bottom)
+    note .render($gfx, .left, .bottom)
         with $image-elem;
 }
 

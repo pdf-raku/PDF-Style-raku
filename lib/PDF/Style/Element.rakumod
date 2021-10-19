@@ -214,7 +214,7 @@ class PDF::Style::Element
 
     method !xobject(|c) {
         my @BBox = self!bbox;
-        my \image = PDF::Content::Canvas.xobject-form: :@BBox;
+        my PDF::Content::Canvas \image .= xobject-form: :@BBox;
         image.graphics: -> $gfx {
             self!render($gfx, |c);
         }
@@ -226,12 +226,12 @@ class PDF::Style::Element
     method xobject(|c) {
         # apply opacity to an image group as a whole
         my $opacity = $.css.opacity.Num;
-        my $xobject = self!xobject(|c);
+        my  PDF::Content::Canvas:D $xobject = self!xobject(|c);
 
         unless $opacity =~= 1 {
            # need to box it, to apply transparency.
            my @BBox = self!bbox;
-           my $outer = PDF::Content::Canvas.xobject-form: :@BBox;
+           my PDF::Content::Canvas:D $outer .= xobject-form: :@BBox;
            $outer.graphics: {
                .FillAlpha = .StrokeAlpha = $opacity;
                .do($xobject, 0, 0);
@@ -248,7 +248,7 @@ class PDF::Style::Element
         if $opacity < 1 && || ! self.isa("PDF::Style::Element::Text") {
            # need to box it, to apply transparency.
             my @BBox = self!bbox;
-           my $xobject = PDF::Content::Canvas.xobject-form: :@BBox;
+           my PDF::Content::Canvas:D $xobject .= xobject-form: :@BBox;
            $xobject.graphics: {
                .FillAlpha = .StrokeAlpha = $opacity;
                self!render($_, |c);
@@ -330,7 +330,7 @@ class PDF::Style::Element
             $container.width - ($left//0) - ($right//0) - $margin;
         }
 
-        my subset ContentType where 'canvas'|'image'|'text';
+        my subset ContentType where 'html-canvas'|'image'|'text';
         my (ContentType $type, $content) = (.key, .value)
             with &build-content( :width(width-max), :height(height-max) );
 

@@ -3,14 +3,17 @@ use Test;
 plan 1;
 use PDF::Content::Tag :Tags;
 use PDF::Tags;
-use PDF::Class;
 use PDF::Tags::Elem;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::TagSet::TaggedPDF;
+if (try require ::('PDF::Class')) === Nil {
+    skip-rest 'PDF::Class required for tagged PDF tests';
+    exit 0;
+}
 
+my $pdf = ::('PDF::Class').new;
 my PDF::Style::Body $body .= new;
-my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 my CSS::TagSet::TaggedPDF $styler .= new;
 my PDF::Tags $tags .= create: :$pdf, :$styler;

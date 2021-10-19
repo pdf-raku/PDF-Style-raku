@@ -99,9 +99,9 @@ class PDF::Style::Body
         @!elements.tail;
     }
 
-    multi method element( :$canvas!, |c) {
-        require PDF::Style::Element::Canvas;
-        PDF::Style::Element::Canvas.place-element( :$canvas, :container(self.box), |c);
+    multi method element( :$html-canvas!, |c) {
+        require PDF::Style::Element::HTMLCanvas;
+        PDF::Style::Element::HTMLCanvas.place-element( :$html-canvas, :container(self.box), |c);
     }
 
     multi method element( :$image!, |c) {
