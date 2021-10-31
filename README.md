@@ -20,7 +20,7 @@ my $page = $pdf.add-page;
 $page.media-box = 0, 0, 350, 140;
 
 # create and output a styled text-block
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; border:1pt dashed green; padding: 5pt; word-spacing:10pt;");
+my CSS::Properties() $css = "font-family:Helvetica; width:250pt; height:80pt; border:1pt dashed green; padding: 5pt; word-spacing:10pt;";
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -32,7 +32,7 @@ $css.left = 20pt;
 my PDF::Style $text-elem .= element: :$text, :$css;
 
 # display it on the page
-$page.gfx.do( .xobject, .bottom, .left) with $text-elem;
+.render( $page.gfx, .bottom, .left) given $text-elem;
 $pdf.save-as: "examples/styled-text.pdf";
 ```
 ![example.pdf](examples/.previews/styled-text-001.png)
@@ -62,8 +62,8 @@ use CSS::Units :pt, :ops;
 use PDF::Content::XObject;
 
 my PDF::Content::XObject $background-image .= open: "t/images/tiny.png";
-my $style = "background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt";
-my PDF::Style::Body $body .= new: :$style;
+my CSS::Properties() $css = "background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt";
+my PDF::Style::Body $body .= new: :$css;
 
 my PDF::Lite $pdf .= new;
 
@@ -71,7 +71,7 @@ my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 
 # create and lay up some styled elements
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt");
+my CSS::Properties() $css = "font-family:Helvetica; width:250pt; height:80pt; top:20pt; left:20pt; border: 1pt solid green; padding: 2pt";
 
 my $text = "Text, styled as $css";
 
@@ -80,7 +80,7 @@ my PDF::Style::Element $text-elem = $body.element( :$text, :$css );
 given $text-elem {
     note "text top-left is {.top}pt {.left}pt from page bottom, left corner";
     # output the element on the page.
-    $page.gfx.do(.xobject, .left, .bottom);
+    .render($page.gfx, .left, .bottom);
 }
 
 # now position an image below the text block,
@@ -93,12 +93,12 @@ $css.height = Nil;
 my Str $image = "t/images/snoopy-happy-dance.jpg";
 given $body.element(:$image, :$css) {
     note "image bottom-right is {.bottom}pt {.left}pt from page bottom, left corner";
-    $page.gfx.do(.xobject, .left, .bottom);
+    .render($page.gfx, .left, .bottom);
 }
 
 # position from bottom right
-$css .= new: :style("border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;");
-$page.gfx.do(.xobject, .left, .bottom)
+$css .= COERCE: "border:2pt dashed green; bottom:5pt; color:blue; font-family:Helvetica; padding:2pt; right:5pt; text-align:right; width:120pt;";
+.render($page.gfx, .left, .bottom)
     given $body.element( :text("Text styled as $css"), :$css );
 
 $pdf.save-as: "examples/styling.pdf";

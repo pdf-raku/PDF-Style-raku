@@ -13,7 +13,7 @@ my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 
-my CSS::Properties $css .= new: :style("font-family:Vera; font-weight:200; width:250pt; height:80pt; border: 1px solid green; padding:2pt");
+my CSS::Properties() $css = "font-family:Vera; font-weight:200; width:250pt; height:80pt; border: 1px solid green; padding:2pt";
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -32,11 +32,11 @@ $page.graphics: -> $gfx {
     $css.opacity = .5;
     my $image-elem = $body.element(:$image, :$css);
     $image-elem.translate: 0, -$image-elem.height('padding');
-    note .render($gfx, .left, .bottom)
+    .render($gfx, .left, .bottom)
         with $image-elem;
     $image-elem.css.opacity = 1;
      $image-elem.translate: 30, -30;
-    note .render($gfx, .left, .bottom)
+    .render($gfx, .left, .bottom)
         with $image-elem;
 }
 

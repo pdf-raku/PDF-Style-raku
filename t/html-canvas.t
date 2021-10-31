@@ -16,7 +16,7 @@ unless try {
 # also dump to HTML, for comparision
 
 my PDF::Style::Body $body .= new;
-my CSS::Properties $css .= new: :style("width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);");
+my CSS::Properties() $css = "width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);";
 my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
@@ -30,7 +30,7 @@ sub test($body, $css, $properties = {}, :$html-canvas!, Bool :$feed = True) {
     my $elem = $body.element( :$html-canvas, :$css );
 
     @Html.push: $elem.html;
-    $page.gfx.do(.xobject, .left, .bottom) with $elem;
+    .render($page.gfx, .left, .bottom) with $elem;
 
     if ($feed) {
         if ++$n %% 2 {

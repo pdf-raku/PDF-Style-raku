@@ -63,6 +63,8 @@ class PDF::Style::Element
             @border[Bottom] + @width[Bottom]/2,
             @border[Left] + @width[Left]/2,
         ];
+        my \w = @stroke[Right] - @stroke[Left];
+        my \h = @stroke[Top] - @stroke[Bottom];
 
         if @width.unique == 1
         && %border<border-color>.map({($_//'').Str}).unique == 1
@@ -77,8 +79,6 @@ class PDF::Style::Element
                     $gfx.StrokeColor = color $_;
                     $gfx.DashPattern = self!dash-pattern( %border<border-style>[0], :$width );
 
-                    my \w = @stroke[Right] - @stroke[Left];
-                    my \h = @stroke[Top] - @stroke[Bottom];
                     $gfx.Rectangle(@stroke[Left], @stroke[Bottom], w, h);
 
                     $gfx.Stroke;
@@ -97,12 +97,12 @@ class PDF::Style::Element
                             $gfx.StrokeColor = color $_;
                             my Numeric \pos = @stroke[edge];
                             if edge ~~ Top|Bottom {
-                                $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Left] - @stroke[Right]) );
+                                $gfx.DashPattern = self!dash-pattern: $border-style, :$width, :length(w);
                                 $gfx.MoveTo( @stroke[Left], pos);
                                 $gfx.LineTo( @stroke[Right], pos);
                             }
                             else {
-                                $gfx.DashPattern = self!dash-pattern( $border-style, :$width, :length(@stroke[Top] - @stroke[Bottom]) );
+                                $gfx.DashPattern = self!dash-pattern: $border-style, :$width, :length(h);
                                 $gfx.MoveTo( pos, @stroke[Top] );
                                 $gfx.LineTo( pos, @stroke[Bottom] );
                             }

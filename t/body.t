@@ -10,7 +10,7 @@ sub mm($_) { (0mm +css $_) }
 sub pt($_) { (0pt +css $_) }
 
 my PDF::Content::XObject $bg-image .= open("t/images/semitransparent.gif");
-my CSS::Properties $css .= new: :style("size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 0pt solid red");
+my CSS::Properties() $css = "size: a5; margin-left:3pt; background-image: url($bg-image); background-color: blue; opacity: .3; border: 0pt solid red";
 
 my PDF::Style::Body $body .= new: :$css;
 my @html = '<html>', $body.html-start;

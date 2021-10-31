@@ -8,7 +8,7 @@ use PDF::Lite;
 
 # also dump to HTML, for comparision
 
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red");
+my CSS::Properties() $css = "font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red";
 my PDF::Style::Body $body .= new;
 
 my PDF::Lite $pdf .= new;
@@ -46,7 +46,7 @@ for [ '_=_' => '=',
     my $text = (++$n,.value, ':', .key, $style).join: ' ';
     my $elem = $body.element( :$text, :$css );
     @html.push: $elem.html;
-    $page.gfx.do(.xobject, .left, .bottom) with $elem;
+    .render($page.gfx, .left, .bottom) with $elem;
 
     my $elem-height = $elem.top - $elem.bottom;
     my $expected-height = $test-height eq 'snug'

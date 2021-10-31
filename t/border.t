@@ -10,7 +10,7 @@ use PDF::Lite;
 
 # also dump to HTML, for comparision
 
-my CSS::Properties $css .= new: :style("font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt");
+my CSS::Properties() $css = "font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt";
 my PDF::Style::Body $body .= new;
 my @Html = '<html>', $body.html-start;
 
@@ -27,7 +27,7 @@ sub test($body, $css, $settings = {}, Bool :$feed = True) {
     warn {:$text}.perl;
     my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
-    $page.gfx.do(.xobject, .left, .bottom) with $elem;
+    .render($page.gfx, .left, .bottom) with $elem;
 
     if ($feed) {
         if ++$n %% 2 {

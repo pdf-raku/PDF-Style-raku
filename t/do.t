@@ -13,7 +13,7 @@ my PDF::Lite $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 
-my CSS::Properties $css .= new: :style("font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt");
+my CSS::Properties() $css = "font-family:Vera; font-weight: 200;width:250pt; height:80pt; border: 1px solid green; padding:2pt";
 
 my $text = q:to"--ENOUGH!!--".lines.join: ' ';
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -37,4 +37,4 @@ $page.graphics: -> $gfx {
         with $image-elem;
 }
 
-$pdf.save-as: "t/xobject.pdf";
+$pdf.save-as: "t/do.pdf";

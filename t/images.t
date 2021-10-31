@@ -11,7 +11,7 @@ use PDF::Lite;
 # also dump to HTML, for comparision
 
 my PDF::Style::Body $body .= new;
-my CSS::Properties $css .= new: :style("font-family:Helvetica; height:250pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)");
+my CSS::Properties() $css = "font-family:Helvetica; height:250pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.2)";
 my @Html = '<html>', $body.html-start;
 
 my PDF::Lite $pdf .= new;
@@ -45,7 +45,7 @@ sub test($body, $base-css, $settings = {}, Str :$caption is copy, |c) {
     $css.set-properties(|$settings);
     my $elem = $body.element( :$css, |c );
     @Html.push: $elem.html;
-    $page.gfx.do(.xobject, .left, .bottom) with $elem;
+    .render($page.gfx, .left, .bottom) with $elem;
 
     $caption //= ~ CSS::Properties.new: |$settings;
     if $caption {
@@ -59,7 +59,7 @@ sub test($body, $base-css, $settings = {}, Str :$caption is copy, |c) {
         $caption-css.delete('height');
         my $caption-box = $body.element( :css($caption-css), :text($caption) );
         @Html.push: $caption-box.html;
-        $page.gfx.do(.xobject, .left, .bottom) with $caption-box;
+        .render($page.gfx, .left, .bottom) with $caption-box;
     }
 
     if ++$n %% 2 {
