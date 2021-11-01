@@ -11,6 +11,7 @@ class PDF::Style::Body
     has PDF::Style::Element @.elements;
     use CSS::PageBox;
     use CSS::Units :pt;
+    use CSS::Stylesheet;
 
     submethod TWEAK(:$gfx, |c) {
         my %opt;
@@ -99,26 +100,44 @@ class PDF::Style::Body
         @!elements.tail;
     }
 
+    # compute style from :$tag and :$css arguments
+    method !args(*%o) {
+        %o<container> //= self.box;
+
+        with %o<tag> {
+            with .style -> $tag-css {
+                with %o<css> -> $css {
+                    %o<css> = CSS::Stylesheet::merge-properties([$tag-css, $css]);
+                }
+                else {
+                    %o<css> = $tag-css;
+                }
+            }
+        }
+
+        %o;
+    }
+
     multi method element( :$html-canvas!, |c) {
         require PDF::Style::Element::HTMLCanvas;
-        PDF::Style::Element::HTMLCanvas.place-element( :$html-canvas, :container(self.box), |c);
+        PDF::Style::Element::HTMLCanvas.place-element( :$html-canvas, |self!args(|c));
     }
 
     multi method element( :$image!, |c) {
-        PDF::Style::Element::Image.place-element( :$image, :container(self.box), |c);
+        PDF::Style::Element::Image.place-element: :$image, |self!args(|c);
     }
 
     multi method element( :$xobject!, |c) {
-        PDF::Style::Element::Image.place-element( :$xobject, :container(self.box), |c);
+        PDF::Style::Element::Image.place-element: :$xobject, |self!args(|c);
     }
 
     multi method element( :$text!, |c) {
         require PDF::Style::Element::Text;
-        PDF::Style::Element::Text.place-element( :$text, :container(self.box), |c);
+        PDF::Style::Element::Text.place-element: :$text, |self!args(|c);
     }
 
     multi method element( |c) is default {
-        PDF::Style::Element.place-element( :container(self.box), |c);
+        PDF::Style::Element.place-element: |self!args(|c);
     }
 
     method render-element($) { }

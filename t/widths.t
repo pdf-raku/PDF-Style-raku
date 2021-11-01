@@ -4,7 +4,7 @@ plan 11;
 
 use PDF::Style::Body;
 use PDF::Style::Element;
-use PDF::Lite;
+use PDF::Class;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
 
@@ -13,7 +13,7 @@ use CSS::Units :pt, :ops;
 my CSS::Properties() $css = "font-family:Helvetica; height:60pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red";
 my PDF::Style::Body $body .= new;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 my @html = '<html>', $body.html-start;

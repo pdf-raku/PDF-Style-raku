@@ -13,6 +13,7 @@ class PDF::Style::Element::Text
     use PDF::Content::Text::Box;
     use PDF::Content::FontObj;
     has PDF::Content::Text::Box $.text;
+    use PDF::Tags::Elem;
 
     method !text-box-options( :$font!, CSS::Properties :$css! ) {
         my $kern = $css.font-kerning eq 'normal' || (
@@ -48,8 +49,9 @@ class PDF::Style::Element::Text
     #| create a child element. Positioning is relative to this object. CSS styles
     #| are inherited from this object.
     method place-element( Str:D :$text!,
-                    CSS::Properties :$css!,
-                    CSS::Box :$container!,
+                          CSS::Properties :$css!,
+                          CSS::Box :$container!,
+                          PDF::Tags::Elem :$tag,
         ) {
 
         my PDF::Style::Font $font = $container.font.setup($css);
@@ -57,7 +59,7 @@ class PDF::Style::Element::Text
         my &build-content = sub (|c) {
             text => PDF::Content::Text::Box.new( :$text, |%opt, |c);
         };
-        nextwith(:$css, :&build-content, :$container);
+        nextwith(:$css, :&build-content, :$container, :$tag);
     }
 
     method !set-font-color($gfx) {

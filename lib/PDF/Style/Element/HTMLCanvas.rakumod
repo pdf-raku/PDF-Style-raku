@@ -8,12 +8,17 @@ class PDF::Style::Element::HTMLCanvas
     use CSS::Box;
     use CSS::Properties;
     use PDF::Content::Canvas;
+    use PDF::Tags::Elem;
 
     has Any:D $.html-canvas is required;
 
-    method place-element( :$html-canvas!, CSS::Properties:$css!, CSS::Box :$container!) {
+    method place-element( :$html-canvas!,
+                          CSS::Properties:$css!,
+                          CSS::Box :$container!,
+                          PDF::Tags::Elem :$tag,
+                        ) {
         my &build-content = sub (|) { :$html-canvas };
-        nextwith(:$css, :&build-content, :$container);
+        nextwith(:$css, :&build-content, :$container, :$tag);
     }
 
     method render-element($gfx) {

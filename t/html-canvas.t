@@ -5,7 +5,7 @@ plan 2;
 use PDF::Style::Body;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
-use PDF::Lite;
+use PDF::Class;
 my $canvas-class;
 unless try {
     $canvas-class = (require HTML::Canvas);
@@ -19,7 +19,7 @@ my PDF::Style::Body $body .= new;
 my CSS::Properties() $css = "width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 1px solid rgba(0,0,128,.5); background-color: rgba(0,255,0,.1);";
 my @Html = '<html>', $body.html-start;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 my $n;

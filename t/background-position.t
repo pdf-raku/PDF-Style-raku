@@ -4,12 +4,12 @@ use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
-use PDF::Lite;
+use PDF::Class;
 use PDF::Content::XObject;
 
 # also dump to HTML, for comparision
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my @Html = '<html>';
 my ($page, $n); # closure variables
 

@@ -3,13 +3,13 @@ use Test;
 plan 1;
 
 use PDF::Style::Body;
-use PDF::Lite;
+use PDF::Class;
 use CSS::Properties;
 use CSS::Units :ops, :pt;
 
 my PDF::Style::Body $body .= new;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 

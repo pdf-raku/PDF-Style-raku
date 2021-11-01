@@ -4,7 +4,7 @@ use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
-use PDF::Lite;
+use PDF::Class;
 use PDF::Content::XObject;
 
 # also dump to HTML, for comparision
@@ -13,7 +13,7 @@ my PDF::Style::Body $body .= new;
 my CSS::Properties() $css = "font-family:Helvetica; width:250pt; height:80pt; position:absolute; top:20pt; left:20pt; border: 5px solid rgba(0,128,0,.5); margin: 5pt; padding: 5pt";
 my @Html = '<html>', $body.html-start;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 my $n;
 

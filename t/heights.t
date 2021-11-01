@@ -4,14 +4,14 @@ use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
-use PDF::Lite;
+use PDF::Class;
 
 # also dump to HTML, for comparision
 
 my CSS::Properties() $css = "font-family:Helvetica; width:250pt; position:absolute; top:10pt; left:20pt; border:1pt solid red";
 my PDF::Style::Body $body .= new;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate: $pdf.add-page;
 $page.gfx.comment = True;
 $page.media-box = [0, 0, ($body.width)pt, ($body.height)pt ];

@@ -11,10 +11,13 @@ class PDF::Style::Element
     use PDF::Content::Matrix :transform;
     use Color;
     use CSS::Properties;
+    use CSS::Stylesheet;
     use CSS::Units :Lengths, :pt;
+    use PDF::Tags::Elem;
 
     use CSS::Box :Edges;
     has CSS::Box $.box handles<Array left top bottom right width height css translate border> is rw;
+    has PDF::Tags::Elem $.tag;
 
     submethod TWEAK(Numeric :$em = 12pt, :gfx($), |c) {
         $!box //= do {
@@ -241,28 +244,39 @@ class PDF::Style::Element
         $xobject;
     }
 
-    # non-containerized rendering.
-    method render($gfx, $x = $.left, $y = $.bottom, |c) {
-        my $opacity = $.css.opacity.Num;
-
-        if $opacity < 1 && || ! self.isa("PDF::Style::Element::Text") {
-           # need to box it, to apply transparency.
-            my @BBox = self!bbox;
-           my PDF::Content::Canvas:D $xobject .= xobject-form: :@BBox;
-           $xobject.graphics: {
-               .FillAlpha = .StrokeAlpha = $opacity;
-               self!render($_, |c);
-           }
-           $gfx.do: $xobject, $x, $y, :valign<bottom>;
+    method !mark($gfx, &action) {
+        with $!tag {
+            .mark($gfx, &action);
         }
         else {
-            $gfx.Save;
-            .FillAlpha = .StrokeAlpha = $opacity
-                if $opacity < 1;
+            action();
+        }
+    }
 
-            $gfx.transform: :translate[$x, $y];
-            self!render($gfx, |c);
-            $gfx.Restore;
+    # non-containerized rendering.
+    method render($gfx, $x = $.left, $y = $.bottom, |c) {
+        self!mark: $gfx, {
+            my $opacity = $.css.opacity.Num;
+
+            if $opacity < 1 && || ! self.isa("PDF::Style::Element::Text") {
+               # need to box it, to apply transparency.
+                my @BBox = self!bbox;
+               my PDF::Content::Canvas:D $xobject .= xobject-form: :@BBox;
+               $xobject.graphics: {
+                   .FillAlpha = .StrokeAlpha = $opacity;
+                   self!render($_, |c);
+               }
+               $gfx.do: $xobject, $x, $y, :valign<bottom>;
+            }
+            else {
+                $gfx.Save;
+                .FillAlpha = .StrokeAlpha = $opacity
+                    if $opacity < 1;
+
+                $gfx.transform: :translate[$x, $y];
+                self!render($gfx, |c);
+                $gfx.Restore;
+            }
         }
     }
 
@@ -304,9 +318,12 @@ class PDF::Style::Element
     }
 
     #| create and position content within a containing box
-    method place-element(CSS::Properties :$css!,
-                         :&build-content = sub (|c) {},
-                         CSS::Box :$container!) {
+    method place-element(
+        CSS::Properties :$css!,
+        :&build-content = sub (|c) {},
+        CSS::Box :$container!,
+        PDF::Tags::Elem :$tag,
+    ) {
         my $ref    = $container.width;
         my $top    = measure($container.css, $css.top, :$ref);
         my $bottom = measure($container.css, $css.bottom, :$ref);
@@ -366,7 +383,7 @@ class PDF::Style::Element
         my $vw = $container.viewport-width;
         my $vh = $container.viewport-height;
         $css.reference-width = $ref;
-        my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$vw, :$vh, |($type => $content);
+        my \elem = self.new: :$css, :$left, :top(pdf-top), :$width, :$height, :$em, :$ex, :$vw, :$vh, :$tag, |($type => $content);
 
         # reposition to outside of border
         my Numeric @content-box[4] = elem.Array.list;

@@ -2,7 +2,7 @@ PDF-Style-raku
 ============
 __Experimental and under construction!__
 
-This is a styling module designed to work with the Raku PDF Tool-chain, including  `PDF::Lite` and `PDF::API6`, etc.
+This is a styling module designed to work with the Raku PDF Tool-chain, including  `PDF::Class` and `PDF::API6`, etc.
 
 It implements some basic CSS styling of PDF components, including pages, forms, images, or text blocks.
 
@@ -10,12 +10,12 @@ It implements some basic CSS styling of PDF components, including pages, forms, 
 
 ```
 use v6;
-use PDF::Lite;
+use PDF::Class;
 use PDF::Style;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $pdf.add-page;
 $page.media-box = 0, 0, 350, 140;
 
@@ -54,7 +54,7 @@ Other | opacity
 Elements positions and sizes on a body are calculated from CSS properties `top`, `right, `bottom`, `left`, `width` and `height`.
 
 ```
-use PDF::Lite;
+use PDF::Class;
 use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
@@ -65,7 +65,7 @@ my PDF::Content::XObject $background-image .= open: "t/images/tiny.png";
 my CSS::Properties() $css = "background-color: rgb(180,180,250); background-image: url($background-image); opacity: 0.25; width:420pt; height:595pt";
 my PDF::Style::Body $body .= new: :$css;
 
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 
 # Create a page, sized and decorated from the body element
 my $page = $body.decorate: $pdf.add-page;
@@ -107,6 +107,48 @@ $pdf.save-as: "examples/styling.pdf";
 "t/example.html".IO.spurt: $body.html;
 ```
 ![example.pdf](t/.previews/styling-001.png)
+
+## PDF::Tags Integration
+
+The `:tag` option may be used on the `element()` method to link the element
+into the PDF Structure tree.
+
+Futhermore, the `:styler` option may be used on the PDF::Tags root element to inherit styling for the tags, so that the PDF can be botyh tagged and styled at the
+same time.
+
+=begin code :lang<raku>
+
+use PDF::Tags;
+use PDF::Tags::Elem;
+use PDF::Style::Body;
+use PDF::Style::Element;
+use CSS::TagSet::TaggedPDF;
+use CSS::Properties;
+use PDF::Class;
+use PDF::Page;
+
+my PDF::Class $pdf .= new;
+my PDF::Style::Body $body .= new;
+my PDF::Page $page = $body.decorate: $pdf.add-page;
+my CSS::TagSet::TaggedPDF $styler .= new;
+my PDF::Tags $tags .= create: :$pdf, :$styler;
+my PDF::Tags::Elem $doc = $tags.Document;
+
+# add tagged/styled header text
+my PDF::Tags::Elem $header = $doc.Header1;
+my $elem = $body.element: :text("Tagged/Styled PDF Demo"), :tag($header);
+.render($page.gfx, 10, 750) with $elem;
+
+# add tagged/styled figure image
+my PDF::Tags::Elem $figure = $doc.Figure: :Alt("light bulb");
+my Str $image = "t/images/snoopy-happy-dance.jpg";
+my CSS::Properties() $css = "opacity:0.5";
+my $image-elem = $body.element(:$image, :tag($figure), :$css);
+.render($page.gfx, 10, 550) with $image-elem;
+
+$pdf.save-as: "t/tag-demo.pdf"};
+=end code
+At this stage there is no CSS::Stylesheet rule-set integration.
 
 ## CSS Property todo lists:
 

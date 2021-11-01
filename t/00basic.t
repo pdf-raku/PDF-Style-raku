@@ -6,7 +6,7 @@ use PDF::Style::Body;
 use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
-use PDF::Lite;
+use PDF::Class;
 
 # also dump to HTML, for comparision
 
@@ -14,8 +14,8 @@ my $style = "font-family: Helvetica; width: 300pt; position:absolute; left: 20pt
 my CSS::Properties $css .= new( :$style );
 my PDF::Style::Body $body .= new;
 
-my PDF::Lite $pdf .= new;
-my $Page = $body.decorate: $pdf.add-page;
+my PDF::Class $pdf .= new;
+my PDF::Page $Page = $body.decorate: $pdf.add-page;
 $Page.gfx.comment = True;
 my @Html = '<html>', $body.html-start;
 

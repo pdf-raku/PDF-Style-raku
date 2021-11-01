@@ -10,6 +10,7 @@ class PDF::Style::Element::Image
     use CSS::Units :Lengths;
     use PDF::Content;
     use PDF::Content::XObject;
+    use PDF::Tags::Elem;
 
     our class ScaledImage {
         has PDF::Content::XObject $.xobject is required handles <width height data-uri>;
@@ -58,14 +59,16 @@ class PDF::Style::Element::Image
         Str :$image,
         PDF::Content::XObject :$xobject = PDF::Content::XObject.open($image),
         CSS::Properties :$css!,
-        CSS::Box :$container!) {
+        CSS::Box :$container!,
+        PDF::Tags::Elem :$tag,
+    ) {
         my $width = css-width($container, $css);
         my $height = css-height($container, $css);
         my &build-content = sub (|) {
             my ScaledImage $image .= new( :$xobject, :$css, :$width, :$height );
             :$image;
         }
-        nextwith(:$css, :&build-content, :$container);
+        nextwith(:$css, :&build-content, :$container, :$tag);
     }
 
     method html {

@@ -2,7 +2,7 @@ use v6;
 use Test;
 use PDF::Style::Body;
 use CSS::Properties;
-use PDF::Lite;
+use PDF::Class;
 use PDF::Content::XObject;
 use CSS::Units :mm, :pt, :px, :ops;
 
@@ -23,7 +23,7 @@ is-approx mm($body.width), (148mm -css (LeftMargin +css Borders)), 'width - stan
 is-approx mm($body.height), (210mm -css Borders), 'height - standard';
 is mm($body.width('margin')), 148mm, 'margin width';
 is mm($body.height('margin')), 210mm, 'margin height';
-my PDF::Lite $pdf .= new;
+my PDF::Class $pdf .= new;
 my $page = $body.decorate($pdf.add-page);
 is $page.width, pt(148mm), 'decorated page width';
 is $page.height, pt(210mm), 'decorated page height';
