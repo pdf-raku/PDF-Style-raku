@@ -116,8 +116,7 @@ into the PDF Structure tree.
 Futhermore, the `:styler` option may be used on the PDF::Tags root element to inherit styling for the tags, so that the PDF can be botyh tagged and styled at the
 same time.
 
-=begin code :lang<raku>
-
+```
 use PDF::Tags;
 use PDF::Tags::Elem;
 use PDF::Style::Body;
@@ -146,9 +145,10 @@ my CSS::Properties() $css = "opacity:0.5";
 my $image-elem = $body.element(:$image, :tag($figure), :$css);
 .render($page.gfx, 10, 550) with $image-elem;
 
-$pdf.save-as: "t/tag-demo.pdf"};
-=end code
-At this stage there is no CSS::Stylesheet rule-set integration.
+$pdf.save-as: "t/tag-demo.pdf"
+```
+
+At this stage there is no CSS::Stylesheet CSS Selectors integration.
 
 ## CSS Property todo lists:
 

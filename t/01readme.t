@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 2;
+plan 3;
 
 # ensure consistant document ID generation
 srand(123456);
