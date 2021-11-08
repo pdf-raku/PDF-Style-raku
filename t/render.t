@@ -25,7 +25,7 @@ $css.bottom = '700pt';
 
 $page.graphics: -> $gfx {
     my $text-elem = $body.element( :$text, :$css);
-    note $text-elem.render($gfx);
+    $text-elem.render($gfx);
 
     my Str $image = "t/images/snoopy-happy-dance.jpg";
     $css.delete("height");

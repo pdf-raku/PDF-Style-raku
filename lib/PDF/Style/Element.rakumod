@@ -19,7 +19,7 @@ class PDF::Style::Element
     has CSS::Box $.box handles<Array left top bottom right width height css translate border> is rw;
     has PDF::Tags::Elem $.tag;
 
-    submethod TWEAK(Numeric :$em = 12pt, :gfx($), |c) {
+    submethod TWEAK(Numeric :$em = 12pt, :gfx($), :base-url($), :font-face($), |c) {
         $!box //= do {
             my PDF::Style::Font $font .= new: :$em;
             CSS::Box.new: :$font, |c;

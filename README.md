@@ -108,12 +108,45 @@ $pdf.save-as: "examples/styling.pdf";
 ```
 ![example.pdf](t/.previews/styling-001.png)
 
+## Font Management
+
+By default, this module uses `fontconfig` to
+load the most appropriate system font for the current CSS font properties (`font-family`, `font-style`, `font-weight, and `font-stretch`).
+
+CSS `@font-face` font descriptors can be used to define a set of fonts to load based on font properties.
+
+```
+use PDF::Style::Body;
+use PDF::Style::Element;
+use CSS::Font::Descriptor;
+use CSS::Properties;
+use CSS::Units :pt, :ops;
+use PDF::Class;
+use PDF::Font::Loader::FontObj;
+
+my CSS::Font::Descriptor() @font-face = q:to<END>;
+    font-family: "ugly";
+    src: url("fonts/FreeMono.ttf");
+    END
+
+my CSS::Properties() $css = "font-family:ugly; height:30pt; width:110pt; position:absolute; top:10pt; left:10pt; right:10pt; border:1pt solid red;";
+my PDF::Style::Body $body .= new: :@font-face, :base-url<t/>;
+
+my PDF::Class $pdf .= new;
+my $Page = $body.decorate: $pdf.add-page;
+
+my $elem = $body.element( :text("Mono Text"), :$css);
+$elem.render: $Page.gfx;
+
+$pdf.save-as: "/tmp/at-font-face.pdf"};
+```
+
 ## PDF::Tags Integration
 
 The `:tag` option may be used on the `element()` method to link the element
 into the PDF Structure tree.
 
-Futhermore, the `:styler` option may be used on the PDF::Tags root element to inherit styling for the tags, so that the PDF can be botyh tagged and styled at the
+Futhermore, the `:styler` option may be used on the PDF::Tags root element to inherit styling for the tags, so that the PDF can be both tagged and styled at the
 same time.
 
 ```
@@ -136,21 +169,27 @@ my PDF::Tags::Elem $doc = $tags.Document;
 # add tagged/styled header text
 my PDF::Tags::Elem $header = $doc.Header1;
 my $elem = $body.element: :text("Tagged/Styled PDF Demo"), :tag($header);
+note $elem.css; # display:block; font-size:2em; font-weight:bolder; margin-bottom:0.67em; margin-top:0.67em; unicode-bidi:embed;
 .render($page.gfx, 10, 750) with $elem;
 
 # add tagged/styled figure image
 my PDF::Tags::Elem $figure = $doc.Figure: :Alt("light bulb");
 my Str $image = "t/images/snoopy-happy-dance.jpg";
-my CSS::Properties() $css = "opacity:0.5";
+my CSS::Properties() $css = "padding:2px; border:1px dashed red; opacity:0.5";
 my $image-elem = $body.element(:$image, :tag($figure), :$css);
 .render($page.gfx, 10, 550) with $image-elem;
 
 $pdf.save-as: "t/tag-demo.pdf"
 ```
+## Font Management
 
-At this stage there is no CSS::Stylesheet CSS Selectors integration.
 
-## CSS Property todo lists:
+
+## Bugs/Limitations
+
+ - At this stage there is no CSS::Stylesheet integration.
+
+### CSS Property todo lists:
 
 Property|Notes|To-do
 ---|---|---

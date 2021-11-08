@@ -6,23 +6,28 @@ class PDF::Style::Body
     is PDF::Style::Element {
 
     use PDF::Style::Element::Image;
+    use PDF::Style::Font;
     use CSS::Box :Edges;
     use PDF::Content::Canvas;
     has PDF::Style::Element @.elements;
     use CSS::PageBox;
     use CSS::Units :pt;
     use CSS::Stylesheet;
+    use CSS::Font::Descriptor;
+    use URI;
 
-    submethod TWEAK(:$gfx, |c) {
+    submethod TWEAK(:$gfx, CSS::Font::Descriptor :@font-face, URI() :$base-url, |c) {
         my %opt;
         with $gfx {
             %opt<width>  = %opt<viewport-width>  = 0pt + .width;
             %opt<height> = %opt<viewport-height> = 0pt + .height;
         }
         # replace regular box with a page box.
-        my $css = self.box.css;
-        my $font = self.box.font;
-        self.box = CSS::PageBox.new: :$css, :$font, |%opt;
+        my $css  = self.box.css;
+        my PDF::Style::Font $font = self.box.font;
+        $font.base-url = $_ with $base-url;
+        $font.font-face.append: @font-face;
+        self.box = CSS::PageBox.new: :$css, :$font, |%opt, |c;
     }
 
     #| decorate the background of a PDF page, xobject, or pattern that's acting as a body
@@ -31,15 +36,15 @@ class PDF::Style::Body
         self.TWEAK(:$gfx) if $resize;
         (.can('BBox') ?? .BBox !! .media-box) = [0, 0, self.width("margin"), self.height("margin") ];
         # draw borders + background image
-        $gfx.do(.xobject, .left, .bottom) with self;
+        .render($gfx, .left, .bottom) with self;
         $_;
     }
 
     method !make-image(PDF::Content::XObject $xobject!) {
-        my $width  = self.box.css-width($.css);
-        my $height = self.box.css-height($.css);
         my \image  = PDF::Style::Element::Image::Content.new: :image($xobject);
-        if $width {
+        my $height = self.box.css-height($.css);
+
+        if self.box.css-width($.css) -> $width {
             image.x-scale = $width / image.width;
             image.y-scale = $height
                     ?? $height / image.height
@@ -107,7 +112,7 @@ class PDF::Style::Body
         with %o<tag> {
             with .style -> $tag-css {
                 with %o<css> -> $css {
-                    %o<css> = CSS::Stylesheet::merge-properties([$tag-css, $css]);
+                    %o<css> = CSS::Stylesheet::merge-properties [$tag-css, $css];
                 }
                 else {
                     %o<css> = $tag-css;
@@ -120,7 +125,7 @@ class PDF::Style::Body
 
     multi method element( :$html-canvas!, |c) {
         require PDF::Style::Element::HTMLCanvas;
-        PDF::Style::Element::HTMLCanvas.place-element( :$html-canvas, |self!args(|c));
+        PDF::Style::Element::HTMLCanvas.place-element: :$html-canvas, |self!args(|c);
     }
 
     multi method element( :$image!, |c) {
