@@ -14,7 +14,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macOS-latest
+            #- macOS-latest
           #- windows-latest
         raku-version:
           - 'latest'
@@ -28,6 +28,7 @@ jobs:
       - name: Install Dependencies
         run: |
           # install and test if need be (includes [test-depends])
+          zef upgrade zef # needed on 2020.11 for zef repos
           zef install --/test App::Prove6
           zef install --deps-only .
       - name: Run Tests
