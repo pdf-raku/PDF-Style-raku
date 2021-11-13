@@ -44,7 +44,7 @@ Type | Properties
 Borders | border-color, border-style ('dotted', 'dashed', 'solid' only),  border-width, padding, margin
 Backgrounds | background-color, background-image (url encoded only), background-position, background-repeat
 Sizing  | height, max-height, min-height, width, max-width, min-width
-Text | font-family, font-style, font-size, font-kerning, font-stretch, font-weight, color, letter-spacing, line-height, text-align vertical-align ('top', 'center', 'bottom' only), word-spacing 
+Text | font-family, font-style, font-size, font-kerning, font-stretch, font-weight, color, letter-spacing, line-height, text-align, text-indent, vertical-align ('top', 'center', 'bottom' only), word-spacing 
 Positioning  | bottom, top, left, right
 Body | size, (also border and background properties: padding, border, margin, background-color, etc)
 Other | opacity
@@ -138,7 +138,7 @@ my $Page = $body.decorate: $pdf.add-page;
 my $elem = $body.element( :text("Mono Text"), :$css);
 $elem.render: $Page.gfx;
 
-$pdf.save-as: "/tmp/at-font-face.pdf"};
+$pdf.save-as: "/tmp/at-font-face.pdf";
 ```
 
 ## PDF::Tags Integration
@@ -181,13 +181,10 @@ my $image-elem = $body.element(:$image, :tag($figure), :$css);
 
 $pdf.save-as: "t/tag-demo.pdf"
 ```
-## Font Management
-
-
 
 ## Bugs/Limitations
 
- - At this stage there is no CSS::Stylesheet integration.
+ - Tags don't yet integrate with CSS Selectors
 
 ### CSS Property todo lists:
 

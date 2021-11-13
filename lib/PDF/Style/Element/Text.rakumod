@@ -15,11 +15,12 @@ class PDF::Style::Element::Text
     has PDF::Content::Text::Box $.text;
     use PDF::Tags::Elem;
 
-    method !text-box-options( :$font!, CSS::Properties :$css! ) {
+    method !text-box-options( :$font!, CSS::Properties :$css!, CSS::Box :$container ) {
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $css.em <= 32
         );
 
+        my $indent = $css.measure(:text-indent, :ref($container.width));
         my $align = $css.text-align;
         my $font-size = $css.em;
         my $leading = $css.measure(:line-height) / $font-size;
@@ -31,7 +32,7 @@ class PDF::Style::Element::Text
             when 'top'|'bottom' { $_ }
             default { 'top' };
         }
-        my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign;
+        my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign, :$indent;
 
         given $css.letter-spacing {
             %opt<CharSpacing> = $css.measure($_)
@@ -55,7 +56,7 @@ class PDF::Style::Element::Text
         ) {
 
         my PDF::Style::Font $font = $container.font.setup($css);
-        my %opt = self!text-box-options( :$font, :$css);
+        my %opt = self!text-box-options( :$font, :$css, :$container);
         my &build-content = sub (|c) {
             text => PDF::Content::Text::Box.new( :$text, |%opt, |c);
         };

@@ -48,6 +48,8 @@ for [ { :line-height<9pt> },
       { :word-spacing<15pt> },
       { :font-stretch<ultra-condensed> },
       { :font-stretch<ultra-expanded> },
+      { :text-indent<10pt> },
+      { :text-indent<-5pt> },
       ] {
 
     test($body, $css, $_);
@@ -57,7 +59,7 @@ $css.delete('top');
 
 # do one padded block positioned from the bottom
 
-$css.bottom = $css.height +css 30pt;
+$css.bottom = $css.height -css 40pt;
 $css.right = ($body.width)pt -css $css.left -css $css.width;
 $css.delete('left');
 test($body, $css, :!feed);
