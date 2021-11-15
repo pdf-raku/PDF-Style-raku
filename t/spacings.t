@@ -19,7 +19,7 @@ my $n;
 
 sub test($body, $base-css, $settings = {}, Bool :$feed = True) {
     my $css = $base-css.clone: |$settings;
-    my $text = $css.write;
+    my $text = $css.write: :pretty;
     warn {:$text}.perl;
     my $elem = $body.element( :$text, :$css );
     @Html.push: $elem.html;
@@ -50,6 +50,7 @@ for [ { :line-height<9pt> },
       { :font-stretch<ultra-expanded> },
       { :text-indent<10pt> },
       { :text-indent<-5pt> },
+      { :white-space<pre-line> },
       ] {
 
     test($body, $css, $_);

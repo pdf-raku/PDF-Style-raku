@@ -44,6 +44,17 @@ class PDF::Style::Element::Text
                 unless $_ eq 'normal';
         }
 
+        given $css.white-space {
+            when 'normal' {}
+            when 'pre'|'pre-wrap'|'break-spaces' {
+                %opt<verbatum> = True;
+            }
+            when 'pre-line' {
+                %opt<verbatum> = True;
+                %opt<squish> = True;
+            }
+        }
+
         %opt;
     }
 
