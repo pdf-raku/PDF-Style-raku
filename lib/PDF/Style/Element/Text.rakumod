@@ -83,10 +83,15 @@ class PDF::Style::Element::Text
         }
     }
 
+    method !div(CSS::Properties $css, Str $text) {
+        my $style-att = $css
+            ?? $.html-escape($css.write).fmt: ' style="%s"'
+            !! '';
+        '<div%s>%s</div>'.sprintf($style-att, $text);
+    }
+
     method html {
-        my $css = $.css.clone;
-        $css.vertical-align = Nil; # we'll deal with this later
-        my $style = $css.write;
+        my $css = $.css;
 
         my $text = do with $!text {
             $.html-escape(.text);
@@ -94,18 +99,24 @@ class PDF::Style::Element::Text
         else {
             ''
         }
-        with $.css.vertical-align -> $valign {
-            when 'baseline' { }
-            default {
-                # wrap content in a table cell for valign to take affect
-                $text = '<table width="100%%" height="100%%" cellspacing=0 cellpadding=0><tr><td style="vertical-align:%s">%s</td></tr></table>'.sprintf($valign, $text);
+
+        given $css.vertical-align -> $valign {
+            unless $valign eq 'baseline' {
+                # hah, we're verically aligning a div!
+                # wrap content in sized div for vertical align to take affect
+                my @size-props = <top left bottom right width height position>.grep: {$css.property-exists($_)};
+                if @size-props {
+                    my CSS::Properties:D $inner = $css.clone;
+                    $css = CSS::Properties.copy($inner, :properties(@size-props));
+                    $css.display = 'table';
+                    $inner.delete: @size-props;
+                    $inner.display = 'table-cell';
+                    $text = self!div($inner, $text);
+                }
             }
         }
 
-        my $style-att = $style
-            ?? $.html-escape($style).fmt: ' style="%s"'
-            !! '';
-        '<div%s>%s</div>'.sprintf($style-att, $text);
+        self!div($css, $text);
     }
 
 }
