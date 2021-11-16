@@ -11,7 +11,7 @@ It implements some basic CSS styling of PDF components, including pages, forms, 
 ```
 use v6;
 use PDF::Class;
-use PDF::Style;
+use PDF::Style::Element;
 use CSS::Properties;
 use CSS::Units :pt, :ops;
 
@@ -29,7 +29,7 @@ my $text = q:to"--ENOUGH!!--".lines.join: ' ';
 
 $css.bottom = 20pt;
 $css.left = 20pt;
-my PDF::Style $text-elem .= element: :$text, :$css;
+my PDF::Style::Element $text-elem .= element: :$text, :$css;
 
 # display it on the page
 .render( $page.gfx, .bottom, .left) given $text-elem;
@@ -192,8 +192,8 @@ Property|Notes|To-do
 ---|---|---
 border-style|'dotted', 'dashed', 'solid'|Other styles.
 text-decoration||NYI
-text-indent||NYI
 text-transform||NYI
+white-space|normal and pre-wrap|Other modes
 vertical-align|'top', 'center', 'bottom' only|Other modes
   
 ### CSS Property Shortlist
@@ -210,7 +210,6 @@ vertical-align|'top', 'center', 'bottom' only|Other modes
 - table-layout
 - text-decoration
 - visibility
-- white-spacing
 
 ### Nice to have:
 
