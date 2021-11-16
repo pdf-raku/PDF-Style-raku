@@ -12,6 +12,7 @@ class PDF::Style {
 
     use CSS::Units :Lengths, :pt;
     use CSS::Box :Edges;
+    use CSS::Font;
 
     has CSS::Box $.box handles<Array left top bottom right width height css translate border> is rw;
 
@@ -203,6 +204,49 @@ class PDF::Style {
 
             self!render-border($gfx, @border);
         }
+    }
+
+    method text-box-options( CSS::Font :$font = $!box.font, CSS::Properties :$css = $!box.css, Numeric :$ref = 0) {
+        my $kern = $css.font-kerning eq 'normal' || (
+            $css.font-kerning eq 'auto' && $css.em <= 32
+        );
+
+        my $indent = $css.measure(:text-indent, :$ref);
+        my $align = $css.text-align;
+        my $font-size = $css.em;
+        my $leading = $css.measure(:line-height) / $font-size;
+        my PDF::Content::FontObj $face = $font.font-obj;
+
+        # support a vertical-align subset
+        my $valign = do given $css.vertical-align {
+            when 'middle' { 'center' }
+            when 'top'|'bottom' { $_ }
+            default { 'top' };
+        }
+        my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign, :$indent;
+
+        given $css.letter-spacing {
+            %opt<CharSpacing> = $css.measure($_)
+                unless $_ eq 'normal';
+        }
+
+        given $css.word-spacing {
+            %opt<WordSpacing> = $css.measure($_) - $face.stringwidth(' ', $font-size)
+                unless $_ eq 'normal';
+        }
+
+        given $css.white-space {
+            when 'normal' {}
+            when 'pre'|'pre-wrap'|'break-spaces' {
+                %opt<verbatum> = True;
+            }
+            when 'pre-line' {
+                %opt<verbatum> = True;
+                %opt<squish> = True;
+            }
+        }
+
+        %opt;
     }
 
 }
