@@ -5,14 +5,14 @@ use PDF::Class;
 use PDF::Content;
 plan 12;
 
-my CSS::Properties() $css = "font-family: Helvetica; white-space: pre; font-weight:bold; text-indent:10pt; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
+my CSS::Properties() $css = "font-family: Helvetica; white-space: pre; font-weight:bold; text-indent:10pt; color:blue; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
 
 my PDF::Style::Basic $styler .= new: :$css, :width(120), :height(185);
 is $styler.width, 120;
 is $styler.height, 185;
 
 my PDF::Class $pdf .= new;
-$pdf.add-page.graphics: -> $gfx {
+$styler.graphics: $pdf.add-page.gfx, -> $gfx {
     $gfx.transform: :translate(40, 350);
     lives-ok {$styler.style-box($gfx);}
     my %style = $styler.text-box-options;

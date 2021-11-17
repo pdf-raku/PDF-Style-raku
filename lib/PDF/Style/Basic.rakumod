@@ -5,7 +5,7 @@ class PDF::Style::Basic {
     use Color;
 
     use PDF::Content;
-    use PDF::Content::Color :color;
+    use PDF::Content::Color :color, :gray;
     use PDF::Content::Matrix :transform;
 
     use PDF::Style::Font;
@@ -249,4 +249,15 @@ class PDF::Style::Basic {
         %opt;
     }
 
+    method setup-graphics(PDF::Content $_) {
+        .FillColor = do with $.css.color { color $_ } else { gray(0.0) };
+        .FillAlpha = .StrokeAlpha = $.css.opacity.Num;
+    }
+
+    method graphics(PDF::Content $_, &actions) {
+        .graphics: {
+            self.setup-graphics($_);
+            &actions($_);
+        }
+    }
 }
