@@ -1,6 +1,6 @@
 use v6;
 
-class PDF::Style {
+class PDF::Style::Basic {
 
     use Color;
 

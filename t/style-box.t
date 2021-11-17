@@ -1,30 +1,36 @@
-use PDF::Style;
+use PDF::Style::Basic;
 use CSS::Properties;
 use Test;
 use PDF::Class;
 use PDF::Content;
 plan 12;
 
-my CSS::Properties() $css = "font-family: Helvetica; white-space: pre; font-weight:bold; text-indent:2pt; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
+my CSS::Properties() $css = "font-family: Helvetica; white-space: pre; font-weight:bold; text-indent:10pt; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
 
-my PDF::Style $styler .= new: :$css, :width(120), :height(180);
+my PDF::Style::Basic $styler .= new: :$css, :width(120), :height(185);
 is $styler.width, 120;
-is $styler.height, 180;
+is $styler.height, 185;
 
 my PDF::Class $pdf .= new;
 $pdf.add-page.graphics: -> $gfx {
     $gfx.transform: :translate(40, 350);
     lives-ok {$styler.style-box($gfx);}
-    my %options = $styler.text-box-options;
-    is %options<align>, "left";
-    is %options<baseline>, "top";
-    is-deeply %options<font-size>, 12;
-    isa-ok %options<font>, "PDF::Font::Loader::FontObj";
-    is %options<indent>, 2;
-    isa-ok %options<kern>, True;
-    is-deeply %options<leading>, 1.2;
-    is %options<valign>, "top";
-    is-deeply %options<verbatum>, True;
-};
+    my %style = $styler.text-box-options;
+    is %style<align>, "left";
+    is %style<baseline>, "top";
+    is-deeply %style<font-size>, 12;
+    isa-ok %style<font>, "PDF::Font::Loader::FontObj";
+    is %style<indent>, 10;
+    isa-ok %style<kern>, True;
+    is-deeply %style<leading>, 1.2;
+    is %style<valign>, "top";
+    is-deeply %style<verbatum>, True;
+    $gfx.say: q:to"END", :width(120), :position[0, 185], |%style;
+        Lorem ipsum dolor sit amet, consectetur
+        adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco.
+        END
+}
 
 $pdf.save-as: "t/style-box.pdf";
