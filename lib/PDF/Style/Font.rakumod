@@ -12,7 +12,7 @@ class PDF::Style::Font
     submethod TWEAK(|c) {
             $!font-loader .= new: |c;
     }
-    method font-obj( PDF::Style::Font:D $font:) returns PDF::Content::FontObj {
+    method font-obj(PDF::Style::Font:D $font:) returns PDF::Content::FontObj {
         state %cache;
         my CSS::Font::Resources::Source $source = $!font-loader.source: :$font;
         my $key = do with $source { .Str } else { '' };

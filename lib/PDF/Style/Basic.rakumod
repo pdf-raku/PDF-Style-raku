@@ -18,7 +18,7 @@ class PDF::Style::Basic {
 
     submethod TWEAK(Numeric :$em = 12pt, :gfx($), :base-url($), :font-face($), |c) {
         $!box //= do {
-            my PDF::Style::Font $font .= new: :$em;
+            my PDF::Style::Font $font .= new: :$em, |c;
             CSS::Box.new: :$font, |c;
         }
     }
@@ -206,7 +206,12 @@ class PDF::Style::Basic {
         }
     }
 
-    method text-box-options( CSS::Font :$font = $!box.font, CSS::Properties :$css = $!box.css, Numeric :$ref = 0) {
+    method text-box-options (
+        $?:
+        PDF::Style::Font:D :font($box-font) = $!box.font,
+        CSS::Properties :$css = $!box.css,
+                                Numeric :$ref = 0,
+    ) is export(:text-box-options) {
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $css.em <= 32
         );
@@ -215,15 +220,15 @@ class PDF::Style::Basic {
         my $align = $css.text-align;
         my $font-size = $css.em;
         my $leading = $css.measure(:line-height) / $font-size;
-        my PDF::Content::FontObj $face = $font.font-obj;
+        my PDF::Content::FontObj $font = $box-font.font-obj;
 
-        # support a vertical-align subset
+        # we currently support a vertical-align subset
         my $valign = do given $css.vertical-align {
             when 'middle' { 'center' }
             when 'top'|'bottom' { $_ }
             default { 'top' };
         }
-        my %opt = :baseline<top>, :font($face), :$kern, :$font-size, :$leading, :$align, :$valign, :$indent;
+        my %opt = :baseline<top>, :$font, :$kern, :$font-size, :$leading, :$align, :$valign, :$indent;
 
         given $css.letter-spacing {
             %opt<CharSpacing> = $css.measure($_)
@@ -231,7 +236,7 @@ class PDF::Style::Basic {
         }
 
         given $css.word-spacing {
-            %opt<WordSpacing> = $css.measure($_) - $face.stringwidth(' ', $font-size)
+            %opt<WordSpacing> = $css.measure($_) - $font.stringwidth(' ', $font-size)
                 unless $_ eq 'normal';
         }
 

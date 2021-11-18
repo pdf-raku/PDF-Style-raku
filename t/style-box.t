@@ -5,7 +5,7 @@ use PDF::Class;
 use PDF::Content;
 plan 12;
 
-my CSS::Properties() $css = "font-family: Helvetica; white-space: pre; font-weight:bold; text-indent:10pt; color:blue; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
+my CSS::Properties() $css = "font-family: Helvetica; font-size:13pt; white-space: pre; font-style:italic; text-indent:10pt; color:blue; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
 
 my PDF::Style::Basic $styler .= new: :$css, :width(120), :height(185);
 is $styler.width, 120;
@@ -18,7 +18,7 @@ $styler.graphics: $pdf.add-page.gfx, -> $gfx {
     my %style = $styler.text-box-options;
     is %style<align>, "left";
     is %style<baseline>, "top";
-    is-deeply %style<font-size>, 12;
+    is %style<font-size>, 13.0;
     isa-ok %style<font>, "PDF::Font::Loader::FontObj";
     is %style<indent>, 10;
     isa-ok %style<kern>, True;
