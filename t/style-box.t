@@ -24,7 +24,7 @@ $styler.graphics: $pdf.add-page.gfx, -> $gfx {
     isa-ok %style<kern>, True;
     is-deeply %style<leading>, 1.2;
     is %style<valign>, "top";
-    is-deeply %style<verbatum>, True;
+    is-deeply %style<verbatim>, True;
     $gfx.say: q:to"END", :width(120), :position[0, 185], |%style;
         Lorem ipsum dolor sit amet, consectetur
         adipiscing elit, sed do eiusmod tempor incididunt

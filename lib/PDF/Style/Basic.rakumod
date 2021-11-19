@@ -243,10 +243,10 @@ class PDF::Style::Basic {
         given $css.white-space {
             when 'normal' {}
             when 'pre'|'pre-wrap'|'break-spaces' {
-                %opt<verbatum> = True;
+                %opt<verbatim> = True;
             }
             when 'pre-line' {
-                %opt<verbatum> = True;
+                %opt<verbatim> = True;
                 %opt<squish> = True;
             }
         }
