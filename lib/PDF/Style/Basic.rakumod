@@ -213,7 +213,7 @@ class PDF::Style::Basic {
                                 Numeric :$ref = 0,
     ) is export(:text-box-options) {
         my $kern = $css.font-kerning eq 'normal' || (
-            $css.font-kerning eq 'auto' && $css.em <= 32
+            $css.font-kerning eq 'auto' && $css.em <= 32 && ! $css.white-space.contains("pre");
         );
 
         my $indent = $css.measure(:text-indent, :$ref);
