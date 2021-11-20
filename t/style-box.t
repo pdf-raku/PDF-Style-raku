@@ -3,9 +3,10 @@ use CSS::Properties;
 use Test;
 use PDF::Class;
 use PDF::Content;
+use PDF::Content::Color :&color, :ColorName;
 plan 12;
 
-my CSS::Properties() $css = "font-family: Helvetica; font-size:13pt; white-space: pre; font-style:italic; text-indent:10pt; color:blue; border: 1pt solid red; background-image: url(t/images/snoopy-happy-dance.jpg)";
+my CSS::Properties() $css = "font-family: Helvetica; font-size:13pt; white-space: pre; font-style:italic; text-indent:10pt; color:blue; border: 1pt solid red; margin:2pt; padding:2pt; background-image: url(t/images/snoopy-happy-dance.jpg)";
 
 my PDF::Style::Basic $styler .= new: :$css, :width(120), :height(185);
 is $styler.width, 120;
@@ -14,6 +15,7 @@ is $styler.height, 185;
 my PDF::Class $pdf .= new;
 $styler.graphics: $pdf.add-page.gfx, -> $gfx {
     $gfx.transform: :translate(40, 350);
+    draw-hairline($gfx);
     lives-ok {$styler.style-box($gfx);}
     my %style = $styler.text-box-options;
     is %style<align>, "left";
@@ -34,3 +36,15 @@ $styler.graphics: $pdf.add-page.gfx, -> $gfx {
 }
 
 $pdf.save-as: "t/style-box.pdf";
+
+sub draw-hairline($gfx) {
+    $gfx.Save;
+    $gfx.StrokeColor = color Blue;
+    $gfx.MoveTo(0, -20);
+    $gfx.LineTo(0, +20);
+    $gfx.Stroke;
+    $gfx.MoveTo(-20, 0);
+    $gfx.LineTo(+20, 0);
+    $gfx.Stroke;
+    $gfx.Restore;
+}
