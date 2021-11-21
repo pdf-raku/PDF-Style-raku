@@ -1,6 +1,6 @@
 use v6;
 
-class PDF::Style::Basic {
+class PDF::Style {
 
     use Color;
 
@@ -14,7 +14,10 @@ class PDF::Style::Basic {
     use CSS::Box :Edges;
     use CSS::Font;
 
-    has CSS::Box $.box handles<Array left top bottom right width height css translate border> is rw;
+    use Method::Also;
+
+    has CSS::Box $.box handles<Array left top bottom right width height css translate border font> is rw;
+    has PDF::Content $.gfx;
 
     submethod TWEAK(Numeric :$em = 12pt, :gfx($), :base-url($), :font-face($), |c) {
         $!box //= do {
@@ -186,24 +189,24 @@ class PDF::Style::Basic {
     }
 
     #| Do basic styling, common to all box types (image, text, canvas)
-    method style-box(PDF::Content $_) {
+    method style-box(PDF::Content $gfx = $!gfx) {
         my Numeric @border[4] = $!box.border.list;
         @border[$_] -= $.left for Left, Right;
         @border[$_] -= $.bottom for Top, Bottom;
 
-        .graphics: -> $gfx {
-            self!render-background-color($gfx, @border, $_)
-                with $.css.background-color;
+        $gfx.Save;
+        self!render-background-color($gfx, @border, $_)
+            with $.css.background-color;
 
-            my $bg-image = $.css.background-image;
-            unless $bg-image ~~ 'none' {
-                $bg-image = PDF::Content::XObject.open($bg-image)
-                    unless $bg-image ~~ PDF::Content::XObject;
-                self!render-background-image($gfx, $bg-image);
-            }
-
-            self!render-border($gfx, @border);
+        my $bg-image = $.css.background-image;
+        unless $bg-image ~~ 'none' {
+            $bg-image = PDF::Content::XObject.open($bg-image)
+                unless $bg-image ~~ PDF::Content::XObject;
+            self!render-background-image($gfx, $bg-image);
         }
+
+        self!render-border($gfx, @border);
+        $gfx.Restore;
     }
 
     method text-box-options (
@@ -259,10 +262,24 @@ class PDF::Style::Basic {
         .FillAlpha = .StrokeAlpha = $.css.opacity.Num;
     }
 
-    method graphics(PDF::Content $_, &actions) {
-        .graphics: {
-            self.setup-graphics($_);
-            &actions($_);
+    method graphics(&actions, PDF::Content :$gfx = $!gfx) {
+        $gfx.Save;
+        self.setup-graphics($gfx);
+        &actions($gfx);
+        $gfx.Restore;
+    }
+
+    method print(Str:D $text, Numeric :$ref = 0, :$gfx = $!gfx, |c) is also<say> {
+        self.graphics: :$gfx, {
+            my %opt = self.text-box-options( :$ref);
+            my PDF::Content::Text::Box $tb .= new: :$text, :$.width, :$.height, |%opt, |c;
+            my $top = $.top - $.bottom;
+            $.style-box($_);
+            $gfx.print($tb, :position[ :left(0), :$top]);
         }
+    }
+
+    method do(PDF::Content::XObject $img, Numeric :$ref = 0, :$gfx = $!gfx, |c) {
+        $gfx.do($img, :$.width, :$.height);
     }
 }

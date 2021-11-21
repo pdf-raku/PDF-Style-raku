@@ -10,7 +10,7 @@ class PDF::Style::Font
     use PDF::Font::Loader;
     use PDF::Content::FontObj;
     submethod TWEAK(|c) {
-            $!font-loader .= new: |c;
+        $!font-loader .= new: |c;
     }
     method font-obj(PDF::Style::Font:D $font:) returns PDF::Content::FontObj {
         state %cache;
