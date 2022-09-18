@@ -108,14 +108,15 @@ class PDF::Style {
     }
 
     method !render-background-image($gfx, $bg-image) {
-        my Bool (\repeat-x, \repeat-y) = do given $.css.background-repeat {
+        my enum <X Y>;
+        my Bool @repeat = do given $.css.background-repeat {
             when 'repeat'   { True, True }
             when 'repeat-x' { True, False }
             when 'repeat-y' { False, True }
             default         { False, False }
         };
-        my List \padding = $!box.padding;
-        my List \border = $!box.border;
+        my List \padding = $!box.padding.List;
+        my List \border = $!box.border.List;
         my \bg-width = border[Right] - border[Left];
         my \bg-height = border[Top] - border[Bottom];
         my @bg-region = border[Left] - padding[Left], padding[Bottom] - border[Bottom], bg-width, -bg-height;
@@ -129,7 +130,7 @@ class PDF::Style {
         $gfx.transform: :translate[ padding[Left] - $.left, padding[Top] - $.bottom];
 
         if ($width >= bg-width && $height >= bg-height)
-        || (!repeat-x && !repeat-y) {
+        || (!@repeat[X] && !@repeat[Y]) {
             # doesn't repeat no tiling pattern required
             $gfx.Rectangle(|@bg-region);
             $gfx.Clip;
@@ -141,11 +142,11 @@ class PDF::Style {
             my Numeric $XStep = $width;
             my Numeric $YStep = $height;
 
-            unless repeat-x {
+            unless @repeat[X] {
                 # step outside box in X direction
                 $XStep += bg-width;
             }
-            unless repeat-y {
+            unless @repeat[Y] {
                 # step outside box in Y direction
                 $YStep += bg-height;
                 @Matrix = transform( :matrix(@Matrix), :translate[0, bg-height] );
