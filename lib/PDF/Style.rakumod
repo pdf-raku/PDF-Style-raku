@@ -6,7 +6,7 @@ class PDF::Style {
 
     use PDF::Content;
     use PDF::Content::Color :color, :gray;
-    use PDF::Content::Matrix :transform;
+    use PDF::Content::Matrix :&multiply, :&translate;
 
     use PDF::Style::Font;
 
@@ -149,11 +149,12 @@ class PDF::Style {
             unless @repeat[Y] {
                 # step outside box in Y direction
                 $YStep += bg-height;
-                @Matrix = transform( :matrix(@Matrix), :translate[0, bg-height] );
+                @Matrix .= &multiply( translate(0, bg-height) );
             }
 
-            @Matrix = transform( :matrix(@Matrix), :translate[x, -y] )
+            @Matrix .= &multiply( translate(x, -y) )
                 if x || y;
+
             my $pattern = $gfx.tiling-pattern(:BBox[0, 0, $width, $height], :@Matrix, :$XStep, :$YStep );
 
             $pattern.gfx.do($bg-image, 0, 0, :$width, :$height );
@@ -214,7 +215,7 @@ class PDF::Style {
         $?:
         PDF::Style::Font:D :font($box-font) = $!box.font,
         CSS::Properties :$css = $!box.css,
-                                Numeric :$ref = 0,
+        Numeric :$ref = 0,
     ) is export(:text-box-options) {
         my $kern = $css.font-kerning eq 'normal' || (
             $css.font-kerning eq 'auto' && $css.em <= 32 && ! $css.white-space.contains("pre");
@@ -270,14 +271,17 @@ class PDF::Style {
         $gfx.Restore;
     }
 
-    method print(Str:D $text, Numeric :$ref = 0, :$gfx = $!gfx, |c) is also<say> {
+    method print(Str:D $text, Numeric :$ref = 0, :$gfx = $!gfx, Bool :$nl, |c) {
         self.graphics: :$gfx, {
             my %opt = self.text-box-options( :$ref);
             my PDF::Content::Text::Box $tb .= new: :$text, :$.width, :$.height, |%opt, |c;
             my $top = $.top - $.bottom;
             $.style-box($_);
-            $gfx.print($tb, :position[ :left(0), :$top]);
+            $gfx.print($tb, :position[ :left(0), :$top], :$nl);
         }
+    }
+    method say(|c) is hidden-from-backtrace {
+        self.print: :nl, |c;
     }
 
     method do(PDF::Content::XObject $img, Numeric :$ref = 0, :$gfx = $!gfx, |c) {

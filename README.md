@@ -1,6 +1,6 @@
 # PDF-Style-raku
 
-## Synopisis
+## Synopsis
 ```
 use PDF::Style;
 use CSS::Properties;
