@@ -277,7 +277,8 @@ class PDF::Style {
             my PDF::Content::Text::Box $tb .= new: :$text, :$.width, :$.height, |%opt, |c;
             my $top = $.top - $.bottom;
             $.style-box($_);
-            $gfx.print($tb, :position[ :left(0), :$top], :$nl);
+            $gfx.print($tb, :position[ 0, $top], :valign<top>, :$nl);
+note "e";
         }
     }
     method say(|c) is hidden-from-backtrace {
